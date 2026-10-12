@@ -28,12 +28,17 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 
 # Grand Theft Ufficio
 
-`ufficio.html`: gioco in stile GTA visto dall'alto, ambientato in un ufficio. Si apre con un doppio clic o dal telefono, senza registrazione, e funziona anche offline.
+`ufficio.html`: gioco in 3D in stile GTA ambientato in un ufficio, con la telecamera alle spalle della protagonista.
+È un unico file (Three.js incluso): si apre dal browser del telefono o del computer, senza registrazione, anche offline.
 
-- Sei una ragazza con occhiali, capelli neri lunghi, camicia bianca e jeans chiari.
-- L'ufficio ha open space (grande tavolo con postazioni e computer), reception, sala riunioni, cucina, bagno, archivio e ufficio del capo.
-- Cinque colleghi girano per le stanze e ti assillano con tasse, clienti e cose da fare: il Ragioniere Anziano, il Pelato, il Trentenne, la Segretaria (riccia, sulla sessantina) e la Ragazza in Pigiama.
-- Ogni colpo dà punti. I punti si spendono nel negozio sul computer della **tua postazione** (punto verde € sulla mappa). Più l'arma è forte e costosa, più punti dà a colpo.
-- Armi: pugni, spillatrice, tastiera, fionda di elastici, mazza, estintore, sparachiodi, katana, lanciarazzi e **Death Note**: scrivi il nome di un collega e come morirà, e succede davvero (se scrivi una stanza, ci va da solo).
-- I colleghi eliminati ricompaiono in un'altra stanza come se niente fosse.
-- Comandi touch sempre visibili (joystick, COLPISCI, ARMA, CORRI, NEGOZIO). Da tastiera: `WASD`/frecce, `Spazio`, `Q`, `Shift`, `E`, `1`–`0`.
+- Sei una ragazza con occhiali, lunghi capelli neri, camicia bianca e jeans chiari. Ti vedi da dietro le spalle.
+- L'ufficio ha open space (un unico grande tavolo con postazioni e computer), reception, sala riunioni, cucina, bagno, archivio e ufficio del capo.
+- Cinque colleghi girano per le stanze e vengono a parlarti (con la voce del dispositivo, senza fumetti) di tasse, clienti e cose da fare:
+  un uomo anziano, uno pelato, un ragazzo sui 30 anni, una segretaria riccia sulla sessantina e una ragazza sui 30 in pigiama con gli occhiali.
+- Quando li colpisci si lamentano e scappano; nessuna barra della vita. Chi muore resta a terra e rientra dall'ingresso solo dopo un po', ogni volta più tardi.
+- Ogni colpo dà punti. I punti si spendono nel negozio sul PC della **tua postazione** (cerchio verde e simbolo €). Più l'arma è forte e costosa, più punti dà.
+- Armi: pugni, tastiera, mazza da baseball, coltello, pistola, katana, fucile a pompa, motosega, mitragliatrice, lanciafiamme, lanciarazzi e **Death Note**
+  (scegli il volto di un collega e scrivi come morirà: succede davvero; se scrivi una stanza, ci va da solo).
+- In sottofondo: condizionatore, tastiere, telefoni, stampante, macchina del caffè e brusio.
+- Comandi touch sempre visibili (joystick, trascina a destra per guardare, COLPISCI, ARMA, CORRI, NEGOZIO).
+  Da computer: `WASD`, mouse per guardare (clic sullo schermo), clic/`Spazio` per colpire, `Q`, `Shift`, `E`, `1`–`0`.
