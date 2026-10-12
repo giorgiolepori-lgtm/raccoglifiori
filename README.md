@@ -23,3 +23,17 @@ Apri `index.html` in un browser moderno (serve la connessione per caricare Three
 
 `raccogli-fiori.html` è lo stesso gioco in un unico file, con Three.js già incluso:
 si apre con un doppio clic e funziona anche offline (senza rete usa i font di sistema).
+
+---
+
+# Grand Theft Ufficio
+
+`ufficio.html`: gioco in stile GTA visto dall'alto, ambientato in un ufficio. Si apre con un doppio clic o dal telefono, senza registrazione, e funziona anche offline.
+
+- Sei una ragazza con occhiali, capelli neri lunghi, camicia bianca e jeans chiari.
+- L'ufficio ha open space (grande tavolo con postazioni e computer), reception, sala riunioni, cucina, bagno, archivio e ufficio del capo.
+- Cinque colleghi girano per le stanze e ti assillano con tasse, clienti e cose da fare: il Ragioniere Anziano, il Pelato, il Trentenne, la Segretaria (riccia, sulla sessantina) e la Ragazza in Pigiama.
+- Ogni colpo dà punti. I punti si spendono nel negozio sul computer della **tua postazione** (punto verde € sulla mappa). Più l'arma è forte e costosa, più punti dà a colpo.
+- Armi: pugni, spillatrice, tastiera, fionda di elastici, mazza, estintore, sparachiodi, katana, lanciarazzi e **Death Note**: scrivi il nome di un collega e come morirà, e succede davvero (se scrivi una stanza, ci va da solo).
+- I colleghi eliminati ricompaiono in un'altra stanza come se niente fosse.
+- Comandi touch sempre visibili (joystick, COLPISCI, ARMA, CORRI, NEGOZIO). Da tastiera: `WASD`/frecce, `Spazio`, `Q`, `Shift`, `E`, `1`–`0`.
