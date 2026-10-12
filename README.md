@@ -29,10 +29,11 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 # Grand Theft Ufficio
 
 `ufficio.html`: gioco in 3D in stile GTA ambientato in un ufficio, con la telecamera alle spalle della protagonista.
-È un unico file (Three.js incluso): si apre dal browser del telefono o del computer, senza registrazione, anche offline.
+È un unico file (circa 9 MB, con Three.js, modelli e texture inclusi): si apre dal browser del telefono o del computer, senza registrazione, anche offline.
 
 - Sei una ragazza con occhiali, lunghi capelli neri, camicia bianca e jeans chiari. Ti vedi da dietro le spalle.
 - L'ufficio ha open space (un unico grande tavolo con postazioni e computer), reception, sala riunioni, cucina, bagno, archivio e ufficio del capo.
+- Persone realistiche (modelli 3D con pelle, capelli e vestiti veri) con animazioni in motion capture per camminare, correre, parlare e gesticolare.
 - Cinque colleghi girano per le stanze e vengono a parlarti (con la voce del dispositivo, senza fumetti) di tasse, clienti e cose da fare:
   un uomo anziano, uno pelato, un ragazzo sui 30 anni, una segretaria riccia sulla sessantina e una ragazza sui 30 in pigiama con gli occhiali.
 - Quando li colpisci si lamentano e scappano; nessuna barra della vita. Chi muore resta a terra e rientra dall'ingresso solo dopo un po', ogni volta più tardi.
@@ -42,3 +43,9 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 - In sottofondo: condizionatore, tastiere, telefoni, stampante, macchina del caffè e brusio.
 - Comandi touch sempre visibili (joystick, trascina a destra per guardare, COLPISCI, ARMA, CORRI, NEGOZIO).
   Da computer: `WASD`, mouse per guardare (clic sullo schermo), clic/`Spazio` per colpire, `Q`, `Shift`, `E`, `1`–`0`.
+
+### Crediti
+
+- Persone 3D e animazioni motion capture: [Microsoft Rocketbox Avatar Library](https://github.com/microsoft/Microsoft-Rocketbox) (licenza MIT).
+- Three.js r128, FBXLoader, fflate e le texture di parquet e piastrelle: [three.js](https://github.com/mrdoob/three.js) (licenza MIT).
+- Foto del parco fuori dalle finestre: Emil Persson ("Humus", http://www.humus.name), licenza Creative Commons Attribution 3.0.
