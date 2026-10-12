@@ -14,3 +14,8 @@ Apri `index.html` in un browser moderno (serve la connessione per caricare Three
 
 - Computer: `WASD` o frecce per camminare, mouse per guardarti intorno, `Shift` per correre, `Esc`/`P` per la pausa.
 - Telefono/tablet: trascina a sinistra per camminare, a destra per guardarti intorno.
+
+## Versione senza internet
+
+`raccogli-fiori.html` è lo stesso gioco in un unico file, con Three.js già incluso:
+si apre con un doppio clic e funziona anche offline (senza rete usa i font di sistema).
