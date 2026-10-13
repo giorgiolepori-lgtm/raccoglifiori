@@ -32,7 +32,7 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 È un unico file (circa 9 MB, con Three.js, modelli e texture inclusi): si apre dal browser del telefono o del computer, senza registrazione, anche offline.
 
 - All'inizio scegli con chi giocare: una ragazza con occhiali, lunghi capelli neri, camicia bianca e jeans chiari,
-  oppure un ragazzo con i capelli neri in tuta nera a tre strisce. Ti vedi da dietro le spalle.
+  oppure un ragazzo con i capelli neri in tuta Adidas nera a tre strisce. Ti vedi da dietro le spalle.
 - L'ufficio ha open space (un unico grande tavolo con postazioni e computer), reception, sala riunioni, cucina, bagno, archivio e ufficio del capo.
 - Persone realistiche (modelli 3D con pelle, capelli e vestiti veri) con animazioni in motion capture per camminare, correre, parlare e gesticolare.
 - Cinque colleghi girano per le stanze e vengono a parlarti (con la voce del dispositivo, senza fumetti) di tasse, clienti e cose da fare:
