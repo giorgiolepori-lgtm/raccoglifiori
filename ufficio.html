@@ -100,6 +100,20 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hero.sel { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(245,197,66,.35), 0 8px 24px rgba(0,0,0,.4); }
 .hero.sel::after { content: '✔'; position: absolute; top: 6px; right: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #111; font: 700 15px/26px var(--font-ui); }
 @media (max-height: 520px) { .heroPick { grid-template-columns: 1fr 1fr; max-width: 360px; margin: 6px auto 10px; } .hero img { aspect-ratio: 1; } }
+.go.blue { background: linear-gradient(#6fd6ff, #2a8fd6); box-shadow: 0 6px 0 #175a8c; color: #06223a; }
+#roomCode { display: block; margin-top: 10px; width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.2); background: #0c0e12; color: #fff; font: 600 15px var(--font-ui); user-select: text; -webkit-user-select: text; touch-action: auto; }
+.netCard { text-align: center; max-width: 420px; }
+.spin { width: 46px; height: 46px; margin: 14px auto; border-radius: 50%; border: 5px solid rgba(255,255,255,.15); border-top-color: #5fd0ff; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#netMsg { font: 600 16px/1.4 var(--font-ui); color: #fff; margin: 8px 0; }
+.netNote { font: 13px/1.45 var(--font-ui); color: #aab1bd; margin: 6px 0 4px; }
+#mp { position: absolute; left: 50%; top: calc(10px + env(safe-area-inset-top)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 5px; }
+#hpBar { width: 140px; height: 10px; border-radius: 6px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.4); overflow: hidden; }
+#hpFill { display: block; height: 100%; width: 100%; background: #4be36b; transition: width .2s; }
+#opp { font: 16px/1 var(--font-gta); color: #6fd6ff; letter-spacing: .5px; }
+#creamFx { position: fixed; inset: 0; z-index: 9; pointer-events: none; opacity: 0; transition: opacity .9s;
+  background: radial-gradient(circle at 30% 40%, #fff6ea 0 18%, transparent 19%), radial-gradient(circle at 62% 55%, #fff1e0 0 24%, transparent 25%), radial-gradient(circle at 45% 72%, #f7e6cf 0 15%, transparent 16%), radial-gradient(circle at 76% 24%, #fff6ea 0 12%, transparent 13%), radial-gradient(circle at 15% 78%, #f9ecd9 0 13%, transparent 14%), rgba(255,244,230,.35); }
+#creamFx.show { opacity: .96; transition: opacity .1s; }
 .sec { display: grid; grid-template-columns: 40px 1fr; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid rgba(255,255,255,.08); }
 .sec .em { font-size: 26px; line-height: 1; text-align: center; padding-top: 2px; }
 .sec h3 { margin: 0 0 3px; font: 18px/1.1 var(--font-gta); letter-spacing: .6px; color: var(--gold); text-transform: uppercase; }
@@ -143,7 +157,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .step { font: 700 12px var(--font-ui); letter-spacing: 1px; color: #c9433c; text-transform: uppercase; margin: 10px 0 6px; }
 .faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .face { background: #151515; border: 2px solid #333; border-radius: 10px; padding: 3px; }
-.face img { width: 100%; aspect-ratio: 1; display: block; border-radius: 7px; }
+.face img { width: 100%; aspect-ratio: 1; display: block; border-radius: 7px; object-fit: cover; }
+.face em { position: absolute; left: 0; right: 0; top: 4px; font: 700 9px var(--font-ui); font-style: normal; color: #5fd0ff; text-shadow: 0 1px 2px #000; text-transform: uppercase; }
 .face.sel { border-color: #d33; box-shadow: 0 0 12px rgba(220,40,40,.5); }
 .face:disabled { opacity: .3; }
 #dnCause { width: 100%; font: 28px var(--font-hand); background: transparent; color: #fff; border: 0; border-bottom: 1px solid #555; padding: 4px 2px; outline: none; user-select: text; -webkit-user-select: text; touch-action: auto; border-radius: 0; }
@@ -165,6 +180,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 <body>
 <canvas id="c"></canvas>
 <div id="flash"></div>
+<div id="creamFx"></div>
 <div id="loading">CARICAMENTO DELL'UFFICIO…</div>
 
 <div id="hud">
@@ -181,6 +197,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <div id="money" class="ol"><span id="pts">0</span><div id="plus" class="ol"></div></div>
     <div><span id="mult" class="ol"></span><span id="stars"></span></div>
   </div>
+  <div id="mp" class="hidden"><div id="hpBar"><i id="hpFill"></i></div><div id="opp" class="ol"></div></div>
   <div id="cross" class="dot"></div>
   <div id="area" class="ol"></div>
   <div id="toast"></div>
@@ -218,6 +235,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <div class="sec"><div class="em">🚪</div><div><h3>Non sono infiniti</h3>
       <p>Chi muore resta a terra. Solo dopo un po' un collega rientra dall'ingresso come se niente fosse,
       e ogni volta ci mette di più.</p></div></div>
+    <div class="sec"><div class="em">🌐</div><div><h3>Online contro un amico</h3>
+      <p>Premete <b>GIOCA ONLINE</b> nello stesso momento su due telefoni o computer: la sfida parte appena vi trovate. Per essere sicuri di trovare proprio voi due, scrivete lo stesso <b>codice stanza</b>.
+      Partite entrambi da zero, con gli stessi colleghi e lo stesso negozio. Potete anche picchiarvi: chi fa fuori l'altro <b>si prende tutti i suoi punti e le sue armi</b>, e chi muore rientra poco dopo in un'altra stanza.
+      Nel Death Note compare anche il volto dell'avversario. I progressi della partita da solo restano salvati a parte.</p></div></div>
     <div class="sec"><div class="em">🎮</div><div><h3>Comandi</h3>
       <div class="keys">
         <div>📱 <b>Joystick</b> a sinistra: muoviti</div><div><kbd>WASD</kbd> muoviti</div>
@@ -227,6 +248,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
         <div>🏃‍♀️ <b>CORRI</b>: acceso/spento</div><div><kbd>Shift</kbd> corri · <kbd>E</kbd> negozio</div>
       </div></div></div>
     <button class="go" id="bStart">INIZIA LA GIORNATA ▶</button>
+    <button class="go blue" id="bOnline">🌐 GIOCA ONLINE IN DUE</button>
+    <input id="roomCode" maxlength="12" autocomplete="off" placeholder="Codice stanza (facoltativo)">
     <div class="foot"><span>I progressi restano salvati su questo dispositivo.</span><button class="link" id="bReset">Azzera progressi</button></div>
   </div>
 </div>
@@ -255,6 +278,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <div class="chips" id="dnChips"></div>
     <div class="dnFoot"><div id="dnMsg"></div>
     <div class="dnBtns"><button id="dnClose">Chiudi</button><button class="write" id="dnWrite">Scrivi ✒️</button></div></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="net">
+  <div class="card netCard">
+    <h2 class="howto">Partita online</h2>
+    <div class="spin" id="netSpin"></div>
+    <p id="netMsg">Mi collego…</p>
+    <p class="netNote">La sfida parte appena un altro giocatore preme «Gioca online» (con lo stesso codice stanza, se ne avete scelto uno). Lascia aperta questa schermata.</p>
+    <button class="go blue" id="netRetry" style="display:none">RIPROVA</button>
+    <button class="go" id="netCancel">ANNULLA</button>
   </div>
 </div>
 
@@ -5309,9 +5343,9 @@ let pts = 0, owned = { pugni: true }, equip = 'pugni', kills = 0;
 let dnCd = 0, combo = 0, comboT = 0, paused = true, started = false, now = 0, last = 0, saveT = 0, dirty = false;
 let camYaw = Math.PI, camPitch = .22;
 function load() { try { const s = JSON.parse(localStorage.getItem('gtu3d_save') || 'null'); if (s) { pts = s.pts | 0; owned = Object.assign({ pugni: true }, s.owned || {}); equip = owned[s.equip] ? s.equip : 'pugni'; kills = s.kills | 0; if (HERO_KEYS.includes(s.hero)) hero = s.hero; } } catch (e) {} }
-function save() { try { localStorage.setItem('gtu3d_save', JSON.stringify({ pts, owned, equip, kills, hero })); } catch (e) {} dirty = false; }
+function save() { try { const d = NET.on && NET.stash ? NET.stash : { pts, owned, equip, kills }; localStorage.setItem('gtu3d_save', JSON.stringify(Object.assign({}, d, { hero }))); } catch (e) {} dirty = false; }
 
-const player = { x: 11.5, z: 10.8, heading: Math.PI, phase: 0, speed: 0, cd: 0, atkT: 0, atkDur: .3, firing: false, aimT: 0, punchLeft: false, pendingHit: null, stepAcc: 0 };
+const player = { x: 11.5, z: 10.8, heading: Math.PI, phase: 0, speed: 0, cd: 0, atkT: 0, atkDur: .3, firing: false, aimT: 0, punchLeft: false, pendingHit: null, stepAcc: 0, hp: 100, dead: false, fall: 0, fallDir: 1, flinch: 0, stunT: 0, burnT: 0, inv: 0, lastHurt: -99, doom: null };
 let PH = null, weaponMesh = null, weaponMount = null;
 const HERO_KEYS = ['protagonista', 'tuta'], HEROES = {}; let hero = 'protagonista';
 function setHero(k) {
@@ -5330,9 +5364,9 @@ function equipWeapon(id) {
   $('cross').className = (w.type === 'gun' || w.type === 'rocket' || w.type === 'flame' || w.type === 'spray' || w.type === 'lob') ? '' : 'dot';
   dirty = true; hudCache.icon = null;
 }
-function placeWeapon() {
-  if (!weaponMesh) return;
-  const w = WMAP[equip], B = PH.b, hd = PH.root.rotation.y;
+function placeWeapon() { if (weaponMesh) placeWeaponFor(PH, weaponMesh, equip, PH.root.rotation.y, player.aimT > 0 || atkHeld, player.firing, null); }
+function placeWeaponFor(H, weaponMesh, wid, hd, aiming, firing, aimDir) {
+  const w = WMAP[wid], B = H.b;
   _F.set(Math.sin(hd), 0, Math.cos(hd)); _R.crossVectors(_F, _U);
   B.rHa.getWorldPosition(_a); B.rFo.getWorldPosition(_b); _d.subVectors(_a, _b).normalize();
   weaponMesh.position.copy(_a).addScaledVector(_d, .07);
@@ -5340,11 +5374,10 @@ function placeWeapon() {
   if (w.type === 'melee' || w.anim === 'throw') { _t.crossVectors(_R, _d).addScaledVector(_d, .3).normalize(); weaponMesh.up.copy(_F); weaponMesh.lookAt(weaponMesh.position.clone().add(_t)); }
   else if (w.type === 'note') weaponMesh.lookAt(weaponMesh.position.clone().add(_F));
   else {
-    const aiming = player.aimT > 0 || atkHeld;
-    const aim = aiming ? camForward() : (w.id === 'pistola' ? new V3().addScaledVector(_F, .25).addScaledVector(_U, -1).normalize() : _F.clone());
+    const aim = aiming ? (aimDir || camForward()) : (w.id === 'pistola' ? new V3().addScaledVector(_F, .25).addScaledVector(_U, -1).normalize() : _F.clone());
     weaponMesh.lookAt(weaponMesh.position.clone().add(aim));
     if (w.type === 'rocket') weaponMesh.position.addScaledVector(_U, .06);
-    if (w.type === 'saw' && player.firing) weaponMesh.position.addScaledVector(_R, rand(-.004, .004));
+    if (w.type === 'saw' && firing) weaponMesh.position.addScaledVector(_R, rand(-.004, .004));
   }
   weaponMesh.updateMatrixWorld(true);
 }
@@ -5361,7 +5394,16 @@ function makeNPCs() {
     return n;
   });
 }
-function npcSay(n, list, o) { const txt = typeof list === 'string' ? list : pick(list); if (TTS.speak(n, txt, o)) { n.chatT = rand(14, 26); return true; } return false; }
+function npcSay(n, list, o = {}) {
+  const txt = typeof list === 'string' ? list : pick(list);
+  if (!NET.on) { if (TTS.speak(n, txt, o)) { n.chatT = rand(14, 26); return true; } return false; }
+  if (NET.client) return Math.hypot(n.x - player.x, n.z - player.z) < 16 ? TTS.speak(n, txt, o) : false;
+  const dl = player.dead ? 99 : Math.hypot(n.x - player.x, n.z - player.z), dr = aliveN(RP) ? Math.hypot(n.x - RP.x, n.z - RP.z) : 99;
+  let ok = (dl < 16 || (o.force && dl < 26)) && TTS.speak(n, txt, o);
+  if (ok || dr < 16 || (o.force && dr < 26)) { NET.send({ t: 'say', i: npcs.indexOf(n), s: txt, o }); if (!ok) { n.talking = 1; n.talkEst = now + .25 + txt.length * .065; ok = true; } }
+  if (ok) n.chatT = rand(14, 26);
+  return ok;
+}
 function followPath(n, dt, spd) {
   if (!n.path || n.pi >= n.path.length) return true;
   const [c, r] = n.path[n.pi], tx = c + .5, tz = r + .5, dx = tx - n.x, dz = tz - n.z, d = Math.hypot(dx, dz);
@@ -5373,7 +5415,7 @@ function followPath(n, dt, spd) {
 }
 function turnTo(e, target, k) { e.heading += angDiff(target, e.heading) * Math.min(1, k); }
 function newWander(n) {
-  const cur = roomOf(n.x, n.z), pr = roomOf(player.x, player.z); let ri = Math.random() < .45 && pr >= 0 ? pr : Math.random() < .7 ? Math.random() * ROOMS.length | 0 : cur; if (ri < 0) ri = 0;
+  const cur = roomOf(n.x, n.z), tq = NET.on && aliveN(RP) && Math.random() < .5 ? RP : player, pr = roomOf(tq.x, tq.z); let ri = Math.random() < .45 && pr >= 0 ? pr : Math.random() < .7 ? Math.random() * ROOMS.length | 0 : cur; if (ri < 0) ri = 0;
   const [c, r] = randomTileIn(ri), [c0, r0] = tileOf(n); n.path = findPath(c0, r0, c, r); n.pi = 0; n.state = n.path ? 'walk' : 'idle'; n.t = rand(.5, 1.5);
 }
 const aliveN = n => n.present && n.state !== 'dead' && n.state !== 'dying';
@@ -5393,7 +5435,7 @@ function updateNPC(n, dt) {
   if (Math.abs(n.vx) + Math.abs(n.vz) > .05) { moveEnt(n, n.vx * dt, n.vz * dt); const k = Math.pow(.003, dt); n.vx *= k; n.vz *= k; } else n.vx = n.vz = 0;
   if (n.shock > 0) {
     n.shock -= dt; n.flinch = .4 + Math.random() * .6; n.scream = 1; n.lookAng = rand(-.6, .6); n.armPose = 'panic';
-    n.hp -= 6 * dt; if (n.hp <= 0) { n.shock = 0; killNPC(n, WMAP.taser, 0, 0); return; }
+    n.hp -= 6 * dt; if (n.hp <= 0) { n.shock = 0; killNPC(n, WMAP.taser, 0, 0, n.shockBy || 'me'); return; }
     if (Math.random() < dt * 25) spawnP('spark', n.x + rand(-.25, .25), rand(.3, 1.7), n.z + rand(-.25, .25), rand(-1, 1), rand(0, 2), rand(-1, 1), .25, .06);
     if (Math.random() < dt * 2.5) grunt(n, 'scream');
     if (n.shock <= 0 && n.state !== 'doomed') { n.state = 'flee'; n.t = rand(.8, 1.4); }
@@ -5401,19 +5443,20 @@ function updateNPC(n, dt) {
   }
   if (n.stun > 0) { n.stun -= dt; return; }
   n.nagCd -= dt; n.chatT -= dt;
-  const dP = Math.hypot(n.x - player.x, n.z - player.z), toP = Math.atan2(player.x - n.x, player.z - n.z);
+  const tp = nearestPlayer(n);
+  const dP = Math.hypot(n.x - tp.x, n.z - tp.z), toP = Math.atan2(tp.x - n.x, tp.z - n.z);
   const maybeApproach = () => { if (n.nagCd <= 0 && dP < 16 && Math.random() < dt * 1.0 && npcs.filter(m => m.state === 'approach' || m.state === 'nag').length < 3) { n.state = 'approach'; n.t = 14; n.repath = 0; n.blocked = 0; } };
   switch (n.state) {
     case 'idle': n.t -= dt; if (n.t <= 0) newWander(n); maybeApproach(); if (n.talking) n.armPose = 'gesture'; break;
     case 'walk': if (followPath(n, dt, n.speed * 1.2)) { n.state = 'idle'; n.t = rand(1, 4); } maybeApproach(); break;
     case 'approach':
       n.repath -= dt; n.t -= dt;
-      if (n.repath <= 0) { const a = tileOf(n), b = tileOf(player); n.path = findPath(a[0], a[1], b[0], b[1]); n.pi = 0; n.repath = .7; }
+      if (n.repath <= 0) { const a = tileOf(n), b = tileOf(tp); n.path = findPath(a[0], a[1], b[0], b[1]); n.pi = 0; n.repath = .7; }
       if (dP < 1.6) { n.state = 'nag'; n.t = 6; n.said = false; }
       else if (n.path && n.pi < n.path.length) { if (followPath(n, dt, n.speed * 1.35)) n.repath = 0; if (n.stuck === 0 && !n.path) n.blocked = (n.blocked || 0) + 1; }
       else {                                       // ultimo tratto o nessun percorso: va dritta verso di te
-        const ox = n.x, oz = n.z, sp = n.speed * 1.35 * dt; turnTo(n, Math.atan2(player.x - n.x, player.z - n.z), dt * 8);
-        moveEnt(n, (player.x - n.x) / dP * sp, (player.z - n.z) / dP * sp); n.walk = 1;
+        const ox = n.x, oz = n.z, sp = n.speed * 1.35 * dt; turnTo(n, Math.atan2(tp.x - n.x, tp.z - n.z), dt * 8);
+        moveEnt(n, (tp.x - n.x) / dP * sp, (tp.z - n.z) / dP * sp); n.walk = 1;
         if (Math.hypot(n.x - ox, n.z - oz) < sp * .3) n.blocked = (n.blocked || 0) + dt * 2; else n.repath = Math.min(n.repath, .3);
       }
       if ((n.blocked || 0) > 2.5) { n.blocked = 0; n.t = 0; }
@@ -5427,7 +5470,7 @@ function updateNPC(n, dt) {
       if ((n.said && !n.talking && n.t < 4.5) || n.t <= 0) { n.state = 'idle'; n.t = rand(.5, 1.5); n.nagCd = rand(6, 12); }
       break;
     case 'flee': case 'panic': {
-      const a = Math.atan2(n.x - player.x, n.z - player.z) + (n.fleeBias || 0);
+      const a = Math.atan2(n.x - tp.x, n.z - tp.z) + (n.fleeBias || 0);
       turnTo(n, a, dt * 6); const sp = n.speed * 2.4;
       if (moveEnt(n, Math.sin(n.heading) * sp * dt, Math.cos(n.heading) * sp * dt)) n.fleeBias = rand(-1.4, 1.4);
       n.walk = 1; n.run = 1; n.armPose = n.state === 'panic' ? 'panic' : null; n.t -= dt;
@@ -5463,23 +5506,39 @@ function respawn(n) {
   n.h.root.visible = true; n.h.root.position.y = 0; n.h.allMats.forEach(m => m.color.copy(m.userData.orig));
   const [c, r] = randomTileIn(Math.random() < .5 ? 1 : 0), [c0, r0] = tileOf(n); n.path = findPath(c0, r0, c, r); n.pi = 0; n.nagCd = rand(4, 10);
   SFX.chime();
-  if (Math.hypot(n.x - player.x, n.z - player.z) < 10) setTimeout(() => npcSay(n, RESPAWN), 900);
+  const np = nearestPlayer(n); if (Math.hypot(n.x - np.x, n.z - np.z) < 10) setTimeout(() => npcSay(n, RESPAWN), 900);
 }
 function hurtNPC(n, dmg, dirx, dirz, kb, w, o = {}) {
+  if (n.isPlayer) { pvpHit(dmg, dirx, dirz, kb, w, o); return; }
   if (!aliveN(n)) return;
-  n.hp -= dmg; n.flinch = 1; n.vx += dirx * (kb || 1.5); n.vz += dirz * (kb || 1.5); n.stun = Math.max(n.stun, o.stun ?? .25);
-  combo++; comboT = 2.8;
-  const gain = Math.max(1, Math.round((o.pts ?? w.pts) * mult())); addPts(gain);
+  const by = o.by || 'me', mine = by === 'me';
+  if (mine) {
+    combo++; comboT = 2.8;
+    const gain = Math.max(1, Math.round((o.pts ?? w.pts) * mult())); addPts(gain);
+    $('cross').classList.add('hit'); clearTimeout(hitT); hitT = setTimeout(() => $('cross').classList.remove('hit'), 120);
+  }
   if (o.blood !== false) bleed(n, dirx, dirz, o.heavy ? 14 : 7);
-  $('cross').classList.add('hit'); clearTimeout(hitT); hitT = setTimeout(() => $('cross').classList.remove('hit'), 120);
+  if (NET.client) {      // decide chi ospita la partita: qui solo effetti e invio del colpo
+    NET.send({ t: 'hit', i: npcs.indexOf(n), d: r2(dmg), x: r2(dirx), z: r2(dirz), k: kb || 1.5, w: w.id, o: { quiet: o.quiet ? 1 : 0, heavy: o.heavy ? 1 : 0, shock: o.shock || 0, blood: o.blood === false ? false : undefined, noFlee: o.noFlee ? 1 : 0, cake: o.cake ? 1 : 0, burn: o.burn ? 1 : 0, stun: o.stun } });
+    n.flinch = 1; if (!o.quiet || Math.random() < .25) grunt(n, 'hurt'); if (o.shock) SFX.zap();
+    return;
+  }
+  if (NET.host && mine) NET.send({ t: 'fx', k: 'h', i: npcs.indexOf(n), x: r2(dirx), z: r2(dirz), hv: o.heavy ? 1 : 0, b: o.blood === false ? 0 : 1, q: o.quiet ? 1 : 0 });
+  n.hp -= dmg; n.flinch = 1; n.vx += dirx * (kb || 1.5); n.vz += dirz * (kb || 1.5); n.stun = Math.max(n.stun, o.stun ?? .25);
   // altri colleghi spaventati dalla violenza
   if (!o.quiet) for (const m of npcs) if (m !== n && aliveN(m) && m.state !== 'doomed' && Math.hypot(m.x - n.x, m.z - n.z) < 7 && Math.random() < .5) { m.state = Math.random() < .3 ? 'cower' : 'panic'; m.t = rand(2.5, 5); }
-  if (n.hp <= 0) { killNPC(n, w, dirx, dirz); return; }
+  if (n.hp <= 0) { killNPC(n, w, dirx, dirz, by); return; }
   if (!o.quiet || Math.random() < .25) {
     grunt(n, 'hurt');
     if (Math.random() < .3) setTimeout(() => { if (aliveN(n)) npcSay(n, HURT_TTS, { force: true, rate: 1.15, pitch: 1.1 }); }, 250);
   }
-  if (o.shock) { n.shock = o.shock; SFX.zap(); return; }
+  if (o.burn) { n.burn = 3; n.burnBy = by; }
+  if (o.cake && n.state !== 'doomed') {
+    n.state = 'blind'; n.t = 3.4; n.blindHead = rand(0, TAU); grunt(n, 'oh');
+    if (!mine) { SFX.cake(npcPan(n)); for (let k = 0; k < 22; k++) spawnP('cream', n.x, rand(1.3, 1.7), n.z, rand(-2, 2), rand(0, 2.5), rand(-2, 2), .8, .07); }
+    return;
+  }
+  if (o.shock) { n.shock = o.shock; n.shockBy = by; SFX.zap(); return; }
   if (n.state !== 'doomed' && !o.noFlee) { n.state = Math.random() < .3 ? 'cower' : 'flee'; n.t = rand(.8, 1.6); }
 }
 let hitT = null;
@@ -5489,16 +5548,16 @@ function bleed(n, dx, dz, count) {
   spawnP('mist', n.x, y, n.z, dx * .4, .1, dz * .4, .5, .25);
   if (Math.random() < .5) addDecal(n.x + dx * rand(.3, 1.2) + rand(-.2, .2), n.z + dz * rand(.3, 1.2) + rand(-.2, .2), rand(.08, .22), 'blood');
 }
-function killNPC(n, w, dx, dz) {
+function killNPC(n, w, dx, dz, by = 'me') {
   if (TTS.busy === n) TTS.stop();
-  n.state = 'dead'; n.deadT = 0; n.fall = 0; n.thudded = false; n.deaths++; kills++;
+  n.state = 'dead'; n.deadT = 0; n.fall = 0; n.thudded = false; n.deaths++; if (by === 'me') kills++;
   const facing = Math.sin(n.heading) * dx + Math.cos(n.heading) * dz;   // colpito da davanti → cade all'indietro
   n.fallDir = facing < 0 ? -1 : 1;
   n.respawnAt = now + Math.min(70, 15 + 8 * n.deaths) + 18;
   grunt(n, 'death');
-  if (w) addPts(Math.round((w.kill || w.pts * 4) * mult()), 'K.O.');
-  const pool = addDecal(n.x - Math.sin(n.heading) * n.fallDir * .6, n.z - Math.cos(n.heading) * n.fallDir * .6, .5, 'blood');
-  if (pool) { pool.grow = 4; pool.growMax = 4; pool.r = .05; pool.target = rand(.45, .7); pool.m.scale.set(.1, .1, 1); }
+  if (w) { const p = Math.round(w.kill || w.pts * 4); if (by === 'remote') NET.send({ t: 'kill', p }); else if (by === 'me') addPts(Math.round(p * mult()), 'K.O.'); }
+  deathPool(n);
+  if (NET.host) NET.send({ t: 'fx', k: 'd', i: npcs.indexOf(n), f: n.fallDir });
   // gli altri fuggono
   for (const m of npcs) if (m !== n && aliveN(m) && m.state !== 'doomed' && Math.hypot(m.x - n.x, m.z - n.z) < 12) { m.state = 'panic'; m.t = rand(1.8, 3.5); }
 }
@@ -5508,8 +5567,8 @@ function burnTick(n, dt) {
   if (Math.random() < dt * 3) spawnP('smoke', n.x, 1.7, n.z, rand(-.2, .2), .6, rand(-.2, .2), 1.5, .4);
   if (n.state !== 'dying' && n.state !== 'doomed') { n.state = 'panic'; n.t = Math.max(n.t, .5); }
   n.scream = 1; if (Math.random() < dt * 1.2) grunt(n, 'scream');
-  accPts += WMAP.fiamme.pts * .25 * dt * mult();
-  if (n.hp <= 0 && aliveN(n)) { n.burn = 0; killNPC(n, { pts: 0, kill: 260 }, 0, 0); }
+  if (n.burnBy !== 'remote') accPts += WMAP.fiamme.pts * .25 * dt * mult();
+  if (n.hp <= 0 && aliveN(n)) { n.burn = 0; killNPC(n, { pts: 0, kill: 260 }, 0, 0, n.burnBy || 'me'); }
 }
 function charTo(n, k) { n.h.allMats.forEach(m => { m.color.copy(m.userData.orig).lerp(CHARRED, k); }); }
 const CHARRED = lin(0x1a1512);
@@ -5539,15 +5598,16 @@ function parseCause(txt) {
 }
 const DYING_TTS = { infarto: 'Il cuore. Il mio cuore.', fulmine: 'Ma che tempo fa oggi?', fuoco: 'Che caldo! Aiuto, brucio!', esplosione: 'Sento un ticchettio.', schiacciato: "Cos'è quel rumore lassù?",
   scivola: 'Attenzione, è bagnato!', annega: null, soffoca: null, scartoffie: 'Ma quante pratiche ci sono?', noia: 'Che noia. Mi appoggio un attimo.' };
-function writeDeath(n, cause) {
-  const p = parseCause(cause);
+function writeDeath(n, cause, by = 'me') {
+  const p = parseCause(cause); n.doomBy = by;
   n.doom = { m: p.m, obj: p.obj, room: p.room, t: 0, wait: 0 };
   n.state = 'doomed'; n.path = null; n.vx = n.vz = 0; n.stun = 0; n.burn = 0;
   if (p.room != null && roomOf(n.x, n.z) !== p.room) { const [c, r] = randomTileIn(p.room), [c0, r0] = tileOf(n); n.path = findPath(c0, r0, c, r); n.pi = 0; setTimeout(() => npcSay(n, `Mi è venuta una gran voglia di andare ${ROOM_IN[p.room]}.`, { force: true }), 400); }
 }
 function startDying(n) {
   n.state = 'dying'; n.dieT = 0; n.die = n.doom.m; n.flag = 0; n.fall = 0;
-  const line = DYING_TTS[n.die]; if (line) npcSay(n, line, { force: true });
+  if (NET.host) NET.send({ t: 'fx', k: 'dy', i: npcs.indexOf(n), m: n.die, o: n.doom.obj, h: r2(n.heading), x: r2(n.x), z: r2(n.z) });
+  const line = DYING_TTS[n.die]; if (line && !NET.client) npcSay(n, line, { force: true });
   if (n.die === 'scivola') { addDecal(n.x + Math.sin(n.heading) * .6, n.z + Math.cos(n.heading) * .6, .4, 'water'); }
   if (n.die === 'soffoca') { addDecal(n.x, n.z + .2, .15, 'coffee'); grunt(n, 'choke'); }
   if (n.die === 'annega') { grunt(n, 'choke'); }
@@ -5555,9 +5615,11 @@ function startDying(n) {
   if (n.die === 'noia') SFX.snore(npcPan(n));
 }
 function finishDeath(n, fallDir) {
-  n.fallDir = fallDir; n.state = 'dead'; n.deadT = 0; n.thudded = false; n.deaths++; kills++;
+  n.fallDir = fallDir; n.state = 'dead'; n.deadT = 0; n.thudded = false;
+  if (NET.client) { n.localDie = false; n.ownCorpse = true; if (!n.hidden && !n.squash) grunt(n, 'death'); return; }
+  n.deaths++;
   n.respawnAt = now + Math.min(70, 15 + 8 * n.deaths) + 18;
-  addPts(Math.round(WMAP.deathnote.pts * mult()), '☠');
+  if (n.doomBy === 'remote') NET.send({ t: 'kill', p: WMAP.deathnote.pts, l: '☠' }); else { kills++; addPts(Math.round(WMAP.deathnote.pts * mult()), '☠'); }
   if (!n.hidden && !n.squash) grunt(n, 'death');
 }
 function updateDying(n, dt) {
@@ -5639,8 +5701,9 @@ const stars = () => Math.min(5, Math.floor(combo / 6));
 const mult = () => 1 + stars() * .5;
 function camForward() { return new V3(Math.sin(camYaw) * Math.cos(camPitch), -Math.sin(camPitch), Math.cos(camYaw) * Math.cos(camPitch)); }
 function updatePlayer(dt) {
+  if (NET.on && (player.dead || paused)) { player.speed = 0; player.firing = false; player.cd -= dt; player.atkT -= dt; if (WMAP[equip].type === 'saw') sawEngine(true, 0); flameSound(false); foamSound(false); return; }
   if (keys.ArrowLeft) camYaw += dt * 2.2; if (keys.ArrowRight) camYaw -= dt * 2.2;
-  const [jx, jy] = inputVec(), l = Math.hypot(jx, jy);
+  const [jx, jy] = player.stunT > 0 ? [0, 0] : inputVec(), l = Math.hypot(jx, jy);
   const run = runToggle || keys.ShiftLeft || keys.ShiftRight;
   const w = WMAP[equip];
   const fx = Math.sin(camYaw), fz = Math.cos(camYaw), rx = -Math.cos(camYaw), rz = Math.sin(camYaw);
@@ -5656,7 +5719,7 @@ function updatePlayer(dt) {
   player.cd -= dt; player.atkT -= dt;
   if (player.pendingHit && now >= player.pendingHit.t) { const ph = player.pendingHit; player.pendingHit = null; meleeHit(ph.w); }
   // armi continue
-  const firing = (atkHeld || atkTap) && !paused; atkTap = false;
+  const firing = (atkHeld || atkTap) && !paused && !(player.stunT > 0); atkTap = false;
   if (w.type === 'saw') sawTick(dt, firing);
   else if (w.type === 'flame') flameTick(dt, firing);
   else if (w.type === 'spray') sprayTick(dt, firing);
@@ -5673,7 +5736,7 @@ function updatePlayer(dt) {
 function aimTarget(maxAng, maxD) {
   // collega più vicino al centro del mirino
   const cf = camForward(), cp = camera.position; let best = null, bs = maxAng;
-  for (const n of npcs) {
+  for (const n of targets()) {
     if (!aliveN(n)) continue;
     const tx = n.x - cp.x, ty = 1.2 - cp.y, tz = n.z - cp.z, d = Math.hypot(tx, ty, tz); if (d > maxD) continue;
     const ang = Math.acos(clamp((tx * cf.x + ty * cf.y + tz * cf.z) / d, -1, 1));
@@ -5683,7 +5746,7 @@ function aimTarget(maxAng, maxD) {
 }
 function nearestMelee(range, arcHalf) {
   let best = null, bd = range + .9;
-  for (const n of npcs) { if (!aliveN(n)) continue; const d = Math.hypot(n.x - player.x, n.z - player.z); if (d < bd && Math.abs(angDiff(Math.atan2(n.x - player.x, n.z - player.z), camYaw)) < arcHalf) { bd = d; best = n; } }
+  for (const n of targets()) { if (!aliveN(n)) continue; const d = Math.hypot(n.x - player.x, n.z - player.z); if (d < bd && Math.abs(angDiff(Math.atan2(n.x - player.x, n.z - player.z), camYaw)) < arcHalf) { bd = d; best = n; } }
   return best;
 }
 function muzzleWorld() {
@@ -5698,7 +5761,7 @@ function attack() {
     const tg = nearestMelee(w.range + .3, 1.8); if (tg) player.heading = Math.atan2(tg.x - player.x, tg.z - player.z);
     player.cd = w.cd; player.atkDur = Math.min(.5, w.cd * .9); player.atkT = player.atkDur; player.punchLeft = !player.punchLeft;
     player.pendingHit = { t: now + player.atkDur * (w.anim === 'swing' ? .5 : .4), w };
-    SFX.swing(); return;
+    SFX.swing(); if (NET.on) NET.send({ t: 'sh', k: 'm' }); return;
   }
   player.aimT = .6;
   const tg = aimTarget(w.type === 'rocket' || w.type === 'lob' ? .26 : .3, 45);
@@ -5713,31 +5776,32 @@ function attack() {
     SFX[w.sound]();
     flashLight.position.copy(mz); flashLight.intensity = 4; spawnP('muzzle', mz.x, mz.y, mz.z, 0, 0, 0, .05, w.id === 'pompa' ? .45 : .3);
     shake = Math.max(shake, w.id === 'pompa' ? .12 : .05);
+    const ends = [];
     for (let i = 0; i < w.pellets; i++) {
       const dir = target.clone().sub(mz).normalize(); dir.x += rand(-1, 1) * w.spread; dir.y += rand(-1, 1) * w.spread * .6; dir.z += rand(-1, 1) * w.spread; dir.normalize();
       const hn = rayNPC(mz, dir, w.range), wd = rayWall(mz, dir, w.range), tEnd = Math.min(hn.t, wd);
       const end = mz.clone().add(dir.clone().multiplyScalar(tEnd));
-      if (i < 3) tracer(mz, end, w.shock ? 0x9fd2ff : 0xffe9a8);
+      if (i < 3) { tracer(mz, end, w.shock ? 0x9fd2ff : 0xffe9a8); ends.push(A3(end)); }
       if (hn.n && hn.t <= wd) { hurtNPC(hn.n, w.dmg, dir.x, dir.z, w.kb || 1.2, w, { quiet: i > 0, heavy: w.id === 'pompa', shock: w.shock, blood: !w.shock }); if (w.shock) for (let k = 0; k < 14; k++) spawnP('spark', end.x, end.y, end.z, rand(-2, 2), rand(-1, 2), rand(-2, 2), .3, .05); }
       else { for (let k = 0; k < 4; k++) spawnP('spark', end.x, end.y, end.z, rand(-1.5, 1.5), rand(0, 2), rand(-1.5, 1.5), .25, .05); spawnP('dust', end.x, end.y, end.z, 0, .2, 0, .5, .12); }
     }
-    for (const n of npcs) if (aliveN(n) && n.state !== 'doomed' && n.state !== 'flee' && Math.hypot(n.x - player.x, n.z - player.z) < 14 && Math.random() < .35) { n.state = Math.random() < .35 ? 'cower' : 'panic'; n.t = rand(1.6, 3); }
+    if (NET.on) NET.send({ t: 'sh', k: 'g', w: w.id, m: A3(mz), e: ends });
+    if (!NET.client) for (const n of npcs) if (aliveN(n) && n.state !== 'doomed' && n.state !== 'flee' && Math.hypot(n.x - player.x, n.z - player.z) < 14 && Math.random() < .35) { n.state = Math.random() < .35 ? 'cower' : 'panic'; n.t = rand(1.6, 3); }
   } else if (w.type === 'lob') {
     player.cd = w.cd;
     const dir = target.clone().sub(mz).normalize(), dist = mz.distanceTo(target);
     const vel = dir.clone().multiplyScalar(w.speed); vel.y += Math.min(w.lift, 1.2 + dist * .25);
-    const mesh = new THREE.Group(), map = new Map();
-    if (w.proj === 'cake') { pushGeo(map, G.cyl, std(0x6b3a1e, .7), 0, 0, 0, 0, 0, 0, .11, .07, .11); pushGeo(map, G.cyl, M.white, 0, .045, 0, 0, 0, 0, .112, .03, .112); pushGeo(map, G.sphLo, M.red, 0, .07, 0, 0, 0, 0, .02, .02, .02); SFX.pop(); }
-    else { pushGeo(map, G.sph, std(0x3f6b3a, .5), 0, 0, 0, 0, 0, 0, .05, .06, .05); pushGeo(map, G.box, std(0xff4fa3, .5), 0, 0, .05, 0, 0, 0, .05, .02, .005); SFX.throwIt(); player.atkT = player.atkDur = .4; }
-    flushMap(map, mesh); mesh.traverse(c => { if (c.isMesh) c.castShadow = true; });
+    const mesh = makeLobMesh(w.proj);
+    if (w.proj === 'cake') SFX.pop(); else { SFX.throwIt(); player.atkT = player.atkDur = .4; }
     mesh.position.copy(w.proj === 'cake' ? mz : PH.b.rHa.getWorldPosition(new V3())); scene.add(mesh);
     rockets.push({ mesh, kind: w.proj, vel, life: 4, fuse: 1.6, w });
+    if (NET.on) NET.send({ t: 'sh', k: 'l', p: A3(mesh.position), v: A3(vel), pr: w.proj, w: w.id });
   } else if (w.type === 'rocket') {
     player.cd = w.cd; SFX.rocket(); shake = Math.max(shake, .1);
     const dir = target.clone().sub(mz).normalize();
-    const mesh = new THREE.Group(); const map = new Map(); pushGeo(map, G.cyl, std(0x4d5b33, .6), 0, 0, 0, Math.PI / 2, 0, 0, .045, .5, .045); pushGeo(map, G.cone, M.red, 0, 0, .3, Math.PI / 2, 0, 0, .045, .12, .045); flushMap(map, mesh);
-    mesh.position.copy(mz); mesh.lookAt(mz.clone().add(dir)); scene.add(mesh);
+    const mesh = makeRocketMesh(mz, dir);
     rockets.push({ mesh, dir, v: 16, life: 4 });
+    if (NET.on) NET.send({ t: 'sh', k: 'r', p: A3(mz), d: A3(dir) });
     for (let k = 0; k < 6; k++) spawnP('smoke', mz.x, mz.y, mz.z, -dir.x * 2 + rand(-.5, .5), rand(0, .5), -dir.z * 2 + rand(-.5, .5), 1, .3);
   }
 }
@@ -5751,7 +5815,7 @@ function updateRockets(dt) {
     const hn = rayNPC(p, r.dir, r.v * dt + .1), wd = rayWall(p, r.dir, r.v * dt + .1);
     p.add(step);
     spawnP('smoke', p.x, p.y, p.z, rand(-.3, .3), rand(0, .3), rand(-.3, .3), .9, .25); spawnP('fire', p.x, p.y, p.z, 0, 0, 0, .12, .25);
-    if (hn.n || wd < r.v * dt + .1 || p.y < .05 || p.y > WALL_H - .05 || r.life <= 0) { explosion(p.x, p.y, p.z, 1, WMAP.razzi); scene.remove(r.mesh); rockets.splice(i, 1); }
+    if (hn.n || wd < r.v * dt + .1 || p.y < .05 || p.y > WALL_H - .05 || r.life <= 0) { explosion(p.x, p.y, p.z, 1, r.visual ? null : WMAP.razzi); scene.remove(r.mesh); rockets.splice(i, 1); }
   }
 }
 function updateLob(r, dt) {
@@ -5761,7 +5825,7 @@ function updateLob(r, dt) {
   const nx = p.x + r.vel.x * dt, nz = p.z + r.vel.z * dt;
   if (r.kind === 'cake') {
     r.mesh.rotation.x += dt * 2;
-    if (hn.n) { cakeHit(hn.n, dir, r.w); return true; }
+    if (hn.n) { if (r.visual) { SFX.cake(npcPan(hn.n)); for (let k = 0; k < 22; k++) spawnP('cream', hn.n.x, rand(1.3, 1.7), hn.n.z, rand(-2, 2), rand(0, 2.5), rand(-2, 2), .8, .07); } else cakeHit(hn.n, dir, r.w); return true; }
     if (wallAt(nx, nz) || p.y + r.vel.y * dt < .05 || r.life <= 0) { SFX.cake(0); for (let k = 0; k < 16; k++) spawnP('cream', p.x, Math.max(.1, p.y), p.z, rand(-2, 2), rand(0, 2.5), rand(-2, 2), .7, .07); addDecal(p.x - dir.x * .2, p.z - dir.z * .2, .35, 'cream'); return true; }
     p.addScaledVector(r.vel, dt); return false;
   }
@@ -5769,19 +5833,18 @@ function updateLob(r, dt) {
   r.fuse -= dt; r.mesh.rotation.x += dt * 9; r.mesh.rotation.z += dt * 5;
   if (wallAt(nx, p.z)) { r.vel.x *= -.45; SFX.bounce(0); }
   if (wallAt(p.x, nz)) { r.vel.z *= -.45; SFX.bounce(0); }
-  if (hn.n && r.vel.length() > 2) { r.vel.x *= -.3; r.vel.z *= -.3; }
+  if (hn.n && r.vel.length() > 2) { r.vel.x *= .06; r.vel.z *= .06; SFX.bounce(0); }   // colpisce una persona: le cade ai piedi
   p.addScaledVector(r.vel, dt);
   if (p.y < .06) { p.y = .06; if (Math.abs(r.vel.y) > 1) SFX.bounce(0); r.vel.y *= -.4; r.vel.x *= .7; r.vel.z *= .7; }
   if (Math.random() < .5) spawnP('spark', p.x, p.y + .05, p.z, rand(-.3, .3), rand(.2, .8), rand(-.3, .3), .2, .04);
-  if (r.fuse <= 0) { explosion(p.x, Math.max(.3, p.y), p.z, 1, r.w, true); return true; }
+  if (r.fuse <= 0) { explosion(p.x, Math.max(.3, p.y), p.z, 1, r.visual ? null : r.w, true); return true; }
   return false;
 }
 function cakeHit(n, dir, w) {
   SFX.cake(npcPan(n));
   for (let k = 0; k < 22; k++) spawnP('cream', n.x, rand(1.3, 1.7), n.z, rand(-2, 2), rand(0, 2.5), rand(-2, 2), .8, .07);
   addDecal(n.x + rand(-.3, .3), n.z + rand(-.3, .3), .3, 'cream');
-  hurtNPC(n, w.dmg, dir.x, dir.z, 1.5, w, { noFlee: true, blood: false });
-  if (aliveN(n) && n.state !== 'doomed') { n.state = 'blind'; n.t = 3.4; n.blindHead = rand(0, TAU); grunt(n, 'oh'); }
+  hurtNPC(n, w.dmg, dir.x, dir.z, 1.5, w, { noFlee: true, blood: false, cake: true });
 }
 function explosion(x, y, z, k, w, confetti) {
   SFX.boom(); shake = Math.max(shake, .5 * k); screenFlash(.35, '#ffd9a0');
@@ -5791,17 +5854,16 @@ function explosion(x, y, z, k, w, confetti) {
   for (let i = 0; i < 24; i++) spawnP('debris', x, y, z, rand(-6, 6), rand(1, 7), rand(-6, 6), rand(.8, 1.4), rand(.03, .07));
   addDecal(x, z, 1.4 * k, 'scorch');
   if (confetti) { SFX.party(); for (let i = 0; i < 90; i++) { const pp = spawnP('confetti', x, y + .3, z, rand(-4, 4), rand(2, 7), rand(-4, 4), rand(2, 3.5), rand(.04, .07)); if (pp) pp.sp.material.color.setHSL(Math.random(), .9, .6); } }
-  if (w) for (const n of npcs) {
+  if (w) for (const n of targets()) {
     if (!aliveN(n)) continue; const d = Math.hypot(n.x - x, n.z - z); if (d > w.radius) continue;
     const f = 1 - d / w.radius * .55, a = Math.atan2(n.x - x, n.z - z);
-    hurtNPC(n, w.dmg * f, Math.sin(a), Math.cos(a), 9 * f, w, { heavy: true });
-    if (aliveN(n) && !confetti) { n.burn = 3; }
+    hurtNPC(n, w.dmg * f, Math.sin(a), Math.cos(a), 9 * f, w, { heavy: true, burn: !confetti });
   }
-  for (const n of npcs) if (aliveN(n) && n.state !== 'doomed') { n.state = 'panic'; n.t = rand(1.8, 3.5); }
+  if (!NET.client) for (const n of npcs) if (aliveN(n) && n.state !== 'doomed') { n.state = 'panic'; n.t = rand(1.8, 3.5); }
 }
 function meleeHit(w) {
   let any = false;
-  for (const n of npcs) {
+  for (const n of targets()) {
     if (!aliveN(n)) continue;
     const d = Math.hypot(n.x - player.x, n.z - player.z); if (d > w.range + .45) continue;
     const a = Math.atan2(n.x - player.x, n.z - player.z);
@@ -5818,16 +5880,15 @@ function sawTick(dt, firing) {
   if (!firing) { sawEngine(true, 0); return; }
   let cutting = null;
   const tg = nearestMelee(1.6, 1.2); if (tg) turnTo(player, Math.atan2(tg.x - player.x, tg.z - player.z), dt * 10); else turnTo(player, camYaw, dt * 10);
-  for (const n of npcs) {
+  for (const n of targets()) {
     if (!aliveN(n)) continue; const d = Math.hypot(n.x - player.x, n.z - player.z); if (d > 1.6) continue;
     const a = Math.atan2(n.x - player.x, n.z - player.z); if (Math.abs(angDiff(a, player.heading)) > .7) continue;
     cutting = n; const w = WMAP.motosega;
-    n.hp -= w.dmg * dt; n.flinch = .6 + Math.random() * .4; n.stun = .2; n.vx = n.vz = 0; n.scream = 1;
+    dmgTick(n, w.dmg * dt, 0, a); n.flinch = .6 + Math.random() * .4; n.scream = 1;
     accPts += w.pts * dt * mult(); combo += dt * 3; comboT = 2.8;
     for (let i = 0; i < 3; i++) spawnP('blood', n.x + rand(-.1, .1), rand(.9, 1.3), n.z + rand(-.1, .1), Math.sin(a) * rand(1, 3) + rand(-1.5, 1.5), rand(.5, 3), Math.cos(a) * rand(1, 3) + rand(-1.5, 1.5), rand(.5, 1), rand(.03, .07));
     if (Math.random() < dt * 4) addDecal(n.x + rand(-.5, .5), n.z + rand(-.5, .5), rand(.08, .25), 'blood');
     sawHit -= dt; if (sawHit <= 0) { sawHit = rand(.5, .9); grunt(n, 'scream'); }
-    if (n.hp <= 0) killNPC(n, { pts: 0, kill: 300 }, Math.sin(a), Math.cos(a));
     break;
   }
   sawEngine(true, cutting ? 2 : 1); shake = Math.max(shake, cutting ? .05 : .015);
@@ -5839,14 +5900,13 @@ function sprayTick(dt, firing) {
   const mz = muzzleWorld(), cf = camForward(), dir = new V3(cf.x, cf.y * .5 + .03, cf.z).normalize();
   for (let i = 0; i < 6; i++) { const s = rand(6, 9); spawnP('foam', mz.x, mz.y, mz.z, dir.x * s + rand(-.7, .7), dir.y * s + rand(-.2, .7), dir.z * s + rand(-.7, .7), rand(.5, .9), rand(.12, .22)); }
   const w = WMAP.estintore, heading = Math.atan2(dir.x, dir.z);
-  for (const n of npcs) {
+  for (const n of targets()) {
     if (!aliveN(n)) continue; const d = Math.hypot(n.x - player.x, n.z - player.z); if (d > w.range) continue;
     const a = Math.atan2(n.x - player.x, n.z - player.z); if (Math.abs(angDiff(a, heading)) > w.arc) continue;
     if (!losClear(player.x, player.z, n.x, n.z)) continue;
-    n.hp -= w.dmg * dt; n.vx += Math.sin(a) * 14 * dt; n.vz += Math.cos(a) * 14 * dt; n.flinch = Math.max(n.flinch, .5); n.stun = Math.max(n.stun, .15);
+    dmgTick(n, w.dmg * dt, 1, a);
     accPts += w.pts * dt * mult(); combo += dt * 2; comboT = 2.8;
     if (Math.random() < dt * 1.5) grunt(n, 'oh');
-    if (n.hp <= 0) killNPC(n, { pts: 0, kill: 200 }, Math.sin(a), Math.cos(a));
   }
   if (Math.random() < dt * 4) { const dd = rand(1.5, 5); addDecal(player.x + dir.x * dd + rand(-.3, .3), player.z + dir.z * dd + rand(-.3, .3), rand(.2, .45), 'foam'); }
 }
@@ -5858,18 +5918,17 @@ function flameTick(dt, firing) {
   for (let i = 0; i < 6; i++) { const s = rand(6, 9); spawnP('fire', mz.x, mz.y, mz.z, dir.x * s + rand(-.8, .8), dir.y * s + rand(-.3, .8), dir.z * s + rand(-.8, .8), rand(.4, .75), rand(.2, .35)); }
   flashLight.color.setHex(0xff7a2a); flashLight.position.copy(mz).add(dir.clone().multiplyScalar(1.5)); flashLight.intensity = 3 + Math.random() * 2;
   const w = WMAP.fiamme, heading = Math.atan2(dir.x, dir.z);
-  for (const n of npcs) {
+  for (const n of targets()) {
     if (!aliveN(n)) continue; const d = Math.hypot(n.x - player.x, n.z - player.z); if (d > w.range) continue;
     const a = Math.atan2(n.x - player.x, n.z - player.z); if (Math.abs(angDiff(a, heading)) > w.arc) continue;
     if (!losClear(player.x, player.z, n.x, n.z)) continue;
-    n.hp -= w.dmg * dt; n.burn = Math.max(n.burn, 3.5); accPts += w.pts * dt * mult(); combo += dt * 2; comboT = 2.8;
-    if (n.hp <= 0) killNPC(n, { pts: 0, kill: 320 }, Math.sin(a), Math.cos(a));
+    dmgTick(n, w.dmg * dt, 2, a); accPts += w.pts * dt * mult(); combo += dt * 2; comboT = 2.8;
   }
   if (Math.random() < dt * 3) { const dd = rand(2, 5); addDecal(player.x + dir.x * dd, player.z + dir.z * dd, rand(.2, .45), 'scorch'); }
 }
 function rayNPC(o, d, maxT) {
   let best = null, bt = maxT;
-  for (const n of npcs) {
+  for (const n of targets()) {
     if (!aliveN(n)) continue;
     const ox = o.x - n.x, oz = o.z - n.z, a = d.x * d.x + d.z * d.z; if (a < 1e-6) continue;
     const b = 2 * (ox * d.x + oz * d.z), c = ox * ox + oz * oz - .26 * .26, disc = b * b - 4 * a * c; if (disc < 0) continue;
@@ -5927,6 +5986,7 @@ function updHud() {
   const m = mult(); setText('mult', m > 1 ? '×' + String(Math.round(m * 10) / 10).replace('.', ',') : '');
   const w = WMAP[equip]; setText('wName', w.name);
   setText('wSub', w.type === 'note' ? (dnCd > 0 ? `Ricarica: ${Math.ceil(dnCd)} s` : 'Pronto · +1.000 pt') : (w.type === 'saw' || w.type === 'flame' || w.type === 'spray') ? `+${w.pts} punti al secondo` : `+${w.pts} punt${w.pts === 1 ? 'o' : 'i'} a colpo`);
+  if (NET.on) { const hp = Math.max(0, Math.round(player.hp)); if (hudCache.hp !== hp) { hudCache.hp = hp; const f = $('hpFill'); f.style.width = hp + '%'; f.style.background = hp > 50 ? '#4be36b' : hp > 25 ? '#f5c542' : '#e0413a'; } setText('opp', `Avversario ${fmt(RP.pts)} pt`); }
   if (hudCache.icon !== equip && ICONS[equip]) { hudCache.icon = equip; $('wIcon').src = ICONS[equip]; }
   setText('atkIc', { note: '✒️', melee: equip === 'pugni' ? '👊' : '💥', gun: equip === 'taser' ? '⚡' : '🎯', saw: '⚙️', flame: '🔥', spray: '🧯', lob: equip === 'torte' ? '🎂' : '🎉', rocket: '🚀' }[w.type]);
   setText('atkLb', w.type === 'note' ? 'SCRIVI' : w.type === 'melee' || w.type === 'saw' ? 'COLPISCI' : w.anim === 'throw' ? 'LANCIA' : 'SPARA');
@@ -5950,6 +6010,7 @@ function drawMinimap() {
   const p = (Math.sin(now * 5) + 1) / 2;
   g.fillStyle = '#4be36b'; g.beginPath(); g.arc(DESK.x * s, (DESK.z - .6) * s, 5 + p * 2, 0, TAU); g.fill();
   for (const n of npcs) { if (!n.present || n.hidden) continue; g.fillStyle = n.state === 'dead' ? '#666' : '#e0413a'; g.beginPath(); g.arc(n.x * s, n.z * s, 4.2, 0, TAU); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 1; g.stroke(); }
+  if (NET.on && RP.h) { g.fillStyle = RP.dead ? '#3b5d78' : '#3aa0ff'; g.beginPath(); g.arc(RP.x * s, RP.z * s, 6, 0, TAU); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 1.6; g.stroke(); }
   g.restore();
   g.save(); g.translate(W / 2, W / 2); g.rotate(-(player.heading - camYaw)); g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2;
   g.beginPath(); g.moveTo(0, -11); g.lineTo(8, 9); g.lineTo(0, 4); g.lineTo(-8, 9); g.closePath(); g.fill(); g.stroke(); g.restore();
@@ -6070,14 +6131,16 @@ function openDN() {
   try { buildFaces(); } catch (e) { console.warn(e); }
   paused = true; atkHeld = false; releasePointer(); dnSel = null;
   const box = $('dnFaces'); box.innerHTML = '';
-  npcs.forEach(n => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'face'; const img = document.createElement('img'); img.alt = DN_NAMES[n.id] || ''; if (FACES[n.id]) img.src = FACES[n.id]; else img.style.background = '#000'; b.appendChild(img);
+  (NET.on && RP.h ? npcs.concat([RP]) : npcs).forEach(n => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'face'; const img = document.createElement('img'); img.alt = n.isPlayer ? 'Avversario' : DN_NAMES[n.id] || '';
+    const src = n.isPlayer ? HEROPICS[RP.heroKey] : FACES[n.id]; if (src) img.src = src; else img.style.background = '#000'; b.appendChild(img);
+    if (n.isPlayer) { const e = document.createElement('em'); e.textContent = 'avversario'; b.appendChild(e); }
     const gone = !aliveN(n), doomed = n.state === 'doomed';
-    if (gone || doomed) { b.disabled = true; const t = document.createElement('span'); t.textContent = gone ? 'assente' : 'segnato'; b.appendChild(t); }
+    if (gone || doomed) { b.disabled = true; const t = document.createElement('span'); t.textContent = gone ? (n.isPlayer ? 'a terra' : 'assente') : 'segnato'; b.appendChild(t); }
     b.onclick = () => { if (b.disabled) return; dnSel = n; box.classList.remove('need'); box.querySelectorAll('.face').forEach(x => x.classList.remove('sel')); b.classList.add('sel'); dnMsg(''); SFX.click(); };
     box.appendChild(b);
   });
-  box.classList.remove('need'); $('dnCause').value = ''; dnMsg(npcs.some(n => aliveN(n) && n.state !== 'doomed') ? '' : 'Nessun collega disponibile adesso: aspetta che rientrino in ufficio.');
+  box.classList.remove('need'); $('dnCause').value = ''; dnMsg(targets().some(n => aliveN(n) && n.state !== 'doomed') ? '' : 'Nessun collega disponibile adesso: aspetta che rientrino in ufficio.');
   $('dn').classList.remove('hidden'); SFX.dn();
 }
 function closeDN() { $('dn').classList.add('hidden'); paused = false; $('dnCause').blur(); }
@@ -6085,20 +6148,449 @@ function confirmDN() {
   if (!dnSel) { $('dnFaces').classList.add('need'); dnMsg('☝️ Prima tocca il volto di un collega.'); $('dnFaces').scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
   if (!aliveN(dnSel) || dnSel.state === 'doomed') { dnMsg('Il destino di questa persona è già segnato: scegli un altro volto.'); return; }
   const cause = $('dnCause').value.trim() || 'Infarto';
-  const n = dnSel; closeDN(); writeDeath(n, cause); dnCd = WMAP.deathnote.cd;
+  const n = dnSel; closeDN(); dnCd = WMAP.deathnote.cd;
+  if (n.isPlayer) NET.send({ t: 'dnp', c: cause }); else if (NET.client) NET.send({ t: 'dn', i: npcs.indexOf(n), c: cause }); else writeDeath(n, cause);
   bigText(`Il destino è scritto<small>«${cause.replace(/[<>&]/g, '')}»</small>`, '#ff5b4f', 2600);
 }
 
+/* ================= Multigiocatore online ================= */
+// Server di inoltro pubblici e gratuiti (MQTT su WebSocket): nessuna registrazione, i messaggi passano da qui.
+const MQ_BROKERS = (() => { const q = new URLSearchParams(location.search).get('broker'); return q ? [q] : ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt']; })();
+const NET_BASE = 'gtu-ufficio-v1';
+const _te = new TextEncoder(), _td = new TextDecoder();
+function mqStr(s) { const b = _te.encode(s), o = new Uint8Array(2 + b.length); o[0] = b.length >> 8; o[1] = b.length & 255; o.set(b, 2); return o; }
+function mqPacket(h, parts) {
+  let len = 0; for (const p of parts) len += p.length;
+  const lb = []; let x = len; do { let d = x % 128; x = Math.floor(x / 128); if (x > 0) d |= 128; lb.push(d); } while (x > 0);
+  const out = new Uint8Array(1 + lb.length + len); out[0] = h; out.set(lb, 1); let o = 1 + lb.length; for (const p of parts) { out.set(p, o); o += p.length; } return out;
+}
+class MqttWS {
+  constructor(url, cid, onMsg, onClose) { this.url = url; this.cid = cid; this.onMsg = onMsg; this.onClose = onClose; this.pid = 1; this.buf = new Uint8Array(0); }
+  connect(timeout = 6000) {
+    return new Promise((res, rej) => {
+      let done = false, ws;
+      const fail = e => { if (done) return; done = true; clearTimeout(to); try { ws && ws.close(); } catch (_) {} rej(e); };
+      const to = setTimeout(() => fail(new Error('timeout')), timeout);
+      try { ws = this.ws = new WebSocket(this.url, ['mqtt']); } catch (e) { fail(e); return; }
+      ws.binaryType = 'arraybuffer';
+      ws.onopen = () => ws.send(mqPacket(0x10, [mqStr('MQTT'), new Uint8Array([4, 2, 0, 30]), mqStr(this.cid)]));
+      ws.onerror = () => fail(new Error('ws'));
+      ws.onclose = () => { clearInterval(this.ping); if (!done) fail(new Error('closed')); else if (this.onClose && !this.closing) this.onClose(); };
+      ws.onmessage = ev => {
+        const d = new Uint8Array(ev.data), nb = new Uint8Array(this.buf.length + d.length); nb.set(this.buf); nb.set(d, this.buf.length); this.buf = nb;
+        for (;;) {
+          if (this.buf.length < 2) return;
+          let mul = 1, len = 0, i = 1, b;
+          do { if (i >= this.buf.length) return; b = this.buf[i++]; len += (b & 127) * mul; mul *= 128; } while (b & 128);
+          if (this.buf.length < i + len) return;
+          const type = this.buf[0] >> 4, flags = this.buf[0] & 15, body = this.buf.subarray(i, i + len);
+          this.buf = this.buf.slice(i + len);
+          if (type === 2) {
+            clearTimeout(to); if (body[1] !== 0) { fail(new Error('rifiutato ' + body[1])); return; }
+            done = true; this.ping = setInterval(() => this.raw(new Uint8Array([0xC0, 0])), 20000); res(this);
+          } else if (type === 3) {
+            const tl = (body[0] << 8) | body[1], topic = _td.decode(body.subarray(2, 2 + tl)); let p = 2 + tl; if ((flags >> 1) & 3) p += 2;
+            try { this.onMsg(topic, _td.decode(body.subarray(p))); } catch (e) { console.warn(e); }
+          }
+        }
+      };
+    });
+  }
+  raw(p) { if (this.ws && this.ws.readyState === 1) this.ws.send(p); }
+  nid() { this.pid = (this.pid % 65535) + 1; return new Uint8Array([this.pid >> 8, this.pid & 255]); }
+  sub(t) { this.raw(mqPacket(0x82, [this.nid(), mqStr(t), new Uint8Array([0])])); }
+  unsub(t) { this.raw(mqPacket(0xA2, [this.nid(), mqStr(t)])); }
+  pub(t, s) { this.raw(mqPacket(0x30, [mqStr(t), _te.encode(s)])); }
+  close() { this.closing = true; clearInterval(this.ping); try { this.raw(new Uint8Array([0xE0, 0])); this.ws.close(); } catch (e) {} }
+}
+const NET = { on: false, host: false, client: false, mq: null, id: Math.random().toString(36).slice(2, 10), state: 'off', room: null, peer: null, lobby: null,
+  lastRx: 0, pT: 0, nT: 0, dT: 0, pend: null, seekIv: null, dps: new Map(), pvpAcc: null, stash: null };
+NET.send = m => { if (NET.on && NET.mq) NET.mq.pub(`${NET_BASE}/r/${NET.room}/${NET.id}`, JSON.stringify(m)); };
+const r2 = v => Math.round(v * 100) / 100;
+// l'altro giocatore: si comporta come un bersaglio (come i colleghi)
+const RP = { isPlayer: true, x: 0, z: 0, tx: 0, tz: 0, heading: 0, th: 0, present: false, state: 'alive', dead: false, h: null, heroKey: null, wid: null, wmesh: null, pose: {}, f0: 200, pts: 0, fall: 0, fallDir: 1, flinch: 0, hp: 100, stun: 0, vx: 0, vz: 0 };
+const targets = () => NET.on && RP.h ? npcs.concat([RP]) : npcs;
+function nearestPlayer(n) {
+  let tp = player.dead ? null : player, d = tp ? Math.hypot(n.x - player.x, n.z - player.z) : 1e9;
+  if (NET.on && aliveN(RP)) { const d2 = Math.hypot(n.x - RP.x, n.z - RP.z); if (d2 < d) tp = RP; }
+  return tp || player;
+}
+function netStatus(msg, spin = true) { $('netMsg').textContent = msg; $('netSpin').style.display = spin ? '' : 'none'; }
+async function onlineStart() {
+  if (NET.state !== 'off') return;
+  NET.state = 'connecting'; paused = true; atkHeld = false; releasePointer();
+  $('net').classList.remove('hidden'); $('netRetry').style.display = 'none';
+  const code = ($('roomCode').value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12);
+  netStatus('Mi collego al server online…');
+  let mq = null;
+  for (const url of MQ_BROKERS) {
+    if (NET.state !== 'connecting') return;
+    try { mq = await new MqttWS(url, 'gtu' + NET.id + Math.random().toString(36).slice(2, 5), netRx, netLost).connect(); break; } catch (e) { console.warn('broker', url, e.message); mq = null; }
+  }
+  if (NET.state !== 'connecting') { if (mq) mq.close(); return; }
+  if (!mq) { NET.state = 'off'; netStatus('Non riesco a collegarmi al server online. Controlla la connessione a internet e riprova.', false); $('netRetry').style.display = ''; return; }
+  NET.mq = mq; NET.state = 'seeking'; NET.pend = null;
+  NET.lobby = `${NET_BASE}/lobby/${code || 'pubblico'}`; mq.sub(NET.lobby);
+  netStatus(code ? `Cerco un altro giocatore con il codice «${code}»…` : 'Cerco un altro giocatore online…');
+  const seek = () => { if (NET.state !== 'seeking') return; if (NET.pend && performance.now() - NET.pend.t > 4000) NET.pend = null; mq.pub(NET.lobby, JSON.stringify({ t: 'seek', id: NET.id, ts: Date.now() })); };
+  seek(); NET.seekIv = setInterval(seek, 1200);
+}
+function onlineCancel() {
+  clearInterval(NET.seekIv);
+  if (NET.mq) NET.mq.close(); NET.mq = null; NET.state = 'off';
+  $('net').classList.add('hidden'); paused = !$('intro').classList.contains('hidden') || !started;
+}
+function lobbyRx(m) {
+  if (!m || m.id === NET.id || NET.state !== 'seeking') return;
+  if (m.t === 'seek' && NET.id < m.id && !NET.pend) {
+    NET.pend = { to: m.id, room: NET.id + m.id, t: performance.now() };
+    NET.mq.pub(NET.lobby, JSON.stringify({ t: 'inv', id: NET.id, to: m.id, room: NET.pend.room }));
+  } else if (m.t === 'inv' && m.to === NET.id) {
+    NET.mq.pub(NET.lobby, JSON.stringify({ t: 'ack', id: NET.id, to: m.id, room: m.room }));
+    joinRoom(m.room, m.id, false);
+  } else if (m.t === 'ack' && m.to === NET.id && NET.pend && NET.pend.room === m.room) joinRoom(m.room, m.id, true);
+}
+function joinRoom(room, peer, host) {
+  clearInterval(NET.seekIv); NET.mq.unsub(NET.lobby);
+  Object.assign(NET, { room, peer, host, client: !host, on: true, state: 'playing', lastRx: performance.now(), pT: 0, nT: 0, dT: 0 });
+  NET.dps.clear(); NET.pvpAcc = null;
+  NET.mq.sub(`${NET_BASE}/r/${room}/${peer}`);
+  enterMP();
+  $('net').classList.add('hidden');
+  if (!$('intro').classList.contains('hidden') || !started) startGame(); else paused = false;
+  bigText('SFIDA ONLINE!<small>Fai più punti dell\'altro giocatore. Se lo fai fuori, ti prendi i suoi punti e le sue armi.</small>', '#5fd0ff', 4200);
+  SFX.chime();
+}
+function netLost() { if (NET.on) leaveMP('Connessione al server persa: torni a giocare da solo.'); else if (NET.state === 'seeking') { NET.state = 'off'; netStatus('Connessione al server persa. Riprova.', false); $('netRetry').style.display = ''; } }
+function enterMP() {
+  NET.stash = { pts, owned, equip, kills };
+  pts = 0; owned = { pugni: true }; equipWeapon('pugni'); kills = 0; combo = 0; dnCd = 0; hintShown = {};
+  Object.assign(player, { hp: 100, dead: false, fall: 0, doom: null, burnT: 0, stunT: 0, inv: now + 3, lastHurt: -99 });
+  if (NET.client) {
+    const [c, r] = randomTileIn(1); player.x = c + .5; player.z = r + .5; player.heading = 0; camYaw = 0;
+    npcs.forEach(n => { npcCleanup(n); n.localDie = false; n.tx = undefined; });
+  } else { player.x = 11.5; player.z = 10.8; player.heading = Math.PI; camYaw = Math.PI; }
+  Object.assign(RP, { present: false, dead: false, state: 'alive', pts: 0 });
+  $('mp').classList.remove('hidden'); $('bOnline').textContent = 'ESCI DALLA PARTITA ONLINE';
+  NET.send({ t: 'hi', hero });
+}
+function leaveMP(msg) {
+  if (!NET.on) return;
+  NET.send({ t: 'bye' });
+  const mq = NET.mq; setTimeout(() => mq && mq.close(), 150);
+  Object.assign(NET, { on: false, host: false, client: false, state: 'off', mq: null });
+  if (RP.h) scene.remove(RP.h.root); if (RP.wmesh) scene.remove(RP.wmesh);
+  Object.assign(RP, { h: null, wmesh: null, wid: null, heroKey: null, present: false });
+  if (NET.stash) { ({ pts, owned, equip, kills } = NET.stash); NET.stash = null; equipWeapon(equip); }
+  Object.assign(player, { hp: 100, dead: false, fall: 0, doom: null, burnT: 0, stunT: 0 });
+  npcs.forEach(n => {
+    n.localDie = false;
+    if ((n.state === 'dying' || n.state === 'doomed') && !n.doom) n.state = 'idle';
+    if (n.state === 'dead' && n.deadT === undefined) n.deadT = 0;
+    if (!n.present || n.state === 'dead') n.respawnAt = Math.min(n.respawnAt || 1e9, now + 20);
+    if (n.path === undefined) n.path = null;
+  });
+  $('mp').classList.add('hidden'); $('bOnline').textContent = '🌐 GIOCA ONLINE IN DUE'; $('creamFx').classList.remove('show');
+  save(); if (msg) toast(msg, 5000);
+}
+// --- stato da inviare ---
+function myState() {
+  const ps = playerPoseState();
+  return { t: 'p', x: r2(player.x), z: r2(player.z), h: r2(player.heading), s: r2(player.speed), e: equip, a: ps.armPose, k: r2(ps.atk), l: ps.punchLeft ? 1 : 0, ap: r2(ps.aimPitch),
+    f: ps.firing ? 1 : 0, am: (player.aimT > 0 || atkHeld) ? 1 : 0, cp: r2(camPitch), hero, d: player.dead ? 1 : 0, fd: player.fallDir || 1, pts: Math.floor(pts) };
+}
+const NST = ['idle', 'walk', 'approach', 'nag', 'flee', 'panic', 'blind', 'cower', 'doomed', 'dying', 'dead'];
+const NAP = [null, 'gesture', 'panic', 'throat', 'cower', 'clutch', 'yawn'];
+function npcSnap() {
+  return npcs.map(n => [n.present ? 1 : 0, Math.round(n.x * 100), Math.round(n.z * 100), Math.round(n.heading * 100), NST.indexOf(n.state), Math.round(n.flinch * 10), Math.max(0, NAP.indexOf(n.armPose)),
+    n.scream ? 1 : 0, n.talking ? 1 : 0, n.fallDir || 1, n.squash ? 1 : 0, n.hidden ? 1 : 0, Math.round((n.charredK || 0) * 10), Math.round((n.blueK || 0) * 10), Math.round((n.lookAng || 0) * 100),
+    n.burn > 0 ? 1 : 0, n.shock > 0 ? 1 : 0, (n.state === 'doomed' && n.doom && n.doom.wait > 0) ? 1 : 0]);
+}
+function npcCleanup(n) {
+  if (n.crush) { scene.remove(n.crush.mesh); n.crush = null; } if (n.pile) { scene.remove(n.pile); n.pile = null; }
+}
+function npcApply(arr) {
+  arr.forEach((a, i) => {
+    const n = npcs[i]; if (!n) return;
+    if (!a[0]) { if (n.present) { n.present = false; n.h.root.visible = false; npcCleanup(n); n.localDie = false; } return; }
+    if (!n.present) {
+      Object.assign(n, { present: true, x: a[1] / 100, z: a[2] / 100, heading: a[3] / 100, fall: 0, squash: false, hidden: false, charredK: 0, blueK: 0, localDie: false, state: 'walk' });
+      npcCleanup(n); n.h.root.visible = true; n.h.root.position.y = 0; n.h.allMats.forEach(m => m.color.copy(m.userData.orig));
+      if (Math.hypot(n.x - player.x, n.z - player.z) < 14) SFX.chime();
+    }
+    if (n.localDie) return;
+    n.tx = a[1] / 100; n.tz = a[2] / 100; n.th = a[3] / 100;
+    const st = NST[a[4]] || 'idle';
+    if (st === 'dead' && n.state !== 'dead') { n.fall = 0; n.deadT = 0; n.thudded = false; }
+    n.state = st; n.flinch = a[5] / 10; n.armPose = NAP[a[6]] || null; n.scream = a[7];
+    if (a[8]) { n.talking = 1; n.talkEst = now + 1; } else if (TTS.busy !== n) n.talking = 0;
+    n.fallDir = a[9]; n.squash = !!a[10];
+    if (!!a[11] !== !!n.hidden) { n.hidden = !!a[11]; n.h.root.visible = !n.hidden; }
+    const ck = a[12] / 10, bk = a[13] / 10;
+    if (ck !== (n.charredK || 0) || bk !== (n.blueK || 0)) { n.charredK = ck; n.blueK = bk; charTo(n, ck); if (bk) n.h.headMat.color.lerp(BLUE, bk * .6); }
+    n.lookAng = a[14] / 100; n.burnF = a[15]; n.shockF = a[16]; n.nerv = a[17];
+  });
+}
+function clientNPC(n, dt) {
+  if (!n.present) return;
+  if (n.localDie) { if (n.state === 'dying') updateDying(n, dt); else n.localDie = false; return; }
+  if (n.state === 'dead') {
+    n.deadT = (n.deadT || 0) + dt; n.fall = Math.min(1, (n.fall || 0) + dt * 2.4);
+    if (n.fall >= 1 && !n.thudded) { n.thudded = true; SFX.fall(npcPan(n)); }
+    if (n.deadT > 16) n.h.root.position.y = -(n.deadT - 16) * .25;
+  }
+  if (n.tx !== undefined) {
+    const k = Math.min(1, dt * 10);
+    if (Math.hypot(n.tx - n.x, n.tz - n.z) > 3) { n.x = n.tx; n.z = n.tz; } else { n.x += (n.tx - n.x) * k; n.z += (n.tz - n.z) * k; }
+    n.heading += angDiff(n.th, n.heading) * k;
+  }
+  if (n.burnF) for (let i = 0; i < 2; i++) spawnP('fire', n.x + rand(-.2, .2), rand(.3, 1.6), n.z + rand(-.2, .2), rand(-.2, .2), rand(.5, 1.2), rand(-.2, .2), rand(.3, .6), rand(.25, .45));
+  if (n.shockF && Math.random() < dt * 25) spawnP('spark', n.x + rand(-.25, .25), rand(.3, 1.7), n.z + rand(-.25, .25), rand(-1, 1), rand(0, 2), rand(-1, 1), .25, .06);
+}
+function deathPool(n) {
+  const pool = addDecal(n.x - Math.sin(n.heading) * (n.fallDir || 1) * .6, n.z - Math.cos(n.heading) * (n.fallDir || 1) * .6, .5, 'blood');
+  if (pool) { pool.grow = 4; pool.growMax = 4; pool.r = .05; pool.target = rand(.45, .7); pool.m.scale.set(.1, .1, 1); }
+}
+// --- danni continui (motosega, estintore, lanciafiamme) ---
+function applyDps(n, dmg, kind, a, by) {
+  if (!aliveN(n)) return;
+  n.hp -= dmg;
+  if (kind === 0) { n.flinch = .6 + Math.random() * .4; n.stun = .2; n.vx = n.vz = 0; n.scream = 1; }
+  else if (kind === 1) { const k = dmg / WMAP.estintore.dmg; n.vx += Math.sin(a) * 14 * k; n.vz += Math.cos(a) * 14 * k; n.flinch = Math.max(n.flinch, .5); n.stun = Math.max(n.stun, .15); }
+  else { n.burn = Math.max(n.burn, 3.5); n.burnBy = by; }
+  if (n.hp <= 0) killNPC(n, { pts: 0, kill: [300, 200, 320][kind] }, Math.sin(a), Math.cos(a), by);
+}
+function dmgTick(n, dmg, kind, a) {
+  if (n.isPlayer) { const p = NET.pvpAcc || (NET.pvpAcc = { d: 0 }); p.d += dmg; p.k = kind; p.a = a; return; }
+  if (NET.client) { const i = npcs.indexOf(n), key = i * 4 + kind, e = NET.dps.get(key) || [i, 0, kind, 0]; e[1] += dmg; e[3] = r2(a); NET.dps.set(key, e); return; }
+  applyDps(n, dmg, kind, a, 'me');
+}
+// --- scontro tra giocatori ---
+const selfVoice = () => ({ x: player.x, z: player.z, f0: hero === 'tuta' ? 125 : 225 });
+function pvpHit(dmg, dx, dz, kb, w, o) {
+  if (!aliveN(RP)) return;
+  NET.send({ t: 'ph', d: Math.round(dmg), x: r2(dx), z: r2(dz), k: kb || 1.5, w: w.id, sh: o.shock ? 1 : 0, ck: o.cake ? 1 : 0, bu: o.burn ? 1 : 0, b: o.blood === false ? 0 : 1 });
+  combo++; comboT = 2.8; addPts(Math.max(1, Math.round((o.pts ?? w.pts) * mult())));
+  if (o.blood !== false && !o.shock) bleed(RP, dx, dz, o.heavy ? 14 : 7);
+  if (!o.quiet || Math.random() < .25) grunt(RP, 'hurt');
+  if (o.shock) SFX.zap();
+  RP.flinch = 1;
+  $('cross').classList.add('hit'); clearTimeout(hitT); hitT = setTimeout(() => $('cross').classList.remove('hit'), 120);
+}
+function hurtPlayer(dmg, dx, dz, kb, o = {}) {
+  if (!NET.on || player.dead || now < (player.inv || 0)) return;
+  player.hp -= dmg; player.lastHurt = now; player.flinch = 1;
+  if (kb) moveEnt(player, dx * kb * .08, dz * kb * .08);
+  screenFlash(Math.min(.55, .18 + dmg / 140), '#b30000'); shake = Math.max(shake, Math.min(.3, .05 + dmg / 300));
+  if (o.b !== 0 && !o.sh && dmg > 3) bleed(player, dx, dz, 5);
+  if (dmg > 3 && (Math.random() < .75 || dmg > 30)) grunt(selfVoice(), 'hurt');
+  if (o.sh) { player.stunT = 1.4; SFX.zap(); }
+  if (o.ck) creamFace();
+  if (o.bu) player.burnT = Math.max(player.burnT || 0, 2.5);
+  if (player.hp <= 0) playerDie(false);
+}
+function creamFace() { const el = $('creamFx'); el.classList.add('show'); SFX.cake(0); clearTimeout(creamFace.t); creamFace.t = setTimeout(() => el.classList.remove('show'), 2600); }
+function playerDie(dn) {
+  if (player.dead) return;
+  player.dead = true; player.hp = 0; player.fall = 0; player.fallDir = Math.random() < .5 ? 1 : -1; player.respawnAt = now + 6; player.doom = null; player.burnT = 0;
+  grunt(selfVoice(), 'death'); deathPool({ x: player.x, z: player.z, heading: player.heading, fallDir: player.fallDir });
+  const lost = { p: Math.floor(pts), o: Object.keys(owned).filter(k => owned[k] && k !== 'pugni') };
+  NET.send({ t: 'died', p: lost.p, o: lost.o, dn: dn ? 1 : 0 });
+  pts = 0; owned = { pugni: true }; equipWeapon('pugni'); combo = 0; atkHeld = false; runToggle = false; $('bRun').classList.remove('on');
+  if (!$('shop').classList.contains('hidden')) closeShop(); if (!$('dn').classList.contains('hidden')) closeDN();
+  bigText(`SEI STATO FATTO FUORI<small>L'altro giocatore si prende ${fmt(lost.p)} punti${lost.o.length ? ' e ' + lost.o.length + (lost.o.length === 1 ? ' arma' : ' armi') : ''}. Rientri tra poco.</small>`, '#ff5b4f', 4200);
+}
+function playerRespawn() {
+  let best = null; const cur = roomOf(player.x, player.z);
+  for (let i = 0; i < 14; i++) {
+    const ri = Math.random() * ROOMS.length | 0; if (ri === cur) continue;
+    const [c, r] = randomTileIn(ri), d = aliveN(RP) ? Math.hypot(c + .5 - RP.x, r + .5 - RP.z) : 50 + Math.random();
+    if (!best || d > best.d) best = { c, r, d };
+  }
+  if (best) { player.x = best.c + .5; player.z = best.r + .5; }
+  Object.assign(player, { hp: 100, dead: false, fall: 0, inv: now + 2.5, burnT: 0, stunT: 0, doom: null });
+  toast('Sei rientrato in ufficio: riprenditi punti e armi!', 3500); SFX.chime();
+}
+function playerDoom(cause) {
+  if (player.dead || player.doom) return;
+  const p = parseCause(cause); player.doom = { m: p.m, obj: p.obj, t: 0, fx: false, die: 99 };
+  toast(`📓 Qualcuno ha scritto il tuo nome nel Death Note: «${String(cause).slice(0, 60)}»`, 4500); SFX.dn();
+}
+const doomBits = [];
+function doomFx(m, obj, x, z) {
+  switch (m) {
+    case 'fulmine': lightningBolt(x, z); screenFlash(.85); SFX.thunder(); shake = Math.max(shake, .25); for (let i = 0; i < 20; i++) spawnP('spark', x, rand(.5, 1.7), z, rand(-3, 3), rand(0, 4), rand(-3, 3), .5, .08); return .3;
+    case 'esplosione': explosion(x, 1, z, 1.2, null); return 0;
+    case 'fuoco': doomBits.push({ k: 'fire', x, z, t: 2.4 }); SFX.boom(); return 2.2;
+    case 'schiacciato': { const mesh = crushObject(obj); mesh.position.set(x, 7, z); mesh.rotation.y = rand(0, TAU); scene.add(mesh); doomBits.push({ k: 'crush', mesh, x, z, y: 7, vy: 0, t: 20 }); return 1; }
+    case 'scartoffie': doomBits.push({ k: 'paper', x, z, t: 2 }); return 2;
+    case 'annega': SFX.splash(0); addDecal(x, z, .5, 'water'); return 1.6;
+    case 'scivola': addDecal(x, z, .4, 'water'); return .6;
+    default: return 1.2;
+  }
+}
+function updateDoomBits(dt) {
+  for (let i = doomBits.length - 1; i >= 0; i--) {
+    const b = doomBits[i]; b.t -= dt;
+    if (b.k === 'fire') for (let k = 0; k < 3; k++) spawnP('fire', b.x + rand(-.25, .25), rand(.2, 1.7), b.z + rand(-.25, .25), rand(-.2, .2), rand(.5, 1.2), rand(-.2, .2), rand(.3, .6), rand(.25, .45));
+    if (b.k === 'paper') for (let k = 0; k < 3; k++) spawnP('paper', b.x + rand(-.5, .5), WALL_H - .1, b.z + rand(-.5, .5), rand(-.3, .3), -rand(.5, 1.5), rand(-.3, .3), 2.2, .16);
+    if (b.k === 'crush' && b.y > 0) { b.vy -= 14 * dt; b.y = Math.max(0, b.y + b.vy * dt); b.mesh.position.y = b.y; if (b.y === 0) { shake = Math.max(shake, .3); SFX.crash(); for (let k = 0; k < 14; k++) spawnP('dust', b.x + rand(-.8, .8), .2, b.z + rand(-.8, .8), rand(-1, 1), rand(0, .6), rand(-1, 1), 1.4, .5); addDecal(b.x, b.z, .9, 'blood'); } }
+    if (b.t <= 0) { if (b.mesh) scene.remove(b.mesh); doomBits.splice(i, 1); }
+  }
+}
+function updateMe(dt) {
+  if (!NET.on) return;
+  player.flinch = Math.max(0, (player.flinch || 0) - dt * 3.5);
+  if (player.dead) { player.fall = Math.min(1, player.fall + dt * 2.4); if (now >= player.respawnAt) playerRespawn(); return; }
+  if (player.stunT > 0) { player.stunT -= dt; if (Math.random() < dt * 20) spawnP('spark', player.x + rand(-.25, .25), rand(.3, 1.7), player.z + rand(-.25, .25), rand(-1, 1), rand(0, 2), rand(-1, 1), .25, .06); }
+  if (player.burnT > 0) {
+    player.burnT -= dt; player.hp -= 14 * dt; player.lastHurt = now;
+    for (let i = 0; i < 2; i++) spawnP('fire', player.x + rand(-.2, .2), rand(.3, 1.6), player.z + rand(-.2, .2), rand(-.2, .2), rand(.5, 1.2), rand(-.2, .2), rand(.3, .6), rand(.25, .45));
+    if (player.hp <= 0) { playerDie(false); return; }
+  }
+  if (player.doom) {
+    const d = player.doom; d.t += dt;
+    if (d.t > 4 && !d.fx) { d.fx = true; NET.send({ t: 'fx', k: 'pd', m: d.m, o: d.obj, x: r2(player.x), z: r2(player.z) }); d.die = d.t + doomFx(d.m, d.obj, player.x, player.z); grunt(selfVoice(), d.m === 'annega' || d.m === 'soffoca' ? 'choke' : 'scream'); }
+    if (d.t >= d.die) { playerDie(true); return; }
+  }
+  if (now - player.lastHurt > 5 && player.hp < 100) player.hp = Math.min(100, player.hp + 9 * dt);
+}
+// --- aspetto dell'altro giocatore ---
+function rpRx(m) {
+  if (m.hero && m.hero !== RP.heroKey && HERO_KEYS.includes(m.hero)) {
+    if (RP.h) scene.remove(RP.h.root);
+    RP.h = makeAvatar(m.hero); scene.add(RP.h.root); RP.heroKey = m.hero; RP.f0 = m.hero === 'tuta' ? 125 : 225;
+    RP.x = RP.tx = m.x; RP.z = RP.tz = m.z; RP.heading = RP.th = m.h; RP.present = true; RP.wid = null;
+  }
+  if (!RP.h) return;
+  RP.tx = m.x; RP.tz = m.z; RP.th = m.h; RP.pose = m; RP.pts = m.pts | 0;
+  if (m.e !== RP.wid && hasW(m.e)) { if (RP.wmesh) scene.remove(RP.wmesh); RP.wid = m.e; RP.wmesh = m.e === 'pugni' ? null : makeWeapon(m.e); if (RP.wmesh) { RP.wmesh.traverse(c => { if (c.isMesh) c.castShadow = true; }); scene.add(RP.wmesh); } }
+  const was = RP.dead; RP.dead = !!m.d; RP.state = RP.dead ? 'dead' : 'alive';
+  if (RP.dead && !was) { RP.fall = 0; RP.fallDir = m.fd || 1; }
+  if (!RP.dead && was) { RP.x = RP.tx; RP.z = RP.tz; }
+}
+function rpVisual(dt) {
+  if (!NET.on || !RP.h) return;
+  const k = Math.min(1, dt * 12);
+  if (Math.hypot(RP.tx - RP.x, RP.tz - RP.z) > 3) { RP.x = RP.tx; RP.z = RP.tz; } else { RP.x += (RP.tx - RP.x) * k; RP.z += (RP.tz - RP.z) * k; }
+  RP.heading += angDiff(RP.th, RP.heading) * k;
+  if (RP.dead) RP.fall = Math.min(1, RP.fall + dt * 2.4);
+  RP.flinch = Math.max(0, RP.flinch - dt * 3.5);
+  const m = RP.pose, h = RP.h;
+  h.root.position.set(RP.x, 0, RP.z); h.root.rotation.y = RP.heading;
+  animateAvatar(h, RP.dead ? { speed: 0, dead: true, fall: easeOutB(RP.fall), fallDir: RP.fallDir } : { speed: m.s || 0, base: 'idle', atk: m.k || 0, armPose: m.a || null, punchLeft: !!m.l, aimPitch: m.ap || 0, firing: !!m.f, flinch: RP.flinch }, dt);
+  h.shadow.visible = !RP.dead;
+  if (RP.wmesh) {
+    RP.wmesh.visible = !RP.dead;
+    if (!RP.dead) {
+      const cp = m.cp || 0, aim = new V3(Math.sin(RP.heading) * Math.cos(cp), -Math.sin(cp), Math.cos(RP.heading) * Math.cos(cp));
+      placeWeaponFor(h, RP.wmesh, RP.wid, RP.heading, !!m.am, !!m.f, aim);
+      const w = WMAP[RP.wid];
+      if (m.f && (w.type === 'flame' || w.type === 'spray') && dt > 0) {
+        const mz = new V3(0, 0, RP.wmesh.userData.muzzle || .3).applyMatrix4(RP.wmesh.matrixWorld), dir = new V3(aim.x, aim.y * .5 + .03, aim.z).normalize();
+        for (let i = 0; i < 4; i++) { const s = rand(6, 9); spawnP(w.type === 'flame' ? 'fire' : 'foam', mz.x, mz.y, mz.z, dir.x * s + rand(-.7, .7), dir.y * s + rand(-.3, .7), dir.z * s + rand(-.7, .7), rand(.4, .8), w.type === 'flame' ? rand(.2, .35) : rand(.12, .22)); }
+      }
+    }
+  }
+}
+function makeRocketMesh(mz, dir) {
+  const mesh = new THREE.Group(), map = new Map(); pushGeo(map, G.cyl, std(0x4d5b33, .6), 0, 0, 0, Math.PI / 2, 0, 0, .045, .5, .045); pushGeo(map, G.cone, M.red, 0, 0, .3, Math.PI / 2, 0, 0, .045, .12, .045); flushMap(map, mesh);
+  mesh.position.copy(mz); mesh.lookAt(mz.clone().add(dir)); scene.add(mesh); return mesh;
+}
+function makeLobMesh(proj) {
+  const mesh = new THREE.Group(), map = new Map();
+  if (proj === 'cake') { pushGeo(map, G.cyl, std(0x6b3a1e, .7), 0, 0, 0, 0, 0, 0, .11, .07, .11); pushGeo(map, G.cyl, M.white, 0, .045, 0, 0, 0, 0, .112, .03, .112); pushGeo(map, G.sphLo, M.red, 0, .07, 0, 0, 0, 0, .02, .02, .02); }
+  else { pushGeo(map, G.sph, std(0x3f6b3a, .5), 0, 0, 0, 0, 0, 0, .05, .06, .05); pushGeo(map, G.box, std(0xff4fa3, .5), 0, 0, .05, 0, 0, 0, .05, .02, .005); }
+  flushMap(map, mesh); mesh.traverse(c => { if (c.isMesh) c.castShadow = true; }); return mesh;
+}
+const V3a = a => new V3(+a[0] || 0, +a[1] || 0, +a[2] || 0), A3 = v => [r2(v.x), r2(v.y), r2(v.z)];
+function shotRx(m) {
+  const near = aliveN(RP) ? clamp(1.3 - Math.hypot(RP.x - player.x, RP.z - player.z) / 25, .2, 1) : .5;
+  if (m.k === 'g') {
+    if (!hasW(m.w)) return; const w = WMAP[m.w]; if (Math.random() < near + .3) SFX[w.sound]();
+    const mz = V3a(m.m); flashLight.position.copy(mz); flashLight.intensity = 3 * near; spawnP('muzzle', mz.x, mz.y, mz.z, 0, 0, 0, .05, .3);
+    for (const e of m.e) { const end = V3a(e); tracer(mz, end, w.shock ? 0x9fd2ff : 0xffe9a8); for (let k = 0; k < 3; k++) spawnP('spark', end.x, end.y, end.z, rand(-1.5, 1.5), rand(0, 2), rand(-1.5, 1.5), .25, .05); }
+  } else if (m.k === 'r') { SFX.rocket(); const mz = V3a(m.p), dir = V3a(m.d); rockets.push({ mesh: makeRocketMesh(mz, dir), dir, v: 16, life: 4, visual: true }); }
+  else if (m.k === 'l') { const mesh = makeLobMesh(m.pr); mesh.position.copy(V3a(m.p)); scene.add(mesh); if (m.pr === 'cake') SFX.pop(); else SFX.throwIt(); rockets.push({ mesh, kind: m.pr === 'cake' ? 'cake' : 'grenade', vel: V3a(m.v), life: 4, fuse: 1.6, visual: true }); }
+  else if (m.k === 'm') SFX.swing();
+}
+// --- messaggi in arrivo ---
+let SAY_OK = null;
+function sayAllowed(s) {
+  if (!SAY_OK) { SAY_OK = new Set([...COLLEAGUES.flatMap(c => c.lines), ...BACK, ...RESPAWN, ...HURT_TTS, ...Object.values(DYING_TTS).filter(Boolean), ...ROOM_IN.map(r => `Mi è venuta una gran voglia di andare ${r}.`)]); }
+  return SAY_OK.has(s);
+}
+const hasW = k => typeof k === 'string' && Object.prototype.hasOwnProperty.call(WMAP, k);
+function netRx(topic, text) {
+  let m; try { m = JSON.parse(text); } catch (e) { return; }
+  if (NET.state === 'seeking' && topic === NET.lobby) { lobbyRx(m); return; }
+  if (!NET.on || topic !== `${NET_BASE}/r/${NET.room}/${NET.peer}`) return;
+  NET.lastRx = performance.now();
+  switch (m.t) {
+    case 'hi': if (!RP.h && m.hero) rpRx({ hero: m.hero, x: 11.5, z: 10.8, h: 0, e: 'pugni' }); break;
+    case 'p': rpRx(m); break;
+    case 'n': if (NET.client) npcApply(m.a); break;
+    case 'hit': { const n = npcs[m.i]; if (NET.host && n) hurtNPC(n, Math.min(500, +m.d || 0), +m.x || 0, +m.z || 0, +m.k || 1, hasW(m.w) ? WMAP[m.w] : WMAP.pugni, Object.assign({}, m.o, { by: 'remote', ax: RP.x, az: RP.z })); break; }
+    case 'dps': if (NET.host) for (const [i, d, kd, a] of m.l) if (npcs[i] && kd >= 0 && kd <= 2) applyDps(npcs[i], Math.min(150, +d || 0), kd, +a || 0, 'remote'); break;
+    case 'dn': { const n = npcs[m.i]; if (NET.host && n && aliveN(n) && n.state !== 'doomed') writeDeath(n, m.c, 'remote'); break; }
+    case 'kill': addPts(Math.round(Math.min(5000, +m.p || 0) * mult()), m.l === '☠' ? '☠' : 'K.O.'); if (m.l !== '☠') kills++; break;
+    case 'say': { const n = npcs[m.i]; if (n && NET.client && sayAllowed(m.s)) { const o = m.o || {}, d = Math.hypot(n.x - player.x, n.z - player.z); if (d < 16 || (o.force && d < 26)) TTS.speak(n, m.s, { force: !!o.force, rate: +o.rate || 1, pitch: +o.pitch || 1, vol: +o.vol || 1 }); } break; }
+    case 'fx': {
+      const n = npcs[m.i];
+      if (m.k === 'h' && n) { if (m.b) bleed(n, m.x, m.z, m.hv ? 14 : 7); if (!m.q || Math.random() < .25) grunt(n, 'hurt'); }
+      else if (m.k === 'd' && n) { if (TTS.busy === n) TTS.stop(); grunt(n, 'death'); n.fallDir = m.f; deathPool(n); }
+      else if (m.k === 'dy' && n && NET.client) { Object.assign(n, { localDie: true, x: m.x, z: m.z, heading: m.h, doom: { m: m.m, obj: m.o, t: 0, wait: 0 } }); startDying(n); }
+      else if (m.k === 'pd') doomFx(m.m, m.o, m.x, m.z);
+      break;
+    }
+    case 'sh': shotRx(m); break;
+    case 'ph': hurtPlayer(Math.min(500, +m.d || 0), +m.x || 0, +m.z || 0, Math.min(12, +m.k || 0), m); break;
+    case 'pd': hurtPlayer(Math.min(150, +m.d || 0), +m.x || 0, +m.z || 0, m.kd === 1 ? 2 : 0, { b: m.kd === 0 ? 1 : 0, bu: m.kd === 2 ? 1 : 0 }); if (m.kd === 0 && Math.random() < .3) grunt(selfVoice(), 'scream'); break;
+    case 'dnp': playerDoom(m.c); break;
+    case 'died': {
+      RP.dead = true; RP.state = 'dead';
+      let nw = 0; for (const k of Array.isArray(m.o) ? m.o : []) if (hasW(k) && !owned[k]) { owned[k] = true; nw++; }
+      const loot = Math.max(0, Math.min(1e9, Math.floor(+m.p || 0))); if (loot > 0) addPts(loot, 'BOTTINO'); addPts(Math.round(150 * mult()), 'K.O.');
+      if (m.dn) addPts(Math.round(WMAP.deathnote.pts * mult()), '☠');
+      kills++; dirty = true; if (!$('shop').classList.contains('hidden')) renderShop();
+      bigText(`HAI FATTO FUORI L'AVVERSARIO!<small>+${fmt(loot)} punti${nw ? ' e ' + nw + (nw === 1 ? ' arma nuova' : ' armi nuove') : ''}</small>`, '#f5c542', 3600);
+      break;
+    }
+    case 'bye': leaveMP('L\'altro giocatore ha lasciato la partita: torni a giocare da solo.'); break;
+  }
+}
+function netTick(dt) {
+  if (!NET.on) return;
+  if (performance.now() - NET.lastRx > 12000) { leaveMP('L\'altro giocatore si è disconnesso: torni a giocare da solo.'); return; }
+  NET.pT -= dt; if (NET.pT <= 0) { NET.pT = 1 / 15; NET.send(myState()); }
+  if (NET.host) { NET.nT -= dt; if (NET.nT <= 0) { NET.nT = .1; NET.send({ t: 'n', a: npcSnap() }); } }
+  NET.dT -= dt;
+  if (NET.dT <= 0) {
+    NET.dT = .15;
+    if (NET.dps.size) { NET.send({ t: 'dps', l: [...NET.dps.values()].map(e => [e[0], r2(e[1]), e[2], e[3]]) }); NET.dps.clear(); }
+    if (NET.pvpAcc && NET.pvpAcc.d > 0) { const p = NET.pvpAcc; NET.send({ t: 'pd', d: r2(p.d), kd: p.k, x: r2(Math.sin(p.a)), z: r2(Math.cos(p.a)) }); NET.pvpAcc = null; }
+  }
+}
+window.addEventListener('pagehide', () => { if (NET.on) NET.send({ t: 'bye' }); });
+
 /* ================= Ciclo principale ================= */
 function update(dt) {
-  updatePlayer(dt);
-  for (const n of npcs) updateNPC(n, dt);
-  const all = npcs.filter(n => n.present && n.state !== 'dead' && n.state !== 'dying');
-  all.push(player);
+  updatePlayer(dt); updateMe(dt);
+  if (NET.client) for (const n of npcs) clientNPC(n, dt); else for (const n of npcs) updateNPC(n, dt);
+  const all = NET.client ? [] : npcs.filter(n => n.present && n.state !== 'dead' && n.state !== 'dying');
+  if (!player.dead) all.push(player); if (NET.on && aliveN(RP)) all.push(RP);
+  const fixed = e => e === player || e === RP;
   for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
     const a = all[i], b = all[j], d = Math.hypot(a.x - b.x, a.z - b.z);
-    if (d < .55 && d > .001) { const push = (.55 - d) / 2, ux = (b.x - a.x) / d, uz = (b.z - a.z) / d; if (a !== player) moveEnt(a, -ux * push, -uz * push); if (b !== player) moveEnt(b, ux * push, uz * push); else moveEnt(a, -ux * push, -uz * push); }
+    if (d < .55 && d > .001) {
+      const push = .55 - d, ux = (b.x - a.x) / d, uz = (b.z - a.z) / d, fa = fixed(a), fb = fixed(b);
+      if (!fa && !fb) { moveEnt(a, -ux * push / 2, -uz * push / 2); moveEnt(b, ux * push / 2, uz * push / 2); }
+      else if (!fa) moveEnt(a, -ux * push, -uz * push);
+      else if (!fb) moveEnt(b, ux * push, uz * push);
+      else if (a === player) moveEnt(a, -ux * push, -uz * push); else if (b === player) moveEnt(b, ux * push, uz * push);
+    }
   }
+  updateDoomBits(dt); netTick(dt);
   updateRockets(dt); updateParticles(dt); updateDecals(dt); updateTracers(dt);
   for (let i = bolts.length - 1; i >= 0; i--) { const b = bolts[i]; b.life -= dt; b.l.material.opacity = Math.max(0, b.life / .35); if (b.life <= 0) { scene.remove(b.l); bolts.splice(i, 1); } }
   comboT -= dt; if (comboT <= 0) combo = Math.max(0, combo - dt * 3);
@@ -6114,15 +6606,18 @@ function update(dt) {
 }
 function syncVisuals(dt) {
   PH.root.position.set(player.x, 0, player.z); PH.root.rotation.y = player.heading;
-  animateAvatar(PH, playerPoseState(), dt); placeWeapon();
+  if (player.dead) { animateAvatar(PH, { speed: 0, dead: true, fall: easeOutB(player.fall), fallDir: player.fallDir }, dt); if (weaponMesh) weaponMesh.visible = false; }
+  else { const ps = playerPoseState(); ps.flinch = player.flinch || 0; animateAvatar(PH, ps, dt); if (weaponMesh) weaponMesh.visible = true; placeWeapon(); }
+  PH.shadow.visible = !player.dead;
+  rpVisual(dt);
   for (const n of npcs) {
     if (!n.present) continue;
     const mv = dt > 0 ? Math.hypot(n.x - (n.px ?? n.x), n.z - (n.pz ?? n.z)) / dt : 0; n.px = n.x; n.pz = n.z;
     if (dt > 0) n.spd = lerp(n.spd || 0, Math.min(mv, 5), .3);
     n.h.root.position.x = n.x; n.h.root.position.z = n.z; n.h.root.rotation.y = n.heading;
     const st = n.state, talking = !!n.talking && now < n.talkEst + 1;
-    const base = (st === 'cower' || (st === 'doomed' && n.doom && n.doom.wait > 0)) ? 'nervous' : st === 'nag' ? (talking ? 'nag' : 'idle') : talking ? 'talk' : 'idle';
-    animateAvatar(n.h, { speed: st === 'dead' ? 0 : (n.spd || 0), base, panic: st === 'panic' || st === 'flee' || n.burn > 0 || st === 'dying', armPose: n.armPose, flinch: n.flinch,
+    const base = (st === 'cower' || (st === 'doomed' && ((n.doom && n.doom.wait > 0) || n.nerv))) ? 'nervous' : st === 'nag' ? (talking ? 'nag' : 'idle') : talking ? 'talk' : 'idle';
+    animateAvatar(n.h, { speed: st === 'dead' ? 0 : (n.spd || 0), base, panic: st === 'panic' || st === 'flee' || n.burn > 0 || n.burnF || st === 'dying', armPose: n.armPose, flinch: n.flinch,
       fall: st === 'dead' ? easeOutB(n.fall) : 0, fallDir: n.fallDir, squash: n.squash, talk: talking, dead: st === 'dead', scream: n.scream, look: n.lookAng }, dt);
     n.h.shadow.visible = st !== 'dead';
     if (st === 'blind' && !n.cream) { const cm = new THREE.Mesh(G.sphLo, std(0xfff4e8, .55)); n.h.b.head.getWorldPosition(_a); _F.set(Math.sin(n.heading), 0, Math.cos(n.heading)); cm.position.copy(_a).addScaledVector(_F, .085).addScaledVector(_U, .03); cm.scale.set(.085, .09, .045); cm.rotation.y = n.heading; cm.updateMatrixWorld(true); scene.add(cm); n.h.b.head.attach(cm); n.cream = cm; }
@@ -6134,9 +6629,10 @@ let fpsAcc = 0, fpsN = 0, lowered = false;
 function frame(ts) {
   requestAnimationFrame(frame);
   const t = ts / 1000, dt = Math.min(.05, Math.max(0, t - (last || t))); last = t;
-  if (!paused) { now += dt; update(dt); }
-  syncVisuals(paused ? 0 : dt);
-  updateCamera(paused ? 1 : dt);
+  const live = !paused || NET.on;     // online il mondo non si ferma mai
+  if (live) { now += dt; update(dt); }
+  syncVisuals(live ? dt : 0);
+  updateCamera(live ? dt : 1);
   // la marcatura del negozio gira
   euroSprite.position.y = 1.75 + Math.sin(now * 2.5) * .06; euroSprite.material.rotation = 0; ring.material.opacity = .45 + Math.sin(now * 4) * .25;
   renderer.render(scene, camera);
@@ -6226,6 +6722,12 @@ function startGame() {
   }
 }
 $('bStart').addEventListener('click', startGame);
+$('bOnline').addEventListener('click', () => {
+  if (NET.on) { if (confirm('Vuoi uscire dalla partita online? Torni alla partita da solo con i tuoi progressi.')) { leaveMP('Hai lasciato la partita online.'); $('intro').classList.add('hidden'); paused = false; } return; }
+  AU.init(); TTS.unlock(); onlineStart();
+});
+$('netCancel').addEventListener('click', onlineCancel);
+$('netRetry').addEventListener('click', () => { NET.state = 'off'; onlineStart(); });
 $('bHelp').addEventListener('click', () => { if ($('intro').classList.contains('hidden')) openIntro(); });
 $('bSound').addEventListener('click', () => { AU.init(); AU.on = !AU.on; $('bSound').textContent = AU.on ? '🔊' : '🔇'; if (!AU.on) { TTS.stop(); sawEngine(false); flameSound(false); } if (AU.ctx) AU.master.gain.value = AU.on ? .9 : 0; });
 $('bReset').addEventListener('click', () => { if (confirm('Vuoi davvero azzerare punti e armi comprate?')) { pts = 0; owned = { pugni: true }; equipWeapon('pugni'); kills = 0; hintShown = {}; save(); toast('Progressi azzerati.'); } });

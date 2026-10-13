@@ -29,7 +29,7 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 # Grand Theft Ufficio
 
 `ufficio.html`: gioco in 3D in stile GTA ambientato in un ufficio, con la telecamera alle spalle del personaggio.
-È un unico file (circa 9 MB, con Three.js, modelli e texture inclusi): si apre dal browser del telefono o del computer, senza registrazione, anche offline.
+È un unico file (circa 9 MB, con Three.js, modelli e texture inclusi): si apre dal browser del telefono o del computer, senza registrazione, anche offline (la partita online richiede internet).
 
 - All'inizio scegli con chi giocare: una ragazza con occhiali, lunghi capelli neri, camicia bianca e jeans chiari,
   oppure un ragazzo con i capelli neri in tuta Adidas nera a tre strisce. Ti vedi da dietro le spalle.
@@ -42,6 +42,11 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 - Armi (prezzi da 15 a 3.200 punti): pugni, tastiera, padella, merluzzo surgelato, mazza da baseball, coltello, taser, pistola, estintore a schiuma, katana, lanciatorte,
   fucile a pompa, motosega, mitragliatrice, bomba ai coriandoli, lanciafiamme, lanciarazzi e **Death Note** (5.000 punti)
   (scegli il volto di un collega e scrivi come morirà: succede davvero; se scrivi una stanza, ci va da solo).
+- **Online a due giocatori**: premete «Gioca online» nello stesso momento su due dispositivi (con lo stesso codice stanza, se volete trovarvi tra voi).
+  Partite entrambi da zero, con gli stessi colleghi e lo stesso negozio, e vi contendete i punti. Potete attaccarvi: chi fa fuori l'altro
+  si prende tutti i suoi punti e le sue armi, e chi muore rientra poco dopo in un'altra stanza. Nel Death Note compare anche il volto dell'avversario.
+  I progressi della partita da solo restano salvati a parte. Serve internet: i messaggi passano da un server MQTT pubblico e gratuito
+  (broker.emqx.io, in alternativa broker.hivemq.com o test.mosquitto.org), senza registrazione.
 - In sottofondo: condizionatore, tastiere, telefoni, stampante, macchina del caffè e brusio.
 - Comandi touch sempre visibili (joystick, trascina a destra per guardare, COLPISCI, ARMA, CORRI, NEGOZIO).
   Da computer: `WASD`, mouse per guardare (clic sullo schermo), clic/`Spazio` per colpire, `Q`, `Shift`, `E`, `1`–`0`.
