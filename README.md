@@ -38,7 +38,8 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
   un uomo anziano, uno pelato, un ragazzo sui 30 anni, una segretaria riccia sulla sessantina e una ragazza sui 30 in pigiama con gli occhiali.
 - Quando li colpisci si lamentano e scappano; nessuna barra della vita. Chi muore resta a terra e rientra dall'ingresso solo dopo un po', ogni volta più tardi.
 - Ogni colpo dà punti. I punti si spendono nel negozio sul PC della **tua postazione** (cerchio verde e simbolo €). Più l'arma è forte e costosa, più punti dà.
-- Armi: pugni, tastiera, mazza da baseball, coltello, pistola, katana, fucile a pompa, motosega, mitragliatrice, lanciafiamme, lanciarazzi e **Death Note**
+- Armi (prezzi da 15 a 3.200 punti): pugni, tastiera, padella, merluzzo surgelato, mazza da baseball, coltello, taser, pistola, estintore a schiuma, katana, lanciatorte,
+  fucile a pompa, motosega, mitragliatrice, bomba ai coriandoli, lanciafiamme, lanciarazzi e **Death Note** (5.000 punti)
   (scegli il volto di un collega e scrivi come morirà: succede davvero; se scrivi una stanza, ci va da solo).
 - In sottofondo: condizionatore, tastiere, telefoni, stampante, macchina del caffè e brusio.
 - Comandi touch sempre visibili (joystick, trascina a destra per guardare, COLPISCI, ARMA, CORRI, NEGOZIO).

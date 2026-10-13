@@ -190,8 +190,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <div class="sec"><div class="em">🖥️</div><div><h3>Dove comprare le armi</h3>
       <p>Al computer della <b>tua postazione</b>: il posto in fondo a destra del grande tavolo dell'open space, con lo schermo verde,
       il cerchio verde per terra e il simbolo <b>€</b> sospeso in aria (sulla mappa è il <b style="color:#6be37f">punto verde</b>).
-      Avvicinati e il negozio si apre da solo, oppure premi <b>NEGOZIO</b>. Ci sono armi da ufficio, coltelli, katana, pistole,
-      fucile a pompa, motosega, mitragliatrice, lanciafiamme e lanciarazzi.</p></div></div>
+      Avvicinati e il negozio si apre da solo, oppure premi <b>NEGOZIO</b>. Ci sono armi da ufficio, padella, merluzzo surgelato, taser, estintore a schiuma,
+      lanciatorte, bomba ai coriandoli, coltelli, katana, pistole, fucile a pompa, motosega, mitragliatrice, lanciafiamme e lanciarazzi.</p></div></div>
     <div class="sec"><div class="em">📓</div><div><h3>Death Note</h3>
       <p>L'oggetto più costoso. Scegli il volto di un collega e scrivi <b>come morirà</b>: succede davvero.
       Se scrivi anche un luogo (bagno, cucina, sala riunioni, archivio…) ci andrà da solo.</p></div></div>
@@ -4924,18 +4924,24 @@ function animateAvatar(h, s, dt) {
 
 /* ================= Armi ================= */
 const WEAPONS = [
-  { id: 'pugni', name: 'Pugni', price: 0, type: 'melee', anim: 'punch', dmg: 12, pts: 1, range: 1.25, arc: 1.6, cd: .38, kb: 1.6, desc: 'Le tue mani. Gratis, ma ci vuole pazienza.' },
-  { id: 'tastiera', name: 'Tastiera', price: 30, type: 'melee', anim: 'swing', dmg: 20, pts: 3, range: 1.5, arc: 2.0, cd: .55, kb: 2.5, desc: "L'arma d'ufficio per eccellenza." },
-  { id: 'mazza', name: 'Mazza da baseball', price: 120, type: 'melee', anim: 'swing', dmg: 38, pts: 8, range: 1.75, arc: 2.0, cd: .65, kb: 4.5, desc: 'Per le riunioni che potevano essere una mail.' },
-  { id: 'coltello', name: 'Coltello', price: 250, type: 'melee', anim: 'stab', dmg: 45, pts: 12, range: 1.3, arc: 1.4, cd: .38, kb: 1.5, bleed: true, desc: 'Veloce e silenzioso.' },
-  { id: 'pistola', name: 'Pistola', price: 500, type: 'gun', anim: 'pistol', dmg: 34, pts: 15, cd: .3, spread: .012, pellets: 1, range: 40, sound: 'pistol', desc: 'Semiautomatica. Precisa.' },
-  { id: 'katana', name: 'Katana', price: 900, type: 'melee', anim: 'swing', dmg: 72, pts: 22, range: 2.05, arc: 2.5, cd: .5, kb: 3, bleed: true, desc: 'Taglia i costi. E non solo quelli.' },
-  { id: 'pompa', name: 'Fucile a pompa', price: 1500, type: 'gun', anim: 'heavy', dmg: 15, pts: 8, cd: .95, spread: .07, pellets: 8, range: 18, sound: 'shotgun', kb: 2.2, desc: 'Otto pallini per colpo. Da vicino non perdona.' },
-  { id: 'motosega', name: 'Motosega', price: 2400, type: 'saw', anim: 'saw', dmg: 150, pts: 55, range: 1.55, arc: 1.2, desc: 'Tieni premuto. Rumorosa, molto rumorosa.' },
-  { id: 'mitra', name: 'Mitragliatrice', price: 3500, type: 'gun', anim: 'heavy', dmg: 15, pts: 10, cd: .085, spread: .03, pellets: 1, range: 40, sound: 'mg', auto: true, desc: 'Automatica: tieni premuto e svuota il caricatore.' },
-  { id: 'fiamme', name: 'Lanciafiamme', price: 5000, type: 'flame', anim: 'heavy', dmg: 55, pts: 65, range: 6.5, arc: .45, desc: 'Brucia tutto: anche le pratiche arretrate.' },
-  { id: 'razzi', name: 'Lanciarazzi', price: 8000, type: 'rocket', anim: 'rocket', dmg: 230, pts: 150, cd: 1.3, radius: 3.6, desc: 'Esplosione ad area. Ideale per le riunioni.' },
-  { id: 'deathnote', name: 'Death Note', price: 15000, type: 'note', anim: 'note', pts: 1000, cd: 30, desc: 'Scegli il volto e scrivi come morirà. E si avvera.' },
+  { id: 'pugni', name: 'Pugni', price: 0, type: 'melee', anim: 'punch', dmg: 20, pts: 1, range: 1.3, arc: 1.8, cd: .36, kb: 2, desc: 'Le tue mani. Gratis.' },
+  { id: 'tastiera', name: 'Tastiera', price: 15, type: 'melee', anim: 'swing', dmg: 32, pts: 3, range: 1.55, arc: 2.2, cd: .5, kb: 3, desc: "L'arma d'ufficio per eccellenza." },
+  { id: 'padella', name: 'Padella', price: 35, type: 'melee', anim: 'swing', dmg: 45, pts: 5, range: 1.6, arc: 2.2, cd: .55, kb: 6, sfx: 'bong', desc: 'BOING! Effetto cartone animato garantito.' },
+  { id: 'pesce', name: 'Merluzzo surgelato', price: 60, type: 'melee', anim: 'swing', dmg: 42, pts: 6, range: 1.7, arc: 2.3, cd: .5, kb: 7, sfx: 'fish', desc: 'Schiaffi umidi, freddi e sonori.' },
+  { id: 'mazza', name: 'Mazza da baseball', price: 90, type: 'melee', anim: 'swing', dmg: 65, pts: 8, range: 1.8, arc: 2.2, cd: .6, kb: 6, desc: 'Per le riunioni che potevano essere una mail.' },
+  { id: 'coltello', name: 'Coltello', price: 140, type: 'melee', anim: 'stab', dmg: 75, pts: 10, range: 1.4, arc: 1.6, cd: .35, kb: 1.5, bleed: true, desc: 'Veloce e silenzioso.' },
+  { id: 'taser', name: 'Taser', price: 200, type: 'gun', anim: 'pistol', dmg: 30, pts: 12, cd: .55, spread: .01, pellets: 1, range: 10, sound: 'zap', shock: 1.8, kb: .5, desc: 'Li fa ballare la tarantella per due secondi.' },
+  { id: 'pistola', name: 'Pistola', price: 280, type: 'gun', anim: 'pistol', dmg: 55, pts: 14, cd: .28, spread: .012, pellets: 1, range: 40, sound: 'pistol', desc: 'Semiautomatica. Precisa.' },
+  { id: 'estintore', name: 'Estintore a schiuma', price: 380, type: 'spray', anim: 'heavy', dmg: 30, pts: 35, range: 6, arc: .5, desc: 'Schiuma a pressione: li spinge via e li fa scivolare.' },
+  { id: 'katana', name: 'Katana', price: 480, type: 'melee', anim: 'swing', dmg: 120, pts: 20, range: 2.1, arc: 2.6, cd: .45, kb: 3, bleed: true, desc: 'Taglia i costi. E non solo quelli.' },
+  { id: 'torte', name: 'Lanciatorte', price: 600, type: 'lob', anim: 'heavy', dmg: 40, pts: 25, cd: .7, speed: 13, lift: 3.2, proj: 'cake', desc: 'Una torta in faccia: resta accecato e barcolla.' },
+  { id: 'pompa', name: 'Fucile a pompa', price: 750, type: 'gun', anim: 'heavy', dmg: 24, pts: 8, cd: .85, spread: .07, pellets: 8, range: 18, sound: 'shotgun', kb: 3, desc: 'Otto pallini per colpo. Da vicino non perdona.' },
+  { id: 'motosega', name: 'Motosega', price: 1100, type: 'saw', anim: 'saw', dmg: 280, pts: 55, range: 1.7, arc: 1.3, desc: 'Tieni premuto. Rumorosa, molto rumorosa.' },
+  { id: 'mitra', name: 'Mitragliatrice', price: 1500, type: 'gun', anim: 'heavy', dmg: 26, pts: 10, cd: .08, spread: .028, pellets: 1, range: 40, sound: 'mg', auto: true, desc: 'Automatica: tieni premuto e svuota il caricatore.' },
+  { id: 'granata', name: 'Bomba ai coriandoli', price: 1900, type: 'lob', anim: 'throw', dmg: 220, pts: 120, cd: .9, speed: 11, lift: 4, proj: 'grenade', radius: 3.8, desc: 'Lanciala, rimbalza e poi... festa. Con esplosione.' },
+  { id: 'fiamme', name: 'Lanciafiamme', price: 2400, type: 'flame', anim: 'heavy', dmg: 95, pts: 65, range: 7, arc: .5, desc: 'Brucia tutto: anche le pratiche arretrate.' },
+  { id: 'razzi', name: 'Lanciarazzi', price: 3200, type: 'rocket', anim: 'rocket', dmg: 400, pts: 150, cd: 1.1, radius: 4, desc: 'Esplosione ad area. Ideale per le riunioni.' },
+  { id: 'deathnote', name: 'Death Note', price: 5000, type: 'note', anim: 'note', pts: 1000, cd: 20, desc: 'Scegli il volto e scrivi come morirà. E si avvera.' },
 ];
 const WMAP = Object.fromEntries(WEAPONS.map(w => [w.id, w]));
 function makeWeapon(id) {
@@ -4954,6 +4960,12 @@ function makeWeapon(id) {
     case 'mitra': add(G.box, gun, 0, 0, .08, 0, 0, 0, .05, .085, .38); add(G.cyl, gun, 0, .015, .45, Math.PI / 2, 0, 0, .012, .32, .012); add(G.box, gun, 0, .0, .3, 0, 0, 0, .055, .06, .18); add(G.box, gun, 0, -.11, .12, .3, 0, 0, .03, .18, .06); add(G.box, gun, 0, -.06, -.04, .3, 0, 0, .03, .1, .04); add(G.box, gun, 0, -.01, -.24, 0, 0, 0, .04, .08, .24); muzzle = .62; break;
     case 'fiamme': add(G.box, std(0x4a4f45, .6, .3), 0, 0, .1, 0, 0, 0, .06, .08, .36); add(G.cyl, M.steel, 0, .01, .38, Math.PI / 2, 0, 0, .02, .22, .02); add(G.cyl, M.red, -.07, -.09, .02, 0, 0, 0, .055, .32, .055); add(G.cyl, M.yellow, .07, -.09, .02, 0, 0, 0, .055, .32, .055); add(G.box, M.black, 0, -.06, -.02, .3, 0, 0, .03, .1, .04); muzzle = .5; break;
     case 'razzi': add(G.cyl, olive, 0, 0, .15, Math.PI / 2, 0, 0, .055, 1.1, .055); add(G.cyl, std(0x3a4426, .7), 0, 0, .72, Math.PI / 2, 0, 0, .065, .06, .065); add(G.box, M.black, 0, .08, .2, 0, 0, 0, .03, .05, .08); add(G.box, M.black, 0, -.09, .1, 0, 0, 0, .03, .1, .04); add(G.box, M.yellow, 0, 0, .45, 0, 0, 0, .112, .02, .02); muzzle = .75; break;
+    case 'padella': add(G.cyl, std(0x1d1d1f, .35, .5), 0, -.005, .32, 0, 0, 0, .14, .035, .14); add(G.cyl, std(0x2b2b2e, .25, .6), 0, .014, .32, 0, 0, 0, .125, .005, .125); add(G.box, std(0x3a2414, .6), 0, 0, .08, 0, 0, 0, .025, .02, .22); break;
+    case 'pesce': add(G.sph, std(0x9fb3bf, .25, .3), 0, 0, .27, 0, 0, 0, .055, .075, .24); add(G.cone, std(0x8aa0ad, .3, .3), 0, 0, .02, -Math.PI / 2, 0, 0, .07, .09, .025); add(G.sphLo, M.black, .03, .02, .45, 0, 0, 0, .01, .01, .01); add(G.sphLo, M.black, -.03, .02, .45, 0, 0, 0, .01, .01, .01); break;
+    case 'taser': add(G.box, M.yellow, 0, -.03, -.02, .25, 0, 0, .03, .1, .04); add(G.box, std(0x1d1d1f, .4), 0, .03, .05, 0, 0, 0, .035, .04, .16); add(G.box, std(0x3a7bff, .3, 0, { emissive: 0x1a4cff }), 0, .03, .14, 0, 0, 0, .03, .03, .02); muzzle = .15; break;
+    case 'estintore': add(G.cyl, M.red, 0, -.02, .1, Math.PI / 2, 0, 0, .07, .42, .07); add(G.box, M.black, 0, .06, -.08, 0, 0, 0, .04, .05, .08); add(G.cone, M.black, 0, .02, .4, Math.PI / 2, 0, 0, .035, .12, .035); muzzle = .46; break;
+    case 'torte': add(G.cyl, std(0xf29ac0, .5), 0, 0, .15, Math.PI / 2, 0, 0, .085, .6, .085); add(G.cyl, std(0x6b3a1e, .7), 0, 0, .46, Math.PI / 2, 0, 0, .075, .04, .075); add(G.cyl, M.white, 0, 0, .49, Math.PI / 2, 0, 0, .075, .025, .075); add(G.sphLo, M.red, 0, .02, .505, 0, 0, 0, .015, .015, .015); add(G.box, M.black, 0, -.08, .05, .3, 0, 0, .03, .1, .04); muzzle = .5; break;
+    case 'granata': add(G.sph, std(0x3f6b3a, .5), 0, 0, .04, 0, 0, 0, .045, .055, .045); add(new THREE.TorusGeometry(.018, .004, 6, 16), M.gold, 0, .06, .04, 0, 0, 0); add(G.box, std(0xff4fa3, .5), 0, 0, .087, 0, 0, 0, .05, .02, .005); break;
     case 'deathnote': add(G.box, std(0x0b0b0b, .7), 0, 0, .05, 0, 0, 0, .13, .025, .18); add(G.plane, new THREE.MeshBasicMaterial({ map: TEX.dn }), 0, .0135, .05, -Math.PI / 2, 0, 0, .1, .13, 1); break;
   }
   flushMap(map, g); g.userData.muzzle = muzzle;
@@ -5012,6 +5024,14 @@ const AU = {
   },
 };
 const SFX = {
+  bong(pan) { [520, 1190, 1870, 2650].forEach((f, i) => AU.tone(f, 1.1 - i * .2, { type: 'sine', vol: .18 / (i + 1), pan })); AU.noise(.08, { vol: .4, freq: 2500, type: 'bandpass', pan }); },
+  fish(pan) { AU.noise(.16, { vol: .55, freq: 900, type: 'bandpass', q: 1.5, pan }); AU.noise(.3, { vol: .2, freq: 3000, type: 'highpass', delay: .03, pan }); AU.tone(180, .12, { vol: .3, slide: 90, pan }); },
+  zap() { AU.tone(70, .5, { type: 'square', vol: .12 }); AU.noise(.5, { vol: .35, freq: 4500, type: 'bandpass', q: 3 }); for (let i = 0; i < 6; i++) AU.noise(.03, { vol: .3, freq: 6000, type: 'highpass', delay: .05 + i * .07 }); },
+  pop() { AU.tone(220, .15, { type: 'triangle', vol: .3, slide: 90 }); AU.noise(.12, { vol: .3, freq: 800 }); },
+  throwIt() { AU.noise(.25, { vol: .25, freq: 1200, type: 'bandpass', sweep: 400 }); },
+  cake(pan) { AU.noise(.3, { vol: .6, freq: 700, type: 'lowpass', pan }); AU.noise(.2, { vol: .25, freq: 2500, type: 'bandpass', q: 2, pan, delay: .04 }); },
+  bounce(pan) { AU.tone(300, .08, { type: 'triangle', vol: .2, slide: 150, pan }); },
+  party() { [523, 659, 784, 1046].forEach((f, i) => AU.tone(f, .3, { type: 'square', vol: .05, delay: .25 + i * .08 })); for (let i = 0; i < 10; i++) AU.noise(.04, { vol: .15, freq: 5000, type: 'highpass', delay: .2 + Math.random() * .6 }); },
   swing() { AU.noise(.16, { vol: .22, freq: 1400, type: 'bandpass', q: .7, sweep: 400, attack: .04 }); },
   thud(heavy, pan) { AU.noise(.12, { vol: heavy ? .7 : .45, freq: heavy ? 500 : 900, pan }); AU.tone(heavy ? 70 : 95, .16, { vol: .55, slide: 40, pan }); },
   slash(pan) { AU.noise(.18, { vol: .4, freq: 3000, type: 'bandpass', q: 1, sweep: 1200, pan }); AU.noise(.1, { vol: .3, freq: 700, pan, delay: .02 }); },
@@ -5133,6 +5153,12 @@ function sawEngine(on, rev) {
   saw.o.frequency.setTargetAtTime(rev ? 135 : 58, t, .08); saw.o2.frequency.setTargetAtTime(rev ? 67 : 29, t, .08);
   saw.f.frequency.setTargetAtTime(rev ? 2600 : 800, t, .08); saw.g.gain.setTargetAtTime(rev ? .16 : .06, t, .05); saw.ng.gain.setTargetAtTime(rev === 2 ? .12 : 0, t, .05);
 }
+let foamSnd = null;
+function foamSound(on) {
+  if (!AU.ctx) return;
+  if (on && !foamSnd) { const c = AU.ctx, n = c.createBufferSource(); n.buffer = AU.buf; n.loop = true; const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 2200; const g = c.createGain(); g.gain.value = 0; n.connect(f); f.connect(g); g.connect(AU.sfx); n.start(); foamSnd = g; }
+  if (foamSnd) foamSnd.gain.setTargetAtTime(on && AU.on ? .35 : 0, AU.ctx.currentTime, .05);
+}
 let flameSnd = null;
 function flameSound(on) {
   if (!AU.ctx) return;
@@ -5148,18 +5174,19 @@ function spawnP(type, x, y, z, vx, vy, vz, life, size) {
   if (!sp) { sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.soft, transparent: true, depthWrite: false })); scene.add(sp); }
   const m = sp.material; sp.visible = true; sp.position.set(x, y, z);
   m.blending = (type === 'fire' || type === 'spark' || type === 'muzzle') ? THREE.AdditiveBlending : THREE.NormalBlending;
-  const col = { blood: 0x6e0606, mist: 0x8a1010, fire: 0xff8a2a, smoke: 0x4a4a4a, spark: 0xffe08a, dust: 0xb8b0a2, paper: 0xf7f6f0, debris: 0x3a3a3a, water: 0x9fd4ff, coffee: 0x5a3416, muzzle: 0xffd27a, foam: 0xffffff, ceil: 0xe9e8e3 }[type] || 0xffffff;
-  m.color.setHex(col).convertSRGBToLinear(); m.opacity = 1; m.rotation = Math.random() * TAU; m.map = (type === 'paper' || type === 'debris' || type === 'ceil') ? null : TEX.soft;
+  const col = { blood: 0x6e0606, mist: 0x8a1010, fire: 0xff8a2a, smoke: 0x4a4a4a, spark: 0xffe08a, dust: 0xb8b0a2, paper: 0xf7f6f0, debris: 0x3a3a3a, water: 0x9fd4ff, coffee: 0x5a3416, muzzle: 0xffd27a, foam: 0xffffff, ceil: 0xe9e8e3, confetti: 0xffffff, cream: 0xfff6ec }[type] || 0xffffff;
+  m.color.setHex(col).convertSRGBToLinear(); m.opacity = 1; m.rotation = Math.random() * TAU; m.map = (type === 'paper' || type === 'debris' || type === 'ceil' || type === 'confetti') ? null : TEX.soft;
   m.needsUpdate = true;
-  parts.push({ sp, type, vx, vy, vz, life, max: life, size, g: { blood: 9, spark: 9, debris: 9, water: 9, coffee: 9, paper: 1.2, ceil: 6, fire: -2.2, smoke: -.6, mist: -.1, dust: -.1, muzzle: 0, foam: 2 }[type] || 0 });
+  parts.push({ sp, type, vx, vy, vz, life, max: life, size, g: { blood: 9, spark: 9, debris: 9, water: 9, coffee: 9, paper: 1.2, ceil: 6, fire: -2.2, smoke: -.6, mist: -.1, dust: -.1, muzzle: 0, foam: 2, confetti: 1.4, cream: 6 }[type] || 0 });
   sp.scale.setScalar(size);
+  return parts[parts.length - 1];
 }
 function updateParticles(dt) {
   for (let i = parts.length - 1; i >= 0; i--) {
     const p = parts[i]; p.life -= dt;
     if (p.life <= 0) { p.sp.visible = false; pPool.push(p.sp); parts.splice(i, 1); continue; }
     const s = p.sp.position; p.vy -= p.g * dt; s.x += p.vx * dt; s.y += p.vy * dt; s.z += p.vz * dt;
-    if (p.type === 'paper') { p.vx += Math.sin(now * 5 + i) * dt * 2; p.sp.material.rotation += dt * 3; }
+    if (p.type === 'paper' || p.type === 'confetti') { p.vx += Math.sin(now * 5 + i) * dt * 2; p.sp.material.rotation += dt * 3; }
     if (s.y < .02 && p.g > 0) {
       s.y = .02; p.vy *= -.15; p.vx *= .3; p.vz *= .3;
       if (p.type === 'blood' && !p.landed) { p.landed = true; if (Math.random() < .25) addDecal(s.x, s.z, rand(.04, .1), 'blood'); p.life = Math.min(p.life, .3); }
@@ -5178,6 +5205,7 @@ function addDecal(x, z, r, type) {
     if (type === 'blood') DMAT.blood = new THREE.MeshBasicMaterial({ map: TEX.splat, color: lin(0x4a0303), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
     else if (type === 'scorch') DMAT.scorch = new THREE.MeshBasicMaterial({ map: TEX.blob, color: 0x000000, transparent: true, opacity: .85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
     else if (type === 'water') DMAT.water = new THREE.MeshBasicMaterial({ map: TEX.splat, color: lin(0x9ccfe8), transparent: true, opacity: .5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+    else if (type === 'foam' || type === 'cream') DMAT[type] = new THREE.MeshBasicMaterial({ map: TEX.splat, color: lin(type === 'foam' ? 0xf4f8fb : 0xfff3e6), transparent: true, opacity: .8, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
     else if (type === 'coffee') DMAT.coffee = new THREE.MeshBasicMaterial({ map: TEX.splat, color: lin(0x3a2010), transparent: true, opacity: .8, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
   }
   const m = new THREE.Mesh(G.plane, DMAT[type].clone()); m.rotation.x = -Math.PI / 2; m.rotation.z = Math.random() * TAU;
@@ -5197,8 +5225,8 @@ function updateDecals(dt) {
 // traccianti
 const tracers = [];
 const tracerMat = new THREE.LineBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: .9 });
-function tracer(a, b) {
-  const g = new THREE.BufferGeometry().setFromPoints([a.clone(), b.clone()]); const l = new THREE.Line(g, tracerMat.clone()); scene.add(l); tracers.push({ l, life: .07 });
+function tracer(a, b, col) {
+  const g = new THREE.BufferGeometry().setFromPoints([a.clone(), b.clone()]); const l = new THREE.Line(g, tracerMat.clone()); if (col) l.material.color.setHex(col); scene.add(l); tracers.push({ l, life: .07 });
 }
 function updateTracers(dt) { for (let i = tracers.length - 1; i >= 0; i--) { const t = tracers[i]; t.life -= dt; t.l.material.opacity = Math.max(0, t.life / .07); if (t.life <= 0) { scene.remove(t.l); t.l.geometry.dispose(); t.l.material.dispose(); tracers.splice(i, 1); } } }
 const flashLight = new THREE.PointLight(0xffc070, 0, 7, 2); scene.add(flashLight);
@@ -5228,8 +5256,8 @@ function equipWeapon(id) {
   equip = id; const w = WMAP[id];
   if (weaponMesh) { scene.remove(weaponMesh); weaponMesh = null; }
   if (id !== 'pugni') { weaponMesh = makeWeapon(id); weaponMesh.traverse(c => { if (c.isMesh) c.castShadow = true; }); scene.add(weaponMesh); }
-  sawEngine(id === 'motosega', 0); if (id !== 'fiamme') flameSound(false);
-  $('cross').className = (w.type === 'gun' || w.type === 'rocket' || w.type === 'flame') ? '' : 'dot';
+  sawEngine(id === 'motosega', 0); if (id !== 'fiamme') flameSound(false); if (id !== 'estintore') foamSound(false);
+  $('cross').className = (w.type === 'gun' || w.type === 'rocket' || w.type === 'flame' || w.type === 'spray' || w.type === 'lob') ? '' : 'dot';
   dirty = true; hudCache.icon = null;
 }
 function placeWeapon() {
@@ -5239,7 +5267,7 @@ function placeWeapon() {
   B.rHa.getWorldPosition(_a); B.rFo.getWorldPosition(_b); _d.subVectors(_a, _b).normalize();
   weaponMesh.position.copy(_a).addScaledVector(_d, .07);
   weaponMesh.up.set(0, 1, 0);
-  if (w.type === 'melee') { _t.crossVectors(_R, _d).addScaledVector(_d, .3).normalize(); weaponMesh.up.copy(_F); weaponMesh.lookAt(weaponMesh.position.clone().add(_t)); }
+  if (w.type === 'melee' || w.anim === 'throw') { _t.crossVectors(_R, _d).addScaledVector(_d, .3).normalize(); weaponMesh.up.copy(_F); weaponMesh.lookAt(weaponMesh.position.clone().add(_t)); }
   else if (w.type === 'note') weaponMesh.lookAt(weaponMesh.position.clone().add(_F));
   else {
     const aiming = player.aimT > 0 || atkHeld;
@@ -5259,7 +5287,7 @@ function makeNPCs() {
     const h = makeAvatar(d.id); scene.add(h.root);
     const [c, r] = randomTileIn(rooms[i]);
     const n = Object.assign({}, d, { h, x: c + .5, z: r + .5, heading: rand(0, TAU), phase: 0, walk: 0, hp: 100, state: 'idle', t: rand(.5, 2), path: null, pi: 0, vx: 0, vz: 0, stun: 0,
-      flinch: 0, nagCd: rand(6, 14), chatT: rand(6, 16), talking: 0, talkEst: 0, seed: i * 1.7 + 1, deaths: 0, present: true, fall: 0, burn: 0, armPose: null, vIdx: i, stuck: 0, repath: 0, panicT: 0, lookAng: 0 });
+      flinch: 0, nagCd: rand(2, 6), chatT: rand(6, 16), talking: 0, talkEst: 0, seed: i * 1.7 + 1, deaths: 0, present: true, fall: 0, burn: 0, armPose: null, vIdx: i, stuck: 0, repath: 0, panicT: 0, lookAng: 0 });
     return n;
   });
 }
@@ -5275,7 +5303,7 @@ function followPath(n, dt, spd) {
 }
 function turnTo(e, target, k) { e.heading += angDiff(target, e.heading) * Math.min(1, k); }
 function newWander(n) {
-  const cur = roomOf(n.x, n.z); let ri = Math.random() < .7 ? Math.random() * ROOMS.length | 0 : cur; if (ri < 0) ri = 0;
+  const cur = roomOf(n.x, n.z), pr = roomOf(player.x, player.z); let ri = Math.random() < .45 && pr >= 0 ? pr : Math.random() < .7 ? Math.random() * ROOMS.length | 0 : cur; if (ri < 0) ri = 0;
   const [c, r] = randomTileIn(ri), [c0, r0] = tileOf(n); n.path = findPath(c0, r0, c, r); n.pi = 0; n.state = n.path ? 'walk' : 'idle'; n.t = rand(.5, 1.5);
 }
 const aliveN = n => n.present && n.state !== 'dead' && n.state !== 'dying';
@@ -5293,10 +5321,18 @@ function updateNPC(n, dt) {
   if (n.state === 'dying') { updateDying(n, dt); return; }
   if (n.burn > 0) { burnTick(n, dt); if (n.state === 'dead' || n.state === 'dying') return; }
   if (Math.abs(n.vx) + Math.abs(n.vz) > .05) { moveEnt(n, n.vx * dt, n.vz * dt); const k = Math.pow(.003, dt); n.vx *= k; n.vz *= k; } else n.vx = n.vz = 0;
+  if (n.shock > 0) {
+    n.shock -= dt; n.flinch = .4 + Math.random() * .6; n.scream = 1; n.lookAng = rand(-.6, .6); n.armPose = 'panic';
+    n.hp -= 6 * dt; if (n.hp <= 0) { n.shock = 0; killNPC(n, WMAP.taser, 0, 0); return; }
+    if (Math.random() < dt * 25) spawnP('spark', n.x + rand(-.25, .25), rand(.3, 1.7), n.z + rand(-.25, .25), rand(-1, 1), rand(0, 2), rand(-1, 1), .25, .06);
+    if (Math.random() < dt * 2.5) grunt(n, 'scream');
+    if (n.shock <= 0 && n.state !== 'doomed') { n.state = 'flee'; n.t = rand(.8, 1.4); }
+    return;
+  }
   if (n.stun > 0) { n.stun -= dt; return; }
   n.nagCd -= dt; n.chatT -= dt;
   const dP = Math.hypot(n.x - player.x, n.z - player.z), toP = Math.atan2(player.x - n.x, player.z - n.z);
-  const maybeApproach = () => { if (n.nagCd <= 0 && dP < 10 && Math.random() < dt * .5 && npcs.filter(m => m.state === 'approach' || m.state === 'nag').length < 2) { n.state = 'approach'; n.t = 14; n.repath = 0; } };
+  const maybeApproach = () => { if (n.nagCd <= 0 && dP < 16 && Math.random() < dt * 1.0 && npcs.filter(m => m.state === 'approach' || m.state === 'nag').length < 3) { n.state = 'approach'; n.t = 14; n.repath = 0; } };
   switch (n.state) {
     case 'idle': n.t -= dt; if (n.t <= 0) newWander(n); maybeApproach(); if (n.talking) n.armPose = 'gesture'; break;
     case 'walk': if (followPath(n, dt, n.speed * 1.2)) { n.state = 'idle'; n.t = rand(1, 4); } maybeApproach(); break;
@@ -5304,14 +5340,14 @@ function updateNPC(n, dt) {
       n.repath -= dt; n.t -= dt;
       if (n.repath <= 0) { const a = tileOf(n), b = tileOf(player); n.path = findPath(a[0], a[1], b[0], b[1]); n.pi = 0; n.repath = .7; }
       if (dP < 1.6) { n.state = 'nag'; n.t = 6; n.said = false; } else if (followPath(n, dt, n.speed * 1.35)) n.repath = 0;
-      if (n.t <= 0) { n.state = 'idle'; n.t = 1; n.nagCd = rand(8, 14); }
+      if (n.t <= 0) { n.state = 'idle'; n.t = 1; n.nagCd = rand(5, 9); }
       break;
     case 'nag':
       turnTo(n, toP, dt * 6); n.lookAng = clamp(angDiff(toP, n.heading), -1, 1); n.t -= dt;
       if (!n.said) { n.said = npcSay(n, n.back ? BACK : n.lines, { force: false }); if (n.said) { n.back = false; n.t = 6; } }
       if (n.talking) n.armPose = 'gesture';
-      if (dP > 2.4 && n.said && !n.talking) { n.state = 'approach'; n.t = 8; n.repath = 0; n.nagCd = 0; n.said = false; if (Math.random() < .5) { n.state = 'idle'; n.nagCd = rand(10, 18); } }
-      if ((n.said && !n.talking && n.t < 4.5) || n.t <= 0) { n.state = 'idle'; n.t = rand(.5, 1.5); n.nagCd = rand(12, 22); }
+      if (dP > 2.4 && n.said && !n.talking) { n.state = 'approach'; n.t = 8; n.repath = 0; n.nagCd = 0; n.said = false; if (Math.random() < .35) { n.state = 'idle'; n.nagCd = rand(6, 11); } }
+      if ((n.said && !n.talking && n.t < 4.5) || n.t <= 0) { n.state = 'idle'; n.t = rand(.5, 1.5); n.nagCd = rand(6, 12); }
       break;
     case 'flee': case 'panic': {
       const a = Math.atan2(n.x - player.x, n.z - player.z) + (n.fleeBias || 0);
@@ -5319,7 +5355,16 @@ function updateNPC(n, dt) {
       if (moveEnt(n, Math.sin(n.heading) * sp * dt, Math.cos(n.heading) * sp * dt)) n.fleeBias = rand(-1.4, 1.4);
       n.walk = 1; n.run = 1; n.armPose = n.state === 'panic' ? 'panic' : null; n.t -= dt;
       if (n.state === 'panic' && Math.random() < dt * .6) grunt(n, 'scream');
-      if (n.t <= 0) { if (Math.random() < .5) { n.state = 'approach'; n.t = 12; n.repath = 0; n.back = true; n.nagCd = 0; } else newWander(n); }
+      if (n.t <= 0) { if (Math.random() < .7) { n.state = 'approach'; n.t = 12; n.repath = 0; n.back = true; n.nagCd = 0; } else newWander(n); }
+      break;
+    }
+    case 'blind': {
+      n.t -= dt; n.armPose = 'throat';
+      if (Math.random() < dt * 1.2) n.blindHead += rand(-1.6, 1.6);
+      turnTo(n, n.blindHead, dt * 3);
+      if (moveEnt(n, Math.sin(n.heading) * .8 * dt, Math.cos(n.heading) * .8 * dt)) n.blindHead += Math.PI * rand(.6, 1.2);
+      if (Math.random() < dt * .7) grunt(n, 'oh');
+      if (n.t <= 0) { n.state = 'approach'; n.t = 12; n.repath = 0; n.back = true; n.nagCd = 0; }
       break;
     }
     case 'cower': n.armPose = 'cower'; n.t -= dt; turnTo(n, toP, dt * 4); if (n.t <= 0) { n.state = 'flee'; n.t = rand(1.5, 3); } break;
@@ -5332,12 +5377,12 @@ function updateNPC(n, dt) {
   }
   if (n.chatT <= 0 && n.state !== 'nag' && n.state !== 'doomed' && n.state !== 'flee' && n.state !== 'panic') {
     n.chatT = rand(14, 28);
-    if (dP < 9 && now - TTS.lastEnd > 3) { npcSay(n, n.lines, { vol: .8 }); }
+    if (dP < 12 && now - TTS.lastEnd > 3) { npcSay(n, n.lines, { vol: .8 }); }
   }
 }
 function respawn(n) {
   const x = ENTRANCE.x + rand(-.4, .4), z = ENTRANCE.z;
-  Object.assign(n, { x, z, heading: 0, hp: 100, state: 'walk', path: null, vx: 0, vz: 0, stun: 0, fall: 0, burn: 0, present: true, charred: false, charredK: 0, blueK: 0, squash: false, hidden: false, doom: null, thudded: false, flinch: 0 });
+  Object.assign(n, { x, z, heading: 0, hp: 100, state: 'walk', path: null, vx: 0, vz: 0, stun: 0, fall: 0, burn: 0, present: true, charred: false, charredK: 0, blueK: 0, shock: 0, squash: false, hidden: false, doom: null, thudded: false, flinch: 0 });
   n.h.root.visible = true; n.h.root.position.y = 0; n.h.allMats.forEach(m => m.color.copy(m.userData.orig));
   const [c, r] = randomTileIn(Math.random() < .5 ? 1 : 0), [c0, r0] = tileOf(n); n.path = findPath(c0, r0, c, r); n.pi = 0; n.nagCd = rand(4, 10);
   SFX.chime();
@@ -5357,7 +5402,8 @@ function hurtNPC(n, dmg, dirx, dirz, kb, w, o = {}) {
     grunt(n, 'hurt');
     if (Math.random() < .3) setTimeout(() => { if (aliveN(n)) npcSay(n, HURT_TTS, { force: true, rate: 1.15, pitch: 1.1 }); }, 250);
   }
-  if (n.state !== 'doomed' && !o.noFlee) { n.state = Math.random() < .3 ? 'cower' : 'flee'; n.t = rand(1.2, 2.4); }
+  if (o.shock) { n.shock = o.shock; SFX.zap(); return; }
+  if (n.state !== 'doomed' && !o.noFlee) { n.state = Math.random() < .3 ? 'cower' : 'flee'; n.t = rand(.8, 1.6); }
 }
 let hitT = null;
 function bleed(n, dx, dz, count) {
@@ -5371,13 +5417,13 @@ function killNPC(n, w, dx, dz) {
   n.state = 'dead'; n.deadT = 0; n.fall = 0; n.thudded = false; n.deaths++; kills++;
   const facing = Math.sin(n.heading) * dx + Math.cos(n.heading) * dz;   // colpito da davanti → cade all'indietro
   n.fallDir = facing < 0 ? -1 : 1;
-  n.respawnAt = now + Math.min(150, 40 + 20 * n.deaths) + 18;
+  n.respawnAt = now + Math.min(70, 15 + 8 * n.deaths) + 18;
   grunt(n, 'death');
   if (w) addPts(Math.round((w.kill || w.pts * 4) * mult()), 'K.O.');
   const pool = addDecal(n.x - Math.sin(n.heading) * n.fallDir * .6, n.z - Math.cos(n.heading) * n.fallDir * .6, .5, 'blood');
   if (pool) { pool.grow = 4; pool.growMax = 4; pool.r = .05; pool.target = rand(.45, .7); pool.m.scale.set(.1, .1, 1); }
   // gli altri fuggono
-  for (const m of npcs) if (m !== n && aliveN(m) && m.state !== 'doomed' && Math.hypot(m.x - n.x, m.z - n.z) < 12) { m.state = 'panic'; m.t = rand(3, 6); }
+  for (const m of npcs) if (m !== n && aliveN(m) && m.state !== 'doomed' && Math.hypot(m.x - n.x, m.z - n.z) < 12) { m.state = 'panic'; m.t = rand(1.8, 3.5); }
 }
 function burnTick(n, dt) {
   n.burn -= dt; n.hp -= 22 * dt; n.charredK = Math.min(1, (n.charredK || 0) + dt * .25); charTo(n, n.charredK);
@@ -5433,7 +5479,7 @@ function startDying(n) {
 }
 function finishDeath(n, fallDir) {
   n.fallDir = fallDir; n.state = 'dead'; n.deadT = 0; n.thudded = false; n.deaths++; kills++;
-  n.respawnAt = now + Math.min(150, 40 + 20 * n.deaths) + 18;
+  n.respawnAt = now + Math.min(70, 15 + 8 * n.deaths) + 18;
   addPts(Math.round(WMAP.deathnote.pts * mult()), '☠');
   if (!n.hidden && !n.squash) grunt(n, 'death');
 }
@@ -5521,7 +5567,7 @@ function updatePlayer(dt) {
   const run = runToggle || keys.ShiftLeft || keys.ShiftRight;
   const w = WMAP[equip];
   const fx = Math.sin(camYaw), fz = Math.cos(camYaw), rx = -Math.cos(camYaw), rz = Math.sin(camYaw);
-  const spd = (run ? 4.3 : 2.1) * Math.min(1, l * 1.15) * ((w.type === 'gun' || w.type === 'flame' || w.type === 'saw' || w.type === 'rocket') && atkHeld ? .6 : 1);
+  const spd = (run ? 4.3 : 2.1) * Math.min(1, l * 1.15) * ((w.type === 'gun' || w.type === 'flame' || w.type === 'saw' || w.type === 'rocket' || w.type === 'spray') && atkHeld ? .6 : 1);
   if (l > .1) {
     const mx = fx * -jy + rx * jx, mz = fz * -jy + rz * jx, ml = Math.hypot(mx, mz);
     moveEnt(player, mx / ml * spd * dt, mz / ml * spd * dt);
@@ -5536,6 +5582,7 @@ function updatePlayer(dt) {
   const firing = atkHeld && !paused;
   if (w.type === 'saw') sawTick(dt, firing);
   else if (w.type === 'flame') flameTick(dt, firing);
+  else if (w.type === 'spray') sprayTick(dt, firing);
   else if (firing && player.cd <= 0) attack();
   player.firing = firing;
   if (accPts >= 1) { const v = Math.floor(accPts); accPts -= v; addPts(v); }
@@ -5571,13 +5618,13 @@ function attack() {
   const w = WMAP[equip];
   if (w.type === 'note') { atkHeld = false; if (dnCd > 0) { toast(`📓 Il quaderno si ricarica tra ${Math.ceil(dnCd)} s`); return; } openDN(); return; }
   if (w.type === 'melee') {
-    const tg = nearestMelee(w.range, 1.4); if (tg) player.heading = Math.atan2(tg.x - player.x, tg.z - player.z);
+    const tg = nearestMelee(w.range + .3, 1.8); if (tg) player.heading = Math.atan2(tg.x - player.x, tg.z - player.z);
     player.cd = w.cd; player.atkDur = Math.min(.5, w.cd * .9); player.atkT = player.atkDur; player.punchLeft = !player.punchLeft;
     player.pendingHit = { t: now + player.atkDur * (w.anim === 'swing' ? .5 : .4), w };
     SFX.swing(); return;
   }
   player.aimT = .6;
-  const tg = aimTarget(w.type === 'rocket' ? .16 : .2, 45);
+  const tg = aimTarget(w.type === 'rocket' || w.type === 'lob' ? .26 : .3, 45);
   if (tg) player.heading = Math.atan2(tg.x - player.x, tg.z - player.z); else player.heading = camYaw;
   PH.root.rotation.y = player.heading; animateAvatar(PH, playerPoseState(), 0); placeWeapon();
   const mz = muzzleWorld();
@@ -5593,11 +5640,21 @@ function attack() {
       const dir = target.clone().sub(mz).normalize(); dir.x += rand(-1, 1) * w.spread; dir.y += rand(-1, 1) * w.spread * .6; dir.z += rand(-1, 1) * w.spread; dir.normalize();
       const hn = rayNPC(mz, dir, w.range), wd = rayWall(mz, dir, w.range), tEnd = Math.min(hn.t, wd);
       const end = mz.clone().add(dir.clone().multiplyScalar(tEnd));
-      if (i < 3) tracer(mz, end);
-      if (hn.n && hn.t <= wd) hurtNPC(hn.n, w.dmg, dir.x, dir.z, w.kb || 1.2, w, { quiet: i > 0, heavy: w.id === 'pompa' });
+      if (i < 3) tracer(mz, end, w.shock ? 0x9fd2ff : 0xffe9a8);
+      if (hn.n && hn.t <= wd) { hurtNPC(hn.n, w.dmg, dir.x, dir.z, w.kb || 1.2, w, { quiet: i > 0, heavy: w.id === 'pompa', shock: w.shock, blood: !w.shock }); if (w.shock) for (let k = 0; k < 14; k++) spawnP('spark', end.x, end.y, end.z, rand(-2, 2), rand(-1, 2), rand(-2, 2), .3, .05); }
       else { for (let k = 0; k < 4; k++) spawnP('spark', end.x, end.y, end.z, rand(-1.5, 1.5), rand(0, 2), rand(-1.5, 1.5), .25, .05); spawnP('dust', end.x, end.y, end.z, 0, .2, 0, .5, .12); }
     }
-    for (const n of npcs) if (aliveN(n) && n.state !== 'doomed' && n.state !== 'flee' && Math.hypot(n.x - player.x, n.z - player.z) < 14 && Math.random() < .35) { n.state = Math.random() < .35 ? 'cower' : 'panic'; n.t = rand(2.5, 5); }
+    for (const n of npcs) if (aliveN(n) && n.state !== 'doomed' && n.state !== 'flee' && Math.hypot(n.x - player.x, n.z - player.z) < 14 && Math.random() < .35) { n.state = Math.random() < .35 ? 'cower' : 'panic'; n.t = rand(1.6, 3); }
+  } else if (w.type === 'lob') {
+    player.cd = w.cd;
+    const dir = target.clone().sub(mz).normalize(), dist = mz.distanceTo(target);
+    const vel = dir.clone().multiplyScalar(w.speed); vel.y += Math.min(w.lift, 1.2 + dist * .25);
+    const mesh = new THREE.Group(), map = new Map();
+    if (w.proj === 'cake') { pushGeo(map, G.cyl, std(0x6b3a1e, .7), 0, 0, 0, 0, 0, 0, .11, .07, .11); pushGeo(map, G.cyl, M.white, 0, .045, 0, 0, 0, 0, .112, .03, .112); pushGeo(map, G.sphLo, M.red, 0, .07, 0, 0, 0, 0, .02, .02, .02); SFX.pop(); }
+    else { pushGeo(map, G.sph, std(0x3f6b3a, .5), 0, 0, 0, 0, 0, 0, .05, .06, .05); pushGeo(map, G.box, std(0xff4fa3, .5), 0, 0, .05, 0, 0, 0, .05, .02, .005); SFX.throwIt(); player.atkT = player.atkDur = .4; }
+    flushMap(map, mesh); mesh.traverse(c => { if (c.isMesh) c.castShadow = true; });
+    mesh.position.copy(w.proj === 'cake' ? mz : PH.b.rHa.getWorldPosition(new V3())); scene.add(mesh);
+    rockets.push({ mesh, kind: w.proj, vel, life: 4, fuse: 1.6, w });
   } else if (w.type === 'rocket') {
     player.cd = w.cd; SFX.rocket(); shake = Math.max(shake, .1);
     const dir = target.clone().sub(mz).normalize();
@@ -5610,7 +5667,9 @@ function attack() {
 const rockets = [];
 function updateRockets(dt) {
   for (let i = rockets.length - 1; i >= 0; i--) {
-    const r = rockets[i]; r.life -= dt; r.v = Math.min(30, r.v + 30 * dt);
+    const r = rockets[i]; r.life -= dt;
+    if (r.kind) { if (updateLob(r, dt)) { scene.remove(r.mesh); rockets.splice(i, 1); } continue; }
+    r.v = Math.min(30, r.v + 30 * dt);
     const step = r.dir.clone().multiplyScalar(r.v * dt), p = r.mesh.position;
     const hn = rayNPC(p, r.dir, r.v * dt + .1), wd = rayWall(p, r.dir, r.v * dt + .1);
     p.add(step);
@@ -5618,30 +5677,62 @@ function updateRockets(dt) {
     if (hn.n || wd < r.v * dt + .1 || p.y < .05 || p.y > WALL_H - .05 || r.life <= 0) { explosion(p.x, p.y, p.z, 1, WMAP.razzi); scene.remove(r.mesh); rockets.splice(i, 1); }
   }
 }
-function explosion(x, y, z, k, w) {
+function updateLob(r, dt) {
+  const p = r.mesh.position; r.vel.y -= 9.8 * dt;
+  const step = r.vel.length() * dt, dir = r.vel.clone().normalize();
+  const hn = rayNPC(p, dir, step + .15);
+  const nx = p.x + r.vel.x * dt, nz = p.z + r.vel.z * dt;
+  if (r.kind === 'cake') {
+    r.mesh.rotation.x += dt * 2;
+    if (hn.n) { cakeHit(hn.n, dir, r.w); return true; }
+    if (wallAt(nx, nz) || p.y + r.vel.y * dt < .05 || r.life <= 0) { SFX.cake(0); for (let k = 0; k < 16; k++) spawnP('cream', p.x, Math.max(.1, p.y), p.z, rand(-2, 2), rand(0, 2.5), rand(-2, 2), .7, .07); addDecal(p.x - dir.x * .2, p.z - dir.z * .2, .35, 'cream'); return true; }
+    p.addScaledVector(r.vel, dt); return false;
+  }
+  // bomba ai coriandoli: rimbalza e scoppia dopo la miccia
+  r.fuse -= dt; r.mesh.rotation.x += dt * 9; r.mesh.rotation.z += dt * 5;
+  if (wallAt(nx, p.z)) { r.vel.x *= -.45; SFX.bounce(0); }
+  if (wallAt(p.x, nz)) { r.vel.z *= -.45; SFX.bounce(0); }
+  if (hn.n && r.vel.length() > 2) { r.vel.x *= -.3; r.vel.z *= -.3; }
+  p.addScaledVector(r.vel, dt);
+  if (p.y < .06) { p.y = .06; if (Math.abs(r.vel.y) > 1) SFX.bounce(0); r.vel.y *= -.4; r.vel.x *= .7; r.vel.z *= .7; }
+  if (Math.random() < .5) spawnP('spark', p.x, p.y + .05, p.z, rand(-.3, .3), rand(.2, .8), rand(-.3, .3), .2, .04);
+  if (r.fuse <= 0) { explosion(p.x, Math.max(.3, p.y), p.z, 1, r.w, true); return true; }
+  return false;
+}
+function cakeHit(n, dir, w) {
+  SFX.cake(npcPan(n));
+  for (let k = 0; k < 22; k++) spawnP('cream', n.x, rand(1.3, 1.7), n.z, rand(-2, 2), rand(0, 2.5), rand(-2, 2), .8, .07);
+  addDecal(n.x + rand(-.3, .3), n.z + rand(-.3, .3), .3, 'cream');
+  hurtNPC(n, w.dmg, dir.x, dir.z, 1.5, w, { noFlee: true, blood: false });
+  if (aliveN(n) && n.state !== 'doomed') { n.state = 'blind'; n.t = 3.4; n.blindHead = rand(0, TAU); grunt(n, 'oh'); }
+}
+function explosion(x, y, z, k, w, confetti) {
   SFX.boom(); shake = Math.max(shake, .5 * k); screenFlash(.35, '#ffd9a0');
   boomLight.color.setHex(0xff9a40); boomLight.intensity = 14 * k; boomLight.position.set(x, Math.max(.5, y), z);
   for (let i = 0; i < 40 * k; i++) spawnP('fire', x, y, z, rand(-5, 5), rand(-1, 5), rand(-5, 5), rand(.3, .7), rand(.4, .8));
   for (let i = 0; i < 22 * k; i++) spawnP('smoke', x, y, z, rand(-2.5, 2.5), rand(0, 2.5), rand(-2.5, 2.5), rand(1.2, 2.4), rand(.5, .9));
   for (let i = 0; i < 24; i++) spawnP('debris', x, y, z, rand(-6, 6), rand(1, 7), rand(-6, 6), rand(.8, 1.4), rand(.03, .07));
   addDecal(x, z, 1.4 * k, 'scorch');
+  if (confetti) { SFX.party(); for (let i = 0; i < 90; i++) { const pp = spawnP('confetti', x, y + .3, z, rand(-4, 4), rand(2, 7), rand(-4, 4), rand(2, 3.5), rand(.04, .07)); if (pp) pp.sp.material.color.setHSL(Math.random(), .9, .6); } }
   if (w) for (const n of npcs) {
     if (!aliveN(n)) continue; const d = Math.hypot(n.x - x, n.z - z); if (d > w.radius) continue;
     const f = 1 - d / w.radius * .55, a = Math.atan2(n.x - x, n.z - z);
     hurtNPC(n, w.dmg * f, Math.sin(a), Math.cos(a), 9 * f, w, { heavy: true });
-    if (aliveN(n)) { n.burn = 3; }
+    if (aliveN(n) && !confetti) { n.burn = 3; }
   }
-  for (const n of npcs) if (aliveN(n) && n.state !== 'doomed') { n.state = 'panic'; n.t = rand(3, 6); }
+  for (const n of npcs) if (aliveN(n) && n.state !== 'doomed') { n.state = 'panic'; n.t = rand(1.8, 3.5); }
 }
 function meleeHit(w) {
   let any = false;
   for (const n of npcs) {
     if (!aliveN(n)) continue;
-    const d = Math.hypot(n.x - player.x, n.z - player.z); if (d > w.range + .25) continue;
+    const d = Math.hypot(n.x - player.x, n.z - player.z); if (d > w.range + .45) continue;
     const a = Math.atan2(n.x - player.x, n.z - player.z);
-    if (d > .4 && Math.abs(angDiff(a, player.heading)) > w.arc / 2) continue;
-    any = true; hurtNPC(n, w.dmg, Math.sin(a), Math.cos(a), w.kb, w, { blood: w.id !== 'pugni' || Math.random() < .5 });
-    if (w.bleed || w.id === 'katana') SFX.slash(npcPan(n)); else SFX.thud(w.id === 'mazza', npcPan(n));
+    if (d > .4 && Math.abs(angDiff(a, player.heading)) > w.arc / 2 + .25) continue;
+    any = true; hurtNPC(n, w.dmg, Math.sin(a), Math.cos(a), w.kb, w, { blood: !w.sfx && (w.id !== 'pugni' || Math.random() < .5) });
+    if (w.sfx === 'fish') for (let k = 0; k < 8; k++) spawnP('water', n.x, 1.5, n.z, rand(-1.5, 1.5), rand(.5, 2), rand(-1.5, 1.5), .6, .04);
+    if (w.sfx === 'bong') for (let k = 0; k < 8; k++) spawnP('spark', n.x, 1.6, n.z, rand(-2, 2), rand(0, 2), rand(-2, 2), .35, .05);
+    if (w.sfx) SFX[w.sfx](npcPan(n)); else if (w.bleed || w.id === 'katana') SFX.slash(npcPan(n)); else SFX.thud(w.id === 'mazza', npcPan(n));
   }
   if (any) shake = Math.max(shake, w.id === 'mazza' ? .12 : .06);
 }
@@ -5663,6 +5754,24 @@ function sawTick(dt, firing) {
     break;
   }
   sawEngine(true, cutting ? 2 : 1); shake = Math.max(shake, cutting ? .05 : .015);
+}
+function sprayTick(dt, firing) {
+  foamSound(firing);
+  if (!firing) return;
+  player.aimT = .4; turnTo(player, camYaw, dt * 12);
+  const mz = muzzleWorld(), cf = camForward(), dir = new V3(cf.x, cf.y * .5 + .03, cf.z).normalize();
+  for (let i = 0; i < 6; i++) { const s = rand(6, 9); spawnP('foam', mz.x, mz.y, mz.z, dir.x * s + rand(-.7, .7), dir.y * s + rand(-.2, .7), dir.z * s + rand(-.7, .7), rand(.5, .9), rand(.12, .22)); }
+  const w = WMAP.estintore, heading = Math.atan2(dir.x, dir.z);
+  for (const n of npcs) {
+    if (!aliveN(n)) continue; const d = Math.hypot(n.x - player.x, n.z - player.z); if (d > w.range) continue;
+    const a = Math.atan2(n.x - player.x, n.z - player.z); if (Math.abs(angDiff(a, heading)) > w.arc) continue;
+    if (!losClear(player.x, player.z, n.x, n.z)) continue;
+    n.hp -= w.dmg * dt; n.vx += Math.sin(a) * 14 * dt; n.vz += Math.cos(a) * 14 * dt; n.flinch = Math.max(n.flinch, .5); n.stun = Math.max(n.stun, .15);
+    accPts += w.pts * dt * mult(); combo += dt * 2; comboT = 2.8;
+    if (Math.random() < dt * 1.5) grunt(n, 'oh');
+    if (n.hp <= 0) killNPC(n, { pts: 0, kill: 200 }, Math.sin(a), Math.cos(a));
+  }
+  if (Math.random() < dt * 4) { const dd = rand(1.5, 5); addDecal(player.x + dir.x * dd + rand(-.3, .3), player.z + dir.z * dd + rand(-.3, .3), rand(.2, .45), 'foam'); }
 }
 function flameTick(dt, firing) {
   flameSound(firing);
@@ -5700,7 +5809,8 @@ function playerPoseState() {
   if (w.type === 'melee') armPose = player.atkT > 0 ? w.anim : null;
   else if (w.type === 'gun') armPose = aiming ? w.anim : (w.anim === 'heavy' ? 'heavy' : null);
   else if (w.type === 'saw') armPose = 'saw';
-  else if (w.type === 'flame') armPose = 'heavy';
+  else if (w.type === 'flame' || w.type === 'spray') armPose = 'heavy';
+  else if (w.type === 'lob') armPose = w.anim === 'throw' ? (player.atkT > 0 ? 'swing' : null) : 'heavy';
   else if (w.type === 'rocket') armPose = 'rocket';
   else if (w.type === 'note') armPose = 'note';
   return { speed: player.speed, base: 'idle', atk, armPose, punchLeft: player.punchLeft, aimPitch: aiming ? camPitch * .8 - .05 : 0, firing: player.firing };
@@ -5739,10 +5849,10 @@ function updHud() {
   const st = stars(); setText('stars', Array.from({ length: 5 }, (_, i) => `<span class="${i < st ? 'on' : 'off'}">★</span>`).join(''));
   const m = mult(); setText('mult', m > 1 ? '×' + String(Math.round(m * 10) / 10).replace('.', ',') : '');
   const w = WMAP[equip]; setText('wName', w.name);
-  setText('wSub', w.type === 'note' ? (dnCd > 0 ? `Ricarica: ${Math.ceil(dnCd)} s` : 'Pronto · +1.000 pt') : (w.type === 'saw' || w.type === 'flame') ? `+${w.pts} punti al secondo` : `+${w.pts} punt${w.pts === 1 ? 'o' : 'i'} a colpo`);
+  setText('wSub', w.type === 'note' ? (dnCd > 0 ? `Ricarica: ${Math.ceil(dnCd)} s` : 'Pronto · +1.000 pt') : (w.type === 'saw' || w.type === 'flame' || w.type === 'spray') ? `+${w.pts} punti al secondo` : `+${w.pts} punt${w.pts === 1 ? 'o' : 'i'} a colpo`);
   if (hudCache.icon !== equip && ICONS[equip]) { hudCache.icon = equip; $('wIcon').src = ICONS[equip]; }
-  setText('atkIc', { note: '✒️', melee: equip === 'pugni' ? '👊' : '💥', gun: '🎯', saw: '⚙️', flame: '🔥', rocket: '🚀' }[w.type]);
-  setText('atkLb', w.type === 'note' ? 'SCRIVI' : w.type === 'melee' || w.type === 'saw' ? 'COLPISCI' : 'SPARA');
+  setText('atkIc', { note: '✒️', melee: equip === 'pugni' ? '👊' : '💥', gun: equip === 'taser' ? '⚡' : '🎯', saw: '⚙️', flame: '🔥', spray: '🧯', lob: equip === 'torte' ? '🎂' : '🎉', rocket: '🚀' }[w.type]);
+  setText('atkLb', w.type === 'note' ? 'SCRIVI' : w.type === 'melee' || w.type === 'saw' ? 'COLPISCI' : w.anim === 'throw' ? 'LANCIA' : 'SPARA');
 }
 let toastT = null, areaT = null, bigT = null;
 function toast(msg, ms = 2800) { const el = $('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), ms); }
@@ -5820,7 +5930,7 @@ function renderShop() {
   const list = $('shopList'); list.innerHTML = '';
   WEAPONS.forEach((w, i) => {
     const el = document.createElement('div'); el.className = 'item' + (equip === w.id ? ' eq' : '') + (w.id === 'deathnote' ? ' dn' : '');
-    const line = w.type === 'note' ? '+1.000 punti a vittima · ricarica 30 s' : (w.type === 'saw' || w.type === 'flame') ? `Continua · +${w.pts} pt/s` : `Danno ${'●'.repeat(Math.max(1, Math.min(5, Math.round((w.dmg * (w.pellets || 1)) / 30) + 1))).padEnd(5, '○')} · +${w.pts} pt/colpo`;
+    const line = w.type === 'note' ? `+1.000 punti a vittima · ricarica ${w.cd} s` : (w.type === 'saw' || w.type === 'flame' || w.type === 'spray') ? `Continua · +${w.pts} pt/s` : `Danno ${'●'.repeat(Math.max(1, Math.min(5, Math.round((w.dmg * (w.pellets || 1)) / 30) + 1))).padEnd(5, '○')} · +${w.pts} pt/colpo`;
     const img = document.createElement('img'); img.src = ICONS[w.id] || ''; img.alt = ''; el.appendChild(img);
     el.insertAdjacentHTML('beforeend', `<h3>${w.name}</h3><p>${w.desc}</p><div class="st">${line}</div>`);
     const b = document.createElement('button');
@@ -5893,6 +6003,8 @@ function syncVisuals(dt) {
     animateAvatar(n.h, { speed: st === 'dead' ? 0 : (n.spd || 0), base, panic: st === 'panic' || st === 'flee' || n.burn > 0 || st === 'dying', armPose: n.armPose, flinch: n.flinch,
       fall: st === 'dead' ? easeOutB(n.fall) : 0, fallDir: n.fallDir, squash: n.squash, talk: talking, dead: st === 'dead', scream: n.scream, look: n.lookAng }, dt);
     n.h.shadow.visible = st !== 'dead';
+    if (st === 'blind' && !n.cream) { const cm = new THREE.Mesh(G.sphLo, std(0xfff4e8, .55)); n.h.b.head.getWorldPosition(_a); _F.set(Math.sin(n.heading), 0, Math.cos(n.heading)); cm.position.copy(_a).addScaledVector(_F, .085).addScaledVector(_U, .03); cm.scale.set(.085, .09, .045); cm.rotation.y = n.heading; cm.updateMatrixWorld(true); scene.add(cm); n.h.b.head.attach(cm); n.cream = cm; }
+    if (n.cream) n.cream.visible = st === 'blind';
   }
 }
 const easeOutB = t => { const c = 1 - t; return 1 - c * c * c + Math.sin(t * Math.PI) * .04; };
