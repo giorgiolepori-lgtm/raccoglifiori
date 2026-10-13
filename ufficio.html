@@ -4240,8 +4240,16 @@ function moveEnt(e, dx, dz) {
 }
 const tileOf = e => [clamp(Math.floor(e.x), 0, GW - 1), clamp(Math.floor(e.z), 0, GH - 1)];
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+function freeNear(c, r) {
+  if (inG(c, r) && grid[gi(c, r)] === 0) return [c, r];
+  for (let R = 1; R <= 3; R++) for (let dr = -R; dr <= R; dr++) for (let dc = -R; dc <= R; dc++) {
+    if (Math.max(Math.abs(dc), Math.abs(dr)) !== R) continue;
+    if (inG(c + dc, r + dr) && grid[gi(c + dc, r + dr)] === 0) return [c + dc, r + dr];
+  }
+  return null;
+}
 function findPath(c0, r0, c1, r1) {
-  if (!inG(c1, r1) || grid[gi(c1, r1)] !== 0) return null;
+  const fr = freeNear(c1, r1); if (!fr) return null; [c1, r1] = fr;   // se la meta è su un mobile, va alla casella libera più vicina
   const start = gi(c0, r0), goal = gi(c1, r1), prev = new Int32Array(GW * GH).fill(-1); prev[start] = start;
   const q = [start];
   for (let h = 0; h < q.length; h++) {
@@ -4826,7 +4834,8 @@ function makeAvatar(key) {
     return new THREE.MeshStandardMaterial({ name: 'hair', map: dtex(T.hair, 1), alphaMap: dtex(T.hair_a), alphaTest: .42, roughness: .5, skinning: true, side: THREE.DoubleSide });
   });
   mesh.material = mats; mesh.castShadow = true; mesh.frustumCulled = false;
-  model.scale.set(.01 * (o.wide || 1), .01, .01 * (o.wide || 1));
+  model.scale.setScalar(.01);
+  if (o.wide) widen(model, mesh, o.wide);
   const root = new THREE.Group(), pose = new THREE.Group(); root.add(pose); pose.add(model);
   const b = {}; for (const k in BN) b[k] = model.getObjectByName(BN[k]);
   root.updateMatrixWorld(true);
@@ -4839,6 +4848,37 @@ function makeAvatar(key) {
   const hp = new V3(); b.head.getWorldPosition(hp);
   mats.forEach(m => { m.userData.orig = m.color.clone(); });
   return { key, root, pose, model, mesh, mats, allMats: mats, headMat: mats.find(m => m.name === 'head'), b, mixer, actions, cur: 'idle', height: hp.y + .14, shadow, female: o.g === 'f' };
+}
+// Allarga il corpo "cuocendo" la scala nella geometria e nello scheletro: una scala non uniforme sul modello
+// deformerebbe le ossa ruotate a mano (colpi, cadute, morte).
+function widen(model, mesh, w) {
+  model.updateMatrixWorld(true);
+  const S = new THREE.Matrix4().makeScale(w, 1, w), geo = mesh.geometry, sk = mesh.skeleton;
+  const pos = geo.attributes.position, nor = geo.attributes.normal, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight;
+  // posizione/normale di ogni vertice nel mondo, a riposo
+  const bm = sk.bones.map((bn, k) => new THREE.Matrix4().multiplyMatrices(bn.matrixWorld, sk.boneInverses[k]).multiply(mesh.bindMatrix));
+  const Mi = new THREE.Matrix4(), tmp = new THREE.Matrix4(), N3 = new THREE.Matrix3(), v = new V3(), n = new V3();
+  const comp = (a, i, k) => k === 0 ? a.getX(i) : k === 1 ? a.getY(i) : k === 2 ? a.getZ(i) : a.getW(i);
+  const WP = new Float32Array(pos.count * 3), WN = nor ? new Float32Array(pos.count * 3) : null;
+  for (let i = 0; i < pos.count; i++) {
+    Mi.elements.fill(0);
+    for (let k = 0; k < 4; k++) { const wt = comp(sw, i, k); if (!wt) continue; const e = bm[comp(si, i, k)].elements; for (let q = 0; q < 16; q++) Mi.elements[q] += e[q] * wt; }
+    v.fromBufferAttribute(pos, i).applyMatrix4(Mi).applyMatrix4(S); WP.set([v.x, v.y, v.z], i * 3);
+    if (nor) { n.fromBufferAttribute(nor, i).applyNormalMatrix(N3.getNormalMatrix(tmp.multiplyMatrices(S, Mi))); WN.set([n.x, n.y, n.z], i * 3); }
+  }
+  // ossa: stesse rotazioni, posizioni allargate
+  const bones = [], nw = new Map(), p = new V3(), q = new THREE.Quaternion(), sc = new V3();
+  model.traverse(c => { if (c.isBone) bones.push(c); });
+  for (const bn of bones) { bn.matrixWorld.decompose(p, q, sc); p.applyMatrix4(S); nw.set(bn, new THREE.Matrix4().compose(p, q, sc)); }
+  for (const bn of bones) new THREE.Matrix4().copy(nw.get(bn.parent) || bn.parent.matrixWorld).invert().multiply(nw.get(bn)).decompose(bn.position, bn.quaternion, bn.scale);
+  model.updateMatrixWorld(true);
+  mesh.bind(sk);                                      // nuova posa di legame = posa attuale
+  const inv = new THREE.Matrix4().copy(mesh.matrixWorld).invert(); N3.getNormalMatrix(inv);
+  for (let i = 0; i < pos.count; i++) {
+    v.fromArray(WP, i * 3).applyMatrix4(inv); pos.setXYZ(i, v.x, v.y, v.z);
+    if (nor) { n.fromArray(WN, i * 3).applyNormalMatrix(N3); nor.setXYZ(i, n.x, n.y, n.z); }
+  }
+  pos.needsUpdate = true; if (nor) nor.needsUpdate = true; geo.computeBoundingSphere(); geo.computeBoundingBox();
 }
 function addGlasses(b, color) {
   const le = b.lEye.getWorldPosition(new V3()), re = b.rEye.getWorldPosition(new V3());
@@ -5340,15 +5380,22 @@ function updateNPC(n, dt) {
   if (n.stun > 0) { n.stun -= dt; return; }
   n.nagCd -= dt; n.chatT -= dt;
   const dP = Math.hypot(n.x - player.x, n.z - player.z), toP = Math.atan2(player.x - n.x, player.z - n.z);
-  const maybeApproach = () => { if (n.nagCd <= 0 && dP < 16 && Math.random() < dt * 1.0 && npcs.filter(m => m.state === 'approach' || m.state === 'nag').length < 3) { n.state = 'approach'; n.t = 14; n.repath = 0; } };
+  const maybeApproach = () => { if (n.nagCd <= 0 && dP < 16 && Math.random() < dt * 1.0 && npcs.filter(m => m.state === 'approach' || m.state === 'nag').length < 3) { n.state = 'approach'; n.t = 14; n.repath = 0; n.blocked = 0; } };
   switch (n.state) {
     case 'idle': n.t -= dt; if (n.t <= 0) newWander(n); maybeApproach(); if (n.talking) n.armPose = 'gesture'; break;
     case 'walk': if (followPath(n, dt, n.speed * 1.2)) { n.state = 'idle'; n.t = rand(1, 4); } maybeApproach(); break;
     case 'approach':
       n.repath -= dt; n.t -= dt;
       if (n.repath <= 0) { const a = tileOf(n), b = tileOf(player); n.path = findPath(a[0], a[1], b[0], b[1]); n.pi = 0; n.repath = .7; }
-      if (dP < 1.6) { n.state = 'nag'; n.t = 6; n.said = false; } else if (followPath(n, dt, n.speed * 1.35)) n.repath = 0;
-      if (n.t <= 0) { n.state = 'idle'; n.t = 1; n.nagCd = rand(5, 9); }
+      if (dP < 1.6) { n.state = 'nag'; n.t = 6; n.said = false; }
+      else if (n.path && n.pi < n.path.length) { if (followPath(n, dt, n.speed * 1.35)) n.repath = 0; if (n.stuck === 0 && !n.path) n.blocked = (n.blocked || 0) + 1; }
+      else {                                       // ultimo tratto o nessun percorso: va dritta verso di te
+        const ox = n.x, oz = n.z, sp = n.speed * 1.35 * dt; turnTo(n, Math.atan2(player.x - n.x, player.z - n.z), dt * 8);
+        moveEnt(n, (player.x - n.x) / dP * sp, (player.z - n.z) / dP * sp); n.walk = 1;
+        if (Math.hypot(n.x - ox, n.z - oz) < sp * .3) n.blocked = (n.blocked || 0) + dt * 2; else n.repath = Math.min(n.repath, .3);
+      }
+      if ((n.blocked || 0) > 2.5) { n.blocked = 0; n.t = 0; }
+      if (n.t <= 0 && n.state === 'approach') { n.blocked = 0; newWander(n); n.nagCd = rand(5, 9); }
       break;
     case 'nag':
       turnTo(n, toP, dt * 6); n.lookAng = clamp(angDiff(toP, n.heading), -1, 1); n.t -= dt;
