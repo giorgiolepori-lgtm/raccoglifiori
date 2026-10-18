@@ -1,0 +1,1223 @@
+<title>Macchina del Tempo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: la scena dell'epoca riempie lo schermo; a destra (sotto, su telefono) la console d'ottone della macchina.
+   Un solo aspetto, scuro per scelta: è il quadro comandi di una macchina, di notte. */
+:root {
+  --ground: #0b1617;          /* verde-nero ossidato, fondo della macchina */
+  --panel: rgba(11, 22, 23, 0.9);
+  --panel-solid: #0f1d1e;
+  --brass: #c9a255;           /* ottone */
+  --brass-hi: #ecd08a;
+  --brass-dim: #806c45;
+  --paper: #efe5cb;           /* testo, color pergamena */
+  --paper-dim: #b3a98e;
+  --signal: #c8452d;          /* la leva rossa */
+  --signal-deep: #8a2a1b;
+  --line: rgba(201, 162, 85, 0.26);
+  --f-display: "Bodoni Moda", "Bodoni 72", Didot, Georgia, serif;
+  --f-body: "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; overflow: hidden; background: var(--ground); color: var(--paper); font-family: var(--f-body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--brass-hi); outline-offset: 2px; }
+
+#app { position: fixed; inset: 0; }
+#scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: filter .8s ease; }
+#scene.preview { filter: saturate(.7) brightness(.72) contrast(1.05); }
+
+/* Contatore dell'epoca, in alto a sinistra sulla scena */
+.odo {
+  position: absolute; z-index: 3;
+  top: calc(env(safe-area-inset-top, 0px) + 16px); left: max(16px, env(safe-area-inset-left, 0px));
+  max-width: calc(100% - 520px); min-width: 0;
+  display: grid; gap: 2px; padding: 12px 16px 13px;
+  background: rgba(8, 16, 17, .72); border: 1px solid var(--line); border-radius: 3px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.odo-k { font: 500 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--brass); }
+.odo-y { font: 500 clamp(22px, 3.2vw, 34px)/1.1 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--brass-hi); letter-spacing: -.01em; }
+.odo-p { font-size: 14px; color: var(--paper-dim); overflow-wrap: anywhere; }
+.preview-tag { position: absolute; z-index: 3; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  font: 500 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--paper-dim);
+  padding: 8px 10px; border: 1px dashed var(--line); border-radius: 3px; background: rgba(8,16,17,.55); }
+
+/* Console */
+.console {
+  position: absolute; z-index: 4;
+  top: calc(env(safe-area-inset-top, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  right: max(16px, env(safe-area-inset-right, 0px)); width: 440px;
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(236, 208, 138, .08);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.plate {
+  display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(201,162,85,.10), rgba(201,162,85,.02));
+}
+.plate .mark { font: 500 11px/1.2 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--brass); flex: 1; min-width: 0; }
+.plate .mark b { color: var(--brass-hi); font-weight: 500; }
+.knob {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 999px;
+  background: transparent; border: 1px solid var(--line); color: var(--paper-dim);
+  font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+}
+.knob:hover { color: var(--paper); border-color: var(--brass-dim); }
+.knob .led { width: 7px; height: 7px; border-radius: 50%; background: var(--brass-dim); }
+.knob[aria-pressed="true"] .led { background: var(--brass-hi); box-shadow: 0 0 8px var(--brass); }
+
+.scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 24px 26px; display: flex; flex-direction: column; gap: 20px; scrollbar-color: var(--brass-dim) transparent; }
+.eyebrow { margin: 0; font: 500 11px/1.3 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--brass); }
+.era-title { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: clamp(32px, 4.4vw, 44px); line-height: 1.02; letter-spacing: -.01em; text-wrap: balance; color: var(--paper); }
+.era-title em { font-style: italic; font-weight: 500; color: var(--brass-hi); }
+.meta { margin: 0; font: 400 13px/1.45 var(--f-mono); color: var(--paper-dim); }
+.lede { margin: 0; font-size: 17px; line-height: 1.55; color: var(--paper); max-width: 62ch; }
+.intro { margin: 0; color: var(--paper-dim); font-size: 15px; }
+.head-block { display: flex; flex-direction: column; gap: 10px; }
+
+/* Registro delle destinazioni */
+.eras { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+.eras li { border-bottom: 1px solid var(--line); }
+.era-btn {
+  width: 100%; display: grid; grid-template-columns: 112px 1fr auto; align-items: baseline; gap: 12px;
+  padding: 11px 6px; background: transparent; border: 0; text-align: left; color: var(--paper-dim);
+}
+.era-btn .y { font: 500 12px/1.2 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--brass-dim); }
+.era-btn .n { font-family: var(--f-display); font-size: 19px; line-height: 1.15; color: var(--paper); min-width: 0; }
+.era-btn .s { font: 500 10px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--brass); opacity: 0; }
+.era-btn .s.on { opacity: 1; }
+.era-btn:hover .n { color: var(--brass-hi); }
+.era-btn[aria-current="true"] { background: linear-gradient(90deg, rgba(201,162,85,.16), rgba(201,162,85,0)); }
+.era-btn[aria-current="true"] .y { color: var(--brass-hi); }
+.era-btn[aria-current="true"] .n { color: var(--brass-hi); font-style: italic; }
+
+/* Piede della console: leva e navigazione */
+.foot { border-top: 1px solid var(--line); padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,.18); }
+.jump { margin: 0; font: 400 12px/1.3 var(--f-mono); color: var(--paper-dim); font-variant-numeric: tabular-nums; }
+.jump b { color: var(--brass-hi); font-weight: 500; }
+.lever {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%;
+  padding: 15px 18px; border-radius: 3px; border: 0;
+  background: linear-gradient(180deg, #d4523a, var(--signal)); color: #fff6e6;
+  box-shadow: inset 0 -4px 0 var(--signal-deep), 0 6px 18px rgba(200, 69, 45, .28);
+  font-family: var(--f-display); font-size: 22px; font-weight: 600; letter-spacing: .01em; text-align: left;
+  transition: transform .12s ease, filter .2s;
+}
+.lever small { font: 500 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.lever:hover { filter: brightness(1.08); }
+.lever:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 var(--signal-deep); }
+.lever:disabled { filter: grayscale(.6) brightness(.8); cursor: wait; }
+.row { display: flex; gap: 10px; }
+.ghost {
+  flex: 1; min-width: 0; padding: 11px 12px; border-radius: 3px; border: 1px solid var(--line); background: rgba(201,162,85,.06);
+  color: var(--paper); font-size: 15px; font-weight: 500; text-align: center;
+}
+.ghost:hover { border-color: var(--brass); background: rgba(201,162,85,.12); }
+.ghost:disabled { opacity: .5; cursor: default; }
+
+/* Schede */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tab { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 8px 10px 9px; margin-bottom: -1px;
+  font: 500 12px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--paper-dim); white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--brass-hi); border-bottom-color: var(--brass-hi); }
+.tab:hover { color: var(--paper); }
+.pane { display: flex; flex-direction: column; gap: 18px; }
+
+.senses { margin: 0; display: grid; grid-template-columns: 76px 1fr; gap: 10px 14px; }
+.senses dt { font: 500 11px/1.9 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--brass); }
+.senses dd { margin: 0; min-width: 0; color: var(--paper); }
+.fact { margin: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 3px; background: rgba(201,162,85,.07); display: grid; gap: 6px; }
+.fact .eyebrow { color: var(--brass-hi); }
+.fact p { margin: 0; }
+.para { margin: 0; color: var(--paper); max-width: 62ch; }
+.phrase { margin: 0; padding-left: 14px; border-left: 2px solid var(--brass); display: grid; gap: 2px; }
+.phrase q { font-family: var(--f-display); font-style: italic; font-size: 22px; line-height: 1.2; color: var(--brass-hi); quotes: none; }
+.phrase span { color: var(--paper-dim); font-size: 14px; }
+
+/* Conversazione */
+.chat { display: flex; flex-direction: column; gap: 12px; }
+.who { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.who strong { font-family: var(--f-display); font-size: 22px; font-weight: 600; }
+.who span { font-size: 14px; color: var(--paper-dim); }
+.msgs { display: flex; flex-direction: column; gap: 10px; }
+.msg { margin: 0; padding: 10px 13px; border-radius: 3px; max-width: 92%; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.them { background: rgba(239,229,203,.07); border: 1px solid var(--line); align-self: flex-start; }
+.msg.me { background: rgba(201,162,85,.16); align-self: flex-end; color: var(--paper); }
+.msg.wait { color: var(--paper-dim); font-style: italic; }
+.sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--paper-dim); font-size: 14px; }
+.chip:hover { color: var(--paper); border-color: var(--brass); }
+.chat form { display: flex; gap: 8px; }
+.chat input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 3px; border: 1px solid var(--line); background: rgba(0,0,0,.25); color: var(--paper); }
+.chat input::placeholder { color: var(--paper-dim); opacity: .8; }
+.send { padding: 10px 14px; border-radius: 3px; border: 0; background: var(--brass); color: #1a1408; font-weight: 700; }
+.send:disabled { opacity: .5; cursor: default; }
+.note { margin: 0; font-size: 13px; color: var(--paper-dim); }
+
+/* Viaggio */
+.warp { position: fixed; inset: 0; z-index: 20; background: #05090a; display: grid; place-items: center; }
+.warp canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.warp-read { position: relative; text-align: center; display: grid; gap: 10px; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+.warp-read .k { font: 500 12px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--brass); }
+.warp-read .y { font: 500 clamp(30px, 7vw, 76px)/1 var(--f-mono); font-variant-numeric: tabular-nums; color: var(--brass-hi); text-shadow: 0 0 24px rgba(201,162,85,.45); }
+.warp-read .d { font-family: var(--f-display); font-style: italic; font-size: clamp(18px, 2.6vw, 26px); color: var(--paper); }
+
+/* Passaporto */
+.pass { position: fixed; inset: 0; z-index: 15; display: grid; place-items: center; background: rgba(3,8,9,.6);
+  padding: calc(env(safe-area-inset-top,0px) + 16px) max(16px, env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px, env(safe-area-inset-left,0px)); }
+.pass-card { width: min(560px, 100%); max-height: 100%; overflow: auto; background: var(--panel-solid); border: 1px solid var(--line); border-radius: 4px; padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 16px; }
+.pass-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.pass-top h2 { margin: 0; font-family: var(--f-display); font-weight: 600; font-size: 30px; line-height: 1.05; }
+.stamps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.stamp { aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 2px dashed rgba(201,162,85,.25); display: grid; place-items: center; text-align: center; padding: 8px; color: rgba(201,162,85,.35); }
+.stamp b { display: block; font: 500 10px/1.2 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; }
+.stamp i { display: block; font-family: var(--f-display); font-size: 13px; line-height: 1.1; margin-top: 3px; }
+.stamp.on { border: 2px double var(--signal); color: #e0705a; background: rgba(200,69,45,.08); }
+
+@media (max-width: 760px) {
+  #scene { height: 42%; }
+  .odo { max-width: calc(100% - 32px); padding: 9px 12px 10px; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+  .preview-tag { bottom: auto; top: calc(42% - 40px); }
+  .console { top: 42%; bottom: 0; left: 0; right: 0; width: auto; border-radius: 0; border-left: 0; border-right: 0; border-bottom: 0; }
+  .plate, .foot { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .foot { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); }
+  .scroll { padding: 18px max(16px, env(safe-area-inset-right, 0px)) 22px max(16px, env(safe-area-inset-left, 0px)); gap: 16px; }
+  .era-btn { grid-template-columns: 96px 1fr auto; }
+  .lever { font-size: 19px; padding: 13px 16px; }
+  .stamps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .senses { grid-template-columns: 1fr; gap: 2px; }
+  .senses dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { #scene { transition: none; } .lever { transition: none; } }
+</style>
+
+<div id="app">
+  <canvas id="scene" class="preview" aria-hidden="true"></canvas>
+
+  <div class="odo" role="status" aria-live="polite">
+    <span class="odo-k" id="odoK">Sei nel</span>
+    <span class="odo-y" id="odoY">2026 d.C.</span>
+    <span class="odo-p" id="odoP">Laboratorio, oggi</span>
+  </div>
+  <div class="preview-tag" id="previewTag">Anteprima dalla finestra temporale</div>
+
+  <section class="console" aria-label="Console della macchina del tempo">
+    <div class="plate">
+      <span class="mark"><b>Macchina del Tempo</b><br>Mod. Bodoni · n. 2026</span>
+      <button class="knob" id="soundBtn" type="button" aria-pressed="true"><span class="led"></span>Suono</button>
+      <button class="knob" id="passBtn" type="button"><span class="led" id="passLed"></span><span id="passCount">Timbri 0/8</span></button>
+    </div>
+
+    <div class="scroll" id="scroll">
+      <!-- Selettore di destinazione -->
+      <div id="dock" class="pane">
+        <div class="head-block">
+          <p class="eyebrow">Destinazione selezionata</p>
+          <h1 class="era-title" id="dName">Roma imperiale</h1>
+          <p class="meta" id="dMeta">Roma, davanti all'Anfiteatro Flavio · 80 d.C.</p>
+          <p class="lede" id="dTeaser">Il Colosseo è nuovo di zecca e cinquantamila persone stanno entrando.</p>
+        </div>
+        <p class="intro">Scegli un'epoca e tira la leva. All'arrivo trovi il luogo com'era, i suoi suoni, la vita di tutti i giorni e una persona del tempo con cui parlare.</p>
+        <ol class="eras" id="eraList" aria-label="Epoche disponibili"></ol>
+      </div>
+
+      <!-- Arrivo -->
+      <div id="here" class="pane" hidden>
+        <div class="head-block">
+          <p class="eyebrow">Destinazione raggiunta</p>
+          <h2 class="era-title" id="hName"></h2>
+          <p class="meta" id="hMeta"></p>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Sezioni">
+          <button class="tab" role="tab" id="tab-posto" aria-controls="p-posto" aria-selected="true" type="button">Il posto</button>
+          <button class="tab" role="tab" id="tab-vita" aria-controls="p-vita" aria-selected="false" type="button">La vita</button>
+          <button class="tab" role="tab" id="tab-parla" aria-controls="p-parla" aria-selected="false" type="button">Parla con…</button>
+        </div>
+
+        <div class="pane" id="p-posto" role="tabpanel" aria-labelledby="tab-posto">
+          <p class="lede" id="hLede"></p>
+          <dl class="senses">
+            <dt>Vedi</dt><dd id="hSee"></dd>
+            <dt>Senti</dt><dd id="hHear"></dd>
+            <dt>Annusi</dt><dd id="hSmell"></dd>
+          </dl>
+          <div class="fact"><p class="eyebrow">Fatto vero</p><p id="hFact"></p></div>
+        </div>
+
+        <div class="pane" id="p-vita" role="tabpanel" aria-labelledby="tab-vita" hidden>
+          <p class="para" id="hLife"></p>
+          <dl class="senses">
+            <dt>Si paga</dt><dd id="hMoney"></dd>
+            <dt>Si mangia</dt><dd id="hFood"></dd>
+          </dl>
+          <div class="phrase"><q id="hGreet"></q><span id="hGreetT"></span></div>
+          <div class="fact"><p class="eyebrow">Da non fare</p><p id="hDont"></p></div>
+        </div>
+
+        <div class="pane chat" id="p-parla" role="tabpanel" aria-labelledby="tab-parla" hidden>
+          <div class="who"><strong id="cName"></strong><span id="cRole"></span></div>
+          <div class="msgs" id="msgs" aria-live="polite"></div>
+          <div class="sugg" id="sugg"></div>
+          <form id="chatForm" autocomplete="off">
+            <label for="chatIn" class="eyebrow" hidden>Il tuo messaggio</label>
+            <input id="chatIn" name="chatIn" maxlength="400" placeholder="Scrivi una domanda…">
+            <button class="send" id="sendBtn" type="submit">Invia</button>
+          </form>
+          <p class="note" id="chatNote">Le risposte le scrive Claude interpretando il personaggio: i fatti storici sono veri, le persone e i dialoghi in gran parte immaginati.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot" id="foot">
+      <p class="jump" id="jump">Salto: <b>1.946 anni</b> indietro</p>
+      <button class="lever" id="lever" type="button"><span id="leverTxt">Parti per Roma</span><small>Tira la leva</small></button>
+      <div class="row" id="navRow" hidden>
+        <button class="ghost" id="backBtn" type="button">Torna al presente</button>
+        <button class="ghost" id="nextBtn" type="button">Prossima tappa</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="warp" id="warp" hidden>
+  <canvas id="warpCv" aria-hidden="true"></canvas>
+  <div class="warp-read" role="status" aria-live="polite">
+    <span class="k">Salto temporale in corso</span>
+    <span class="y" id="warpY">2026 d.C.</span>
+    <span class="d" id="warpD"></span>
+  </div>
+</div>
+
+<div class="pass" id="pass" hidden>
+  <div class="pass-card" role="dialog" aria-modal="true" aria-labelledby="passTitle">
+    <div class="pass-top">
+      <div><p class="eyebrow">Passaporto temporale</p><h2 id="passTitle">I tuoi timbri</h2></div>
+      <button class="knob" id="passClose" type="button">Chiudi</button>
+    </div>
+    <p class="note" id="passNote">Ogni epoca che visiti lascia un timbro. Restano in questo browser.</p>
+    <div class="stamps" id="stamps"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const PRESENT = new Date().getFullYear();
+const TAU = Math.PI * 2;
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ------------------------------------------------------------------ */
+/*  Le epoche                                                          */
+/* ------------------------------------------------------------------ */
+const ERAS = [
+{
+  id: "cretaceo", name: "Cretaceo superiore", short: "il Cretaceo", year: -66000000, yearLabel: "66 mln di anni fa", stamp: "Cretaceo",
+  place: "Hell Creek, nell'odierno Montana (USA)", date: "circa 66 milioni di anni fa",
+  teaser: "Felci, vulcani lontani e un Triceratops che pascola a cinquanta metri da te.",
+  lede: "L'aria è calda e umida, pesante come in una serra. Atterri sulla riva di un fiume lento, tra felci alte fino al petto. A cinquanta metri un Triceratops strappa foglie con il becco; sul crinale, più lontano, una sagoma su due zampe si ferma e annusa l'aria. Meglio non muoversi troppo.",
+  see: "Felci, cicadee e le prime piante con fiori, come magnolie e palme. L'erba è rarissima: i prati non esistono ancora.",
+  hear: "Un ronzio continuo di insetti, l'acqua del fiume e, ogni tanto, un verso basso e rimbombante che senti più nel petto che nelle orecchie.",
+  smell: "Fango, foglie marce della palude e, quando gira il vento, un odore acre di zolfo che arriva dai vulcani.",
+  fact: "Il Tyrannosaurus rex è più vicino nel tempo a te che allo Stegosauro: tra lo Stegosauro e il T. rex passano circa 80 milioni di anni, tra il T. rex e te 66.",
+  life: "Non c'è nessun essere umano. I nostri antenati più vicini sono piccoli mammiferi notturni, grandi come un toporagno, che si nascondono tra le radici. Tra i rami volano già uccelli veri, discendenti dei dinosauri. E il giorno è un po' più corto di adesso, perché la Terra gira leggermente più veloce.",
+  money: "Niente. Qui conta solo non diventare la cena di qualcuno.",
+  food: "Per gli erbivori felci, cicadee e conifere. Tu, si spera, ti sei portato i panini.",
+  greet: "…", greetT: "Non c'è nessuno da salutare: al massimo un cenno al Triceratops, da lontano.",
+  dont: "Non uscire dal sentiero e non pestare niente. In «Rumore di tuono», un racconto del 1952 di Ray Bradbury, un viaggiatore schiaccia una farfalla e al ritorno trova il futuro cambiato.",
+  who: { name: "Elena", role: "paleontologa, cronoviaggiatrice dal 2026",
+    hello: "Ehi, parla piano! Sono Elena, sono arrivata qui dal 2026 tre settimane fa per studiare i Triceratops. Vuoi sapere cosa ho scoperto?",
+    brief: "Sei Elena, una paleontologa partita dal 2026 come il visitatore e arrivata nel Cretaceo superiore tre settimane prima. Conosci la scienza moderna e la usi per spiegare ciò che vedi dal vivo. Distingui sempre ciò che la scienza sapeva nel 2026 da ciò che stai osservando qui; su queste osservazioni resta prudente e plausibile.",
+    sugg: ["Il T. rex è pericoloso?", "Che versi fanno i dinosauri?", "Cosa hai scoperto finora?"] },
+  sky: ["#56798a", "#b9a27a", "#efc27a"], accent: "#efc27a"
+},
+{
+  id: "paleolitico", name: "Paleolitico superiore", short: "il Paleolitico", year: -34000, yearLabel: "34.000 a.C.", stamp: "Chauvet",
+  place: "Grotta Chauvet, valle dell'Ardèche (Francia)", date: "circa 36.000 anni fa",
+  teaser: "Alla luce del fuoco, cavalli e leoni dipinti sulla roccia sembrano muoversi.",
+  lede: "Fuori è l'era glaciale: steppa gelata, vento, mammut all'orizzonte. Dentro la grotta l'aria è ferma e il fuoco fa ballare le ombre. Sulla parete quattro teste di cavallo tracciate a carbone sembrano galoppare quando la fiamma si muove. Accanto ci sono mani in negativo di ocra rossa: qualcuno ha soffiato il colore attorno alla propria mano.",
+  see: "Cavalli, leoni delle caverne, rinoceronti lanosi e mammut dipinti con carbone e ocra; crani di orso delle caverne sul pavimento.",
+  hear: "Il crepitio del fuoco, gocce che cadono nel buio, voci basse. Forse il suono di un flauto d'osso.",
+  smell: "Fumo di pino, grasso animale che brucia nelle lampade di pietra, terra umida.",
+  fact: "Sono tra le pitture più antiche del mondo. Una frana ha sigillato l'ingresso della grotta per più di 20.000 anni: l'hanno riscoperta solo nel 1994 tre speleologi.",
+  life: "Si vive in piccoli gruppi di cacciatori-raccoglitori che si spostano seguendo renne, cavalli e bisonti. Gli abiti sono di pelle cucita con aghi d'osso. Non esistono metalli, scrittura, agricoltura né villaggi. I Neanderthal sono scomparsi da poche migliaia di anni.",
+  money: "Nessuna moneta: si scambiano selce di qualità, conchiglie forate e ocra.",
+  food: "Carne di renna e di cavallo, pesce di fiume, midollo, bacche, noci e radici.",
+  greet: "…", greetT: "Nessuna lingua di quest'epoca è arrivata fino a noi: il traduttore temporale fa quello che può.",
+  dont: "Non toccare le pitture. Nel presente nessun visitatore può entrare nella vera Grotta Chauvet, proprio per proteggerle: si visita una copia fedele, Chauvet 2.",
+  who: { name: "Ama", role: "pittrice del gruppo, tramite traduttore temporale",
+    hello: "(il traduttore gracchia) …Tu non hai l'odore della nostra gente. Vieni dal fuoco degli spiriti? Io sono Ama. Le mani rosse sulla roccia le abbiamo fatte io e mia sorella.",
+    brief: "Sei Ama, pittrice di un gruppo di cacciatori-raccoglitori del Paleolitico superiore, circa 36.000 anni fa, nella grotta oggi chiamata Chauvet. Parli tramite un traduttore temporale che rende le tue parole in un italiano semplice. Non conosci metalli, scrittura, agricoltura, città o numeri grandi: descrivi tutto con le tue esperienze (animali, stagioni, fuoco, il gruppo). Credenze e nomi che gli archeologi non conoscono sono interpretazione: tienili semplici e plausibili.",
+    sugg: ["Perché dipingete gli animali?", "Come fai i colori?", "Cosa mangiate d'inverno?"] },
+  sky: ["#0d1a33", "#33507a", "#9fb4c8"], accent: "#ff9a3c"
+},
+{
+  id: "egitto", name: "Antico Egitto", short: "l'Antico Egitto", year: -2560, yearLabel: "2560 a.C.", stamp: "Giza",
+  place: "Giza, sotto il faraone Cheope", date: "circa 2560 a.C., IV dinastia",
+  teaser: "La Grande Piramide è quasi finita e brilla bianca sotto il sole.",
+  lede: "Il sole picchia sull'altopiano. Davanti a te la piramide di Cheope, quasi terminata, è rivestita di calcare bianco lucidato e riflette la luce come uno specchio. Lungo la rampa una squadra trascina un blocco su una slitta di legno, mentre un uomo versa acqua sulla sabbia davanti ai pattini per farli scorrere meglio.",
+  see: "La piramide, le tre piccole piramidi delle regine, il villaggio degli operai e il Nilo in piena che arriva quasi all'altopiano. Le altre due grandi piramidi di Giza non esistono ancora.",
+  hear: "Canti ritmati per tirare tutti insieme, il colpo secco dei mazzuoli, gli ordini dei capisquadra, il raglio degli asini.",
+  smell: "Pane appena cotto, birra densa d'orzo, cipolle, fango del Nilo, sudore.",
+  fact: "Nel 2013 a Wadi al-Jarf, sul Mar Rosso, sono stati trovati i papiri scritti più antichi che conosciamo: il diario di Merer, un ispettore che portava in barca il calcare di Tura fino a Giza, per la piramide di Cheope.",
+  life: "Le piramidi non le costruiscono schiavi. Le squadre sono di lavoratori egiziani, con nomi come «Amici di Cheope», pagati in pane e birra, con alloggi, forni e perfino cure mediche. Molti sono contadini che lavorano qui durante la piena, quando i loro campi sono sott'acqua.",
+  money: "Le monete non esistono ancora: si paga in natura. Il salario è fatto di pani, brocche di birra, cipolle e stoffa.",
+  food: "Pane, birra, cipolle, aglio, lenticchie, pesce essiccato; carne nei giorni di festa.",
+  greet: "Ankh, udja, seneb", greetT: "«Vita, prosperità, salute»: l'augurio che accompagna sempre il nome del faraone.",
+  dont: "Non chiamare «schiavo» nessuno degli operai: sono orgogliosi del loro lavoro, e chi muore qui viene sepolto con onore accanto alla piramide.",
+  who: { name: "Merer", role: "ispettore della flotta, appena arrivato da Tura",
+    hello: "Che Ra ti protegga, straniero! Sono Merer, ispettore. Arrivo ora da Tura con la barca carica di calcare per il rivestimento. Da quale terra vieni, con quelle vesti così strane?",
+    brief: "Sei Merer, ispettore che guida una squadra di circa quaranta uomini e trasporta in barca blocchi di calcare dalle cave di Tura a Giza per la piramide di Cheope, intorno al 2560 a.C. Merer è esistito davvero: lo conosciamo dal suo diario su papiro trovato a Wadi al-Jarf. Qui lo interpreti liberamente; se il visitatore chiede, chiarisci che la tua vita privata è immaginata. Non conosci il ferro, le monete, il cammello come animale da lavoro, né Greci o Romani.",
+    sugg: ["Come spostate i blocchi?", "Cosa ti danno come paga?", "A cosa serve la piramide?"] },
+  sky: ["#6fa6cf", "#cfe0e2", "#f1d39a"], accent: "#f1d39a"
+},
+{
+  id: "roma", name: "Roma imperiale", short: "Roma", year: 80, yearLabel: "80 d.C.", stamp: "Roma",
+  place: "Roma, davanti all'Anfiteatro Flavio", date: "80 d.C., giochi inaugurali dell'imperatore Tito",
+  teaser: "Il Colosseo è nuovo di zecca e cinquantamila persone stanno entrando.",
+  lede: "Il travertino dell'anfiteatro è ancora chiarissimo. Tito lo ha appena inaugurato con cento giorni di giochi e la folla preme sotto gli archi numerati. In cima i marinai della flotta di Miseno tirano le funi del velario, l'enorme tenda che fa ombra agli spettatori. Accanto c'è una statua di bronzo alta una trentina di metri: il Colosso, da cui un giorno l'anfiteatro prenderà il nome.",
+  see: "Archi su tre piani con statue, venditori ambulanti, senatori in toga con la larga striscia color porpora, pini a ombrello.",
+  hear: "Il brusio di decine di migliaia di persone, le trombe che annunciano i giochi, i venditori che gridano la merce in latino.",
+  smell: "Zafferano: lo spruzzano sugli spalti per profumare l'aria. E poi salsicce arrostite, incenso, sudore.",
+  fact: "Sopra ogni ingresso c'è un numero inciso, ancora visibile oggi: lo spettatore riceve una tessera con il numero del suo arco, del settore e della fila. E ai giochi si entra gratis.",
+  life: "Ci si alza all'alba, si lavora fino a mezzogiorno e il pomeriggio si va alle terme. Pochi hanno una cucina in casa: si mangia nei thermopolia, i «fast food» romani. All'anfiteatro i posti dipendono dal rango: senatori in basso vicino all'arena, donne e poveri in alto.",
+  money: "Sesterzi e assi: un sesterzio vale quattro assi. In un'osteria di Pompei una scritta prometteva: «Con un asse bevi, con due bevi meglio, con quattro bevi Falerno».",
+  food: "Pane, puls (una polenta di farro), olive, formaggio, fichi e il garum, la salsa di pesce fermentato che mettono dappertutto.",
+  greet: "Salve! Quid agis?", greetT: "«Ciao! Come stai?»",
+  dont: "Non sederti nelle prime file: il podio è riservato a senatori e magistrati, e c'è chi controlla.",
+  who: { name: "Gaio", role: "venditore di salsicce sotto l'arco XXIII",
+    hello: "Salve, forestiero! Salsicce calde, appena arrostite! Sono Gaio, lavoro qui sotto l'arco ventitré da quando l'anfiteatro ha aperto. Da dove vieni, con quei calzari così strani?",
+    brief: "Sei Gaio, liberto e venditore ambulante di salsicce nella Roma dell'80 d.C., durante i giochi inaugurali di Tito all'Anfiteatro Flavio. Sei chiacchierone e sai tutto di prezzi, quartieri, terme e pettegolezzi, compresa l'eruzione del Vesuvio dell'anno prima e il grande incendio che ha colpito Roma quest'anno. Non conosci nulla di ciò che accade dopo l'80 d.C.",
+    sugg: ["Cosa si vede oggi nell'arena?", "Quanto costa vivere a Roma?", "Cosa mi consigli di mangiare?"] },
+  sky: ["#3f79b8", "#9fc8e6", "#f3dfba"], accent: "#e7d8b8"
+},
+{
+  id: "venezia", name: "Venezia medievale", short: "Venezia", year: 1295, yearLabel: "1295", stamp: "Rialto",
+  place: "Venezia, al ponte di Rialto", date: "1295, l'anno del ritorno di Marco Polo",
+  teaser: "Il ponte di Rialto è di legno e al mercato arrivano spezie dall'Oriente.",
+  lede: "È mattina presto e il Canal Grande è già pieno di barche. Il ponte di Rialto è una passerella di legno su pali, con una parte centrale che si alza per far passare le navi alte. Sulle rive i mercanti scaricano pepe, cannella, seta e cotone. Al mercato tutti parlano di tre uomini appena tornati dalla corte del Gran Khan dopo ventiquattro anni: i Polo.",
+  see: "Galee mercantili, palazzi con finestre ad arco, i camini a imbuto sui tetti e gondole colorate: il nero obbligatorio arriverà solo nel Cinquecento.",
+  hear: "Remi nell'acqua, gabbiani, campane, barcaioli che si avvisano con un grido prima di ogni curva, mercanti che contrattano in veneziano.",
+  smell: "Pepe e cannella, pesce del mercato, alghe, salsedine e la pece calda dei cantieri.",
+  fact: "Tre anni dopo, prigioniero dei genovesi, Marco Polo detterà i suoi ricordi a Rustichello da Pisa: nascerà il libro che noi chiamiamo Il Milione.",
+  life: "Venezia è una repubblica guidata dal doge e dai suoi consigli; nel 1297 la «Serrata» chiuderà il Maggior Consiglio alle famiglie che già ne fanno parte. La città vive di commercio: le galee partono in convoglio verso Costantinopoli, Alessandria e il Mar Nero, e all'Arsenale le navi si costruiscono quasi in serie.",
+  money: "Il grosso d'argento e, dal 1284, il ducato d'oro: una moneta così affidabile che la useranno in tutto il Mediterraneo per secoli.",
+  food: "Pesce della laguna, sarde con cipolle e aceto per farle durare in mare, pane, vino e, per i ricchi, piatti carichi di spezie.",
+  greet: "Bondì, sior!", greetT: "«Buongiorno, signore!» in veneziano.",
+  dont: "Non chiedere ai Polo se è tutto vero. Quando parlano di milioni di ricchezze la gente ride, e forse è anche per questo che a Marco resterà il soprannome «Milione».",
+  who: { name: "Donà", role: "barcaiolo sul Canal Grande",
+    hello: "Bondì, sior! Monta, monta in barca, che ti porto dove vuoi per pochi piccoli. Mi chiamo Donà. Hai sentito? Sono tornati i Polo, vestiti come mendicanti!",
+    brief: "Sei Donà, barcaiolo veneziano del 1295 che traghetta persone e merci sul Canal Grande. Conosci mercanti, prezzi delle spezie, pettegolezzi sul doge e sul ritorno dei Polo dalla corte del Gran Khan. Usa ogni tanto una parola veneziana e spiegala. Non conosci nulla di ciò che accade dopo il 1295.",
+    sugg: ["Chi sono questi Polo?", "Cosa si vende al Rialto?", "Come si diventa ricchi a Venezia?"] },
+  sky: ["#6e8cb8", "#e9b9a3", "#f6dcc0"], accent: "#f2c3a8"
+},
+{
+  id: "firenze", name: "Firenze del Rinascimento", short: "Firenze", year: 1504, yearLabel: "1504", stamp: "Firenze",
+  place: "Firenze, piazza della Signoria", date: "8 settembre 1504",
+  teaser: "Il David di Michelangelo viene mostrato alla città per la prima volta.",
+  lede: "La piazza è piena. Davanti a Palazzo Vecchio il gigante di marmo di Michelangelo è finalmente scoperto: più di quattro metri di David, scolpiti da un blocco che altri scultori avevano cominciato e abbandonato. A maggio ci sono voluti quattro giorni e una quarantina di uomini per trascinarlo qui dalla bottega, chiuso in una gabbia di legno su rulli.",
+  see: "La cupola del Brunelleschi, il campanile di Giotto, la torre di Palazzo Vecchio, le botteghe dei lanaioli. Sul Ponte Vecchio ci sono i macellai: gli orafi arriveranno solo nel 1593.",
+  hear: "Le campane, i martelli delle botteghe, il fiorentino parlato forte in piazza, qualcuno che critica il David ad alta voce.",
+  smell: "Lana appena tinta, cuoio, pane, cera di candela e l'acqua dell'Arno.",
+  fact: "Proprio adesso, nella sala del Gran Consiglio di Palazzo Vecchio, Leonardo da Vinci e Michelangelo hanno l'incarico di dipingere due battaglie su due pareti della stessa sala. Nessuno dei due finirà l'opera.",
+  life: "Firenze è una repubblica: i Medici sono stati cacciati nel 1494 e il capo dello Stato è il gonfaloniere a vita Pier Soderini. Un certo Niccolò Machiavelli lavora come segretario della cancelleria. La ricchezza viene dalla lana, dalla seta e dalle banche; gli artisti imparano il mestiere da ragazzi, nelle botteghe.",
+  money: "Il fiorino d'oro, la moneta più famosa d'Europa. Per il David, Michelangelo è stato pagato 400 fiorini.",
+  food: "Pane senza sale, fagioli, zuppe di verdura, trippa dai banchi di strada e vino del contado.",
+  greet: "Buondì, messere!", greetT: "Il saluto cortese di un fiorentino a un uomo di riguardo.",
+  dont: "Non dire a Leonardo che la sua battaglia non verrà mai finita. Ci sta già pensando lui.",
+  who: { name: "Bartolomeo", role: "garzone di bottega, 14 anni",
+    hello: "Buondì, messere! Avete visto il gigante? Io sono Bartolomeo, garzone in una bottega di pittura d'Oltrarno. Il mio maestro dice che Michelangelo ha un caratteraccio, ma il David… ah, il David!",
+    brief: "Sei Bartolomeo, 14 anni, garzone in una bottega di pittura a Firenze nel settembre 1504. Macini i colori, prepari le tavole, porti messaggi. Sei entusiasta e un po' pettegolo sulla rivalità tra Leonardo e Michelangelo. Parla un italiano leggermente antico ma facile da capire. Non conosci nulla di ciò che accade dopo il 1504.",
+    sugg: ["Come si diventa pittore?", "Leonardo e Michelangelo si odiano?", "Cosa fai tutto il giorno in bottega?"] },
+  sky: ["#2f3d6e", "#c07a78", "#f4c28a"], accent: "#f4c28a"
+},
+{
+  id: "parigi", name: "Parigi della Belle Époque", short: "Parigi", year: 1889, yearLabel: "1889", stamp: "Parigi",
+  place: "Parigi, Campo di Marte", date: "maggio 1889, Esposizione Universale",
+  teaser: "La Torre Eiffel è appena nata, ed è rossa.",
+  lede: "La sera scende sull'Esposizione Universale. Davanti a te c'è la torre di Gustave Eiffel, finita da poche settimane: trecento metri di ferro, la costruzione più alta del mondo, verniciata di un rosso-bruno chiamato «rosso veneziano». In cima un faro tricolore spazza il cielo, e ai suoi piedi le fontane luminose cambiano colore.",
+  see: "La torre, l'enorme Galleria delle Macchine, padiglioni da tutto il mondo, lampioni a gas e a luce elettrica, signore con la tournure, il cuscinetto che gonfia la gonna dietro.",
+  hear: "Il gamelan di un villaggio giavanese, gli ascensori che sbuffano, il fischio del trenino dell'Esposizione, venditori di souvenir.",
+  smell: "Cialde calde, sigari, cavalli, il vapore e il carbone delle macchine.",
+  fact: "Qui il giovane compositore Claude Debussy ascolta per la prima volta un gamelan giavanese, e quel suono cambierà la sua musica. Al padiglione di Edison, intanto, si fa la fila per ascoltare il fonografo.",
+  life: "Parigi festeggia i cento anni della Rivoluzione francese. I grandi viali sono nuovi, i caffè sono pieni e si discute di elettricità, telefono e treni. Un operaio lavora spesso più di sessanta ore alla settimana.",
+  money: "Il franco. Salire fino in cima alla torre costa 5 franchi, più o meno la paga di una giornata di lavoro.",
+  food: "Pane, formaggi, vino rosso e, nei caffè, l'assenzio, la «fata verde».",
+  greet: "Bonjour ! Vous avez vu la tour ?", greetT: "«Buongiorno! Ha visto la torre?»",
+  dont: "Non dire che la torre è bella davanti a un artista: nel 1887 Maupassant, Gounod e altri hanno firmato una protesta contro «l'inutile e mostruosa» torre di ferro.",
+  who: { name: "Jules", role: "venditore di torri Eiffel in miniatura",
+    hello: "Bonsoir! Una piccola torre in ottone, ricordo dell'Esposizione? Sono Jules. Ho visto montare ogni rivetto da quella panchina laggiù: due anni di cantiere!",
+    brief: "Sei Jules, venditore ambulante di souvenir all'Esposizione Universale di Parigi nel maggio 1889. Ami la torre (tuo zio invece la detesta), conosci prezzi, padiglioni e novità come il fonografo di Edison e la luce elettrica. Usa ogni tanto una parola francese e spiegala. Non conosci nulla di ciò che accade dopo il 1889.",
+    sugg: ["Quanto costa salire sulla torre?", "Cosa c'è di nuovo all'Esposizione?", "La torre resterà per sempre?"] },
+  sky: ["#151d3d", "#4b3f72", "#d98b6a"], accent: "#d98b6a"
+},
+{
+  id: "luna", name: "La notte della Luna", short: "il 1969", year: 1969, yearLabel: "1969", stamp: "Apollo 11",
+  place: "Un condominio di Roma, davanti al televisore", date: "notte tra il 20 e il 21 luglio 1969",
+  teaser: "Tutto il palazzo è davanti alla TV: l'uomo sta per mettere piede sulla Luna.",
+  lede: "È una notte calda, le finestre sono aperte e da ogni casa esce la stessa luce azzurrina. Il televisore in bianco e nero dei vicini è l'unico del pianerottolo, e in salotto c'è gente seduta anche per terra. Alle 22:17 da Roma Tito Stagno grida «Ha toccato!», da Houston Ruggero Orlando lo corregge: «No, non ha ancora toccato». Poi bisogna aspettare quasi le cinque del mattino per vedere l'immagine sgranata di Armstrong che scende la scaletta.",
+  see: "Antenne su ogni tetto, finestre che tremolano di luce azzurra e una mezzaluna nel cielo: sulla sua parte illuminata, nel Mare della Tranquillità, c'è il modulo lunare Eagle.",
+  hear: "La diretta della RAI, i bip che separano le voci degli astronauti da quelle di Houston, i grilli, una Vespa che passa, gli applausi che rimbalzano tra i palazzi.",
+  smell: "Caffè della moka per resistere fino all'alba, fumo di sigaretta, cocomero appena tagliato.",
+  fact: "Il computer di guida dell'Apollo 11 aveva circa 4 kilobyte di memoria di lavoro e 72 di memoria fissa. Il telefono che hai in tasca ne ha milioni di volte di più.",
+  life: "L'Italia è in pieno boom economico: arrivano frigoriferi, lavatrici e la Fiat 500. La RAI ha due canali, in bianco e nero (il colore arriverà nel 1977), e i bambini vanno a letto dopo Carosello. Per telefonare per strada servono i gettoni.",
+  money: "La lira. Spiccioli d'alluminio e d'acciaio in tasca, e gettoni per il telefono pubblico.",
+  food: "Cocomero, gelato, pasta al pomodoro anche a mezzanotte, caffè della moka a volontà.",
+  greet: "Ha toccato!", greetT: "Il grido di Tito Stagno, che quella notte ripete tutta l'Italia.",
+  dont: "Non rovinare la festa: stanotte tutti pensano che entro il 2000 andremo in vacanza sulla Luna. Dopo il 1972 nessuno ci rimetterà piede per più di cinquant'anni.",
+  who: { name: "Franco", role: "12 anni, il figlio dei vicini",
+    hello: "Ciao! Sei il nuovo inquilino? Siediti per terra, che i divani sono tutti presi. Io sono Franco. Hai sentito? Ha toccato! Cioè… forse. Mia nonna dice che sulla Luna non ci si dovrebbe andare, che porta male.",
+    brief: "Sei Franco, 12 anni, in un condominio di Roma nella notte tra il 20 e il 21 luglio 1969. Sei appassionatissimo di razzi e astronauti, conosci Armstrong, Aldrin e Collins e collezioni ritagli di giornale. Racconti la vita di un ragazzo del 1969: scuola, giochi, figurine, Carosello, il juke-box. Non conosci nulla di ciò che accade dopo il luglio 1969.",
+    sugg: ["Chi sono gli astronauti?", "Cosa guardi di solito in TV?", "Cosa farai da grande?"] },
+  sky: ["#050914", "#0d1a36", "#253860"], accent: "#9fb8ff"
+}
+];
+
+/* ------------------------------------------------------------------ */
+/*  Utilità                                                            */
+/* ------------------------------------------------------------------ */
+const $ = (id) => document.getElementById(id);
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hexA(h, a) { const n = parseInt(h.slice(1), 16); return `rgba(${n >> 16},${n >> 8 & 255},${n & 255},${a})`; }
+function mix(h1, h2, k) { const a = parseInt(h1.slice(1), 16), b = parseInt(h2.slice(1), 16); const ch = (s) => Math.round(((a >> s) & 255) * (1 - k) + ((b >> s) & 255) * k); return `rgb(${ch(16)},${ch(8)},${ch(0)})`; }
+function lin(c, y0, y1, stops) { const g = c.createLinearGradient(0, y0, 0, y1); stops.forEach((s, i) => g.addColorStop(i / (stops.length - 1), s)); return g; }
+function glow(c, x, y, r, hex, a = 1) { const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, hexA(hex, a)); g.addColorStop(1, hexA(hex, 0)); c.fillStyle = g; c.fillRect(x - r, y - r, 2 * r, 2 * r); }
+function circle(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); }
+function poly(c, p) { c.beginPath(); c.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) c.lineTo(p[i], p[i + 1]); c.closePath(); c.fill(); }
+function shape(c, x, y, s, col, fn, flip = false) { c.save(); c.translate(x, y); c.scale(flip ? -s : s, s); c.fillStyle = c.strokeStyle = col; c.lineCap = "round"; c.lineJoin = "round"; fn(c); c.restore(); }
+function ridge(c, S, base, amp, seed, col, fr = [1.1, 2.7, 5.3]) {
+  c.fillStyle = col; c.beginPath(); c.moveTo(-10, S.h + 10);
+  for (let x = -10; x <= S.w + 10; x += 6) { let y = base; fr.forEach((f, i) => { y -= Math.sin((x / S.u) * f * 3 + seed * (i + 1.7)) * amp / (i + 1); }); c.lineTo(x, y); }
+  c.lineTo(S.w + 10, S.h + 10); c.closePath(); c.fill();
+}
+function sky(c, S, stops, y1) { c.fillStyle = lin(c, 0, y1 ?? S.H, stops); c.fillRect(0, 0, S.w, S.h); }
+function fmtYear(y) {
+  if (y <= -1e6) return (Math.round(-y / 1e5) / 10).toLocaleString("it-IT") + " milioni di anni fa";
+  if (y < 1) { const a = Math.max(1, Math.round(-y)); return (a >= 10000 ? a.toLocaleString("it-IT") : a) + " a.C."; }
+  return Math.round(y) + " d.C.";
+}
+function fmtSpan(a) {
+  a = Math.abs(a);
+  if (a >= 1e6) return (Math.round(a / 1e5) / 10).toLocaleString("it-IT") + " milioni di anni";
+  return Math.round(a).toLocaleString("it-IT") + (Math.round(a) === 1 ? " anno" : " anni");
+}
+function store(k, v) { try { if (v === undefined) return JSON.parse(localStorage.getItem(k)); localStorage.setItem(k, JSON.stringify(v)); } catch (e) { return null; } }
+
+/* ------------------------------------------------------------------ */
+/*  Sagome                                                             */
+/* ------------------------------------------------------------------ */
+function trike(c) {
+  c.beginPath(); c.ellipse(0, 0, 1, .5, 0, 0, TAU); c.fill();
+  poly(c, [.85, -.15, 1.75, .2, .85, .3]);
+  [[-.62, .2], [-.3, .28], [.25, .28], [.55, .2]].forEach(([x, y]) => c.fillRect(x - .11, y, .22, .62));
+  circle(c, -1.0, -.28, .42);
+  poly(c, [-.9, -.15, -1.25, -.25, -1.75, .12, -1.68, .32, -1.0, .35]);
+  c.lineWidth = .08; c.beginPath(); c.moveTo(-1.2, -.2); c.lineTo(-1.74, -.62); c.moveTo(-1.05, -.24); c.lineTo(-1.5, -.72); c.moveTo(-1.6, .08); c.lineTo(-1.72, -.08); c.stroke();
+}
+function trex(c) {
+  c.beginPath(); c.ellipse(0, 0, .8, .36, -.08, 0, TAU); c.fill();
+  poly(c, [-.6, -.12, -2.0, -.02, -.55, .24]);
+  poly(c, [.55, -.2, .95, -.62, 1.5, -.62, 1.58, -.42, 1.1, -.36, 1.12, -.28, .75, .12]);
+  poly(c, [-.05, .05, .3, .85, .48, .92, .1, .92, -.35, .2]);
+  poly(c, [.2, .05, .5, .82, .66, .9, .3, .9, -.05, .25]);
+  c.lineWidth = .06; c.beginPath(); c.moveTo(.75, 0); c.lineTo(.95, .12); c.stroke();
+}
+function mammoth(c) {
+  c.beginPath(); c.ellipse(0, 0, .9, .6, 0, 0, TAU); c.fill();
+  circle(c, .82, -.38, .42); circle(c, -.1, -.45, .4);
+  [[-.65], [-.3], [.25], [.55]].forEach(([x]) => c.fillRect(x - .13, .2, .26, .75));
+  c.lineWidth = .16; c.beginPath(); c.moveTo(1.15, -.2); c.quadraticCurveTo(1.4, .3, 1.2, .75); c.stroke();
+  c.lineWidth = .06; c.beginPath(); c.moveTo(1.05, .05); c.quadraticCurveTo(1.6, .3, 1.55, -.15); c.stroke();
+}
+function horseHead(c) {
+  c.lineWidth = .07;
+  c.beginPath(); c.moveTo(.7, -.75); c.quadraticCurveTo(.2, -.75, 0, -.5); c.quadraticCurveTo(-.25, -.25, -.42, .02); c.quadraticCurveTo(-.48, .14, -.35, .2); c.quadraticCurveTo(-.1, .22, .12, .1); c.quadraticCurveTo(.35, .35, .55, .75); c.stroke();
+  c.beginPath(); c.moveTo(.7, -.75); c.quadraticCurveTo(.95, -.3, 1.05, .3); c.stroke();
+  c.lineWidth = .04; c.beginPath(); c.moveTo(.62, -.72); c.lineTo(.5, -.92); c.moveTo(.55, -.74); c.lineTo(.4, -.9); c.stroke();
+  circle(c, -.05, -.32, .04); circle(c, -.36, .06, .03);
+}
+function handShape(c) {
+  c.beginPath(); c.ellipse(0, 0, .32, .38, 0, 0, TAU); c.fill();
+  c.lineWidth = .2;
+  [[-.42, -.02, -.72, -.32], [-.2, -.3, -.3, -.85], [-.06, -.34, -.08, -.98], [.08, -.33, .14, -.95], [.21, -.28, .34, -.75]].forEach(([a, b, x, y]) => { c.beginPath(); c.moveTo(a, b); c.lineTo(x, y); c.stroke(); });
+}
+function palm(c, x, y, h, col) {
+  c.strokeStyle = col; c.lineCap = "round"; c.lineWidth = h * .035;
+  c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + h * .12, y - h * .5, x + h * .05, y - h); c.stroke();
+  const tx = x + h * .05, ty = y - h; c.lineWidth = h * .028;
+  for (let k = 0; k < 8; k++) { const a = -Math.PI / 2 + (k - 3.5) * .42; c.beginPath(); c.moveTo(tx, ty); c.quadraticCurveTo(tx + Math.cos(a) * h * .3, ty + Math.sin(a) * h * .3 - h * .06, tx + Math.cos(a) * h * .42, ty + Math.sin(a) * h * .42 + h * .14); c.stroke(); }
+}
+function pine(c, x, y, h, col) {
+  c.strokeStyle = c.fillStyle = col; c.lineCap = "round"; c.lineWidth = h * .045;
+  c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + h * .06, y - h * .55, x - h * .02, y - h * .82); c.stroke();
+  [[-.22, -.86, .26, .09], [.08, -.92, .3, .1], [.3, -.84, .2, .08], [-.05, -.82, .36, .08]].forEach(([dx, dy, rx, ry]) => { c.beginPath(); c.ellipse(x + dx * h, y + dy * h, rx * h, ry * h, 0, 0, TAU); c.fill(); });
+}
+function colossus(c) {
+  poly(c, [-.11, -.02, -.07, -.47, -.01, -.47, -.03, -.02]);
+  poly(c, [.11, -.02, .07, -.47, .01, -.47, .04, -.02]);
+  poly(c, [-.12, -.8, .12, -.8, .09, -.45, -.09, -.45]);
+  circle(c, 0, -.87, .055);
+  c.lineWidth = .045; c.beginPath(); c.moveTo(.11, -.78); c.lineTo(.2, -.62); c.lineTo(.22, -.48); c.moveTo(-.11, -.78); c.lineTo(-.25, -.9); c.lineTo(-.27, -1.05); c.stroke();
+  c.lineWidth = .02; for (let k = 0; k < 7; k++) { const a = -Math.PI / 2 + (k - 3) * .38; c.beginPath(); c.moveTo(Math.cos(a) * .06, -.87 + Math.sin(a) * .06); c.lineTo(Math.cos(a) * .13, -.87 + Math.sin(a) * .13); c.stroke(); }
+}
+function david(c) {
+  circle(c, .01, -.925, .058);
+  c.fillRect(-.022, -.88, .044, .06);
+  poly(c, [-.13, -.83, .13, -.83, .1, -.6, .1, -.5, -.1, -.48, -.09, -.6]);
+  c.lineWidth = .075; c.beginPath(); c.moveTo(-.07, -.5); c.lineTo(-.075, -.26); c.lineTo(-.065, -.02); c.stroke();
+  c.beginPath(); c.moveTo(.06, -.5); c.lineTo(.1, -.27); c.lineTo(.13, -.03); c.stroke();
+  c.lineWidth = .05; c.beginPath(); c.moveTo(-.12, -.8); c.lineTo(-.16, -.64); c.lineTo(-.15, -.5); c.stroke();
+  c.beginPath(); c.moveTo(.12, -.8); c.lineTo(.21, -.7); c.lineTo(.12, -.86); c.stroke();
+  c.fillRect(-.12, -.035, .3, .035);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Scene: bg() disegna la parte fissa (in cache), fg() quella animata */
+/* ------------------------------------------------------------------ */
+const SCENES = {
+  cretaceo: {
+    setup(S, r) {
+      S.d.ferns = []; for (let i = 0; i < 14; i++) S.d.ferns.push({ x: r() * S.w, len: S.u * (.12 + r() * .14), a: (r() - .5) * 1.4, ph: r() * TAU, col: r() < .5 ? "#1a2414" : "#22301a" });
+      S.d.spores = []; for (let i = 0; i < 46; i++) S.d.spores.push({ x: r() * S.w, y: r() * S.h, s: .6 + r() * 1.8, v: 4 + r() * 10, ph: r() * TAU });
+      S.d.vx = S.cx - S.u * .45; S.d.vy = S.H - S.u * .29;
+    },
+    bg(c, S, r) {
+      const { w, h, H, cx, u } = S;
+      sky(c, S, ERAS[0].sky);
+      glow(c, cx + u * .32, H - u * .3, u * .55, "#fff0c0", .55);
+      c.fillStyle = "#fff3d2"; circle(c, cx + u * .32, H - u * .3, u * .05);
+      c.fillStyle = "#7d7766"; poly(c, [cx - u * .8, H + 2, cx - u * .5, S.d.vy, cx - u * .41, S.d.vy - 2, cx - u * .12, H + 2]);
+      ridge(c, S, H - u * .03, u * .05, 1, "#8c8a6c");
+      shape(c, cx + u * .4, H - u * .045, u * .03, "#5f6a4c", trex);
+      ridge(c, S, H + u * .03, u * .04, 2.4, "#5e6b48");
+      c.fillStyle = lin(c, H, h, ["#4a5a36", "#27321c"]); c.fillRect(0, H + u * .05, w, h);
+      c.fillStyle = "rgba(186,198,178,.5)"; c.beginPath(); c.moveTo(-10, H + u * .1); c.quadraticCurveTo(cx, H + u * .05, w + 10, H + u * .09); c.lineTo(w + 10, H + u * .12); c.quadraticCurveTo(cx, H + u * .09, -10, H + u * .16); c.fill();
+      shape(c, cx - u * .14, H + u * .14, u * .075, "#34402b", trike);
+      for (let i = 0; i < 5; i++) { const x = r() * w, hh = u * (.12 + r() * .1); c.fillStyle = "#1d2716"; c.fillRect(x - u * .008, h - hh, u * .016, hh); for (let k = 0; k < 9; k++) { const a = -Math.PI + k * Math.PI / 8; c.strokeStyle = "#1d2716"; c.lineWidth = u * .006; c.beginPath(); c.moveTo(x, h - hh); c.quadraticCurveTo(x + Math.cos(a) * hh * .3, h - hh + Math.sin(a) * hh * .45, x + Math.cos(a) * hh * .55, h - hh + Math.sin(a) * hh * .2 + hh * .12); c.stroke(); } }
+    },
+    fg(c, S, t, dt) {
+      const { u, h, w } = S;
+      for (let i = 0; i < 7; i++) { const p = (t * .025 + i / 7) % 1; c.fillStyle = `rgba(96,92,82,${(1 - p) * .38})`; circle(c, S.d.vx + p * u * .3 + Math.sin(p * 5 + i) * u * .02, S.d.vy - p * u * .4, u * (.02 + p * .09)); }
+      for (const f of S.d.ferns) {
+        const sw = Math.sin(t * .9 + f.ph) * .05;
+        c.save(); c.translate(f.x, h + 4); c.rotate(f.a + sw); c.strokeStyle = f.col; c.lineCap = "round"; c.lineWidth = u * .005;
+        c.beginPath(); c.moveTo(0, 0); for (let s = 0; s <= 1.001; s += .1) c.lineTo(.25 * s * s * f.len, -s * f.len); c.stroke();
+        c.lineWidth = u * .0035;
+        for (let s = .15; s < 1; s += .07) { const x = .25 * s * s * f.len, y = -s * f.len, L = f.len * .22 * (1 - s * .8); c.beginPath(); c.moveTo(x, y); c.lineTo(x - L, y - L * .35); c.moveTo(x, y); c.lineTo(x + L, y - L * .2); c.stroke(); }
+        c.restore();
+      }
+      for (const p of S.d.spores) { p.y -= p.v * dt; p.x += Math.sin(t + p.ph) * 6 * dt; if (p.y < -5) { p.y = h + 5; p.x = Math.random() * w; } c.fillStyle = `rgba(255,240,190,${.35 + .3 * Math.sin(t * 2 + p.ph)})`; circle(c, p.x, p.y, p.s); }
+    }
+  },
+
+  paleolitico: {
+    setup(S, r) {
+      const { u, h, cx } = S;
+      S.d.fx = cx + u * .05; S.d.fy = h * .9;
+      S.d.mx = cx - u * .36; S.d.my = h * .34; S.d.mrx = u * .2; S.d.mry = h * .2;
+      S.d.mouth = []; for (let i = 0; i < 28; i++) { const a = i / 28 * TAU; S.d.mouth.push([S.d.mx + Math.cos(a) * S.d.mrx * (.85 + r() * .25), S.d.my + Math.sin(a) * S.d.mry * (.85 + r() * .25)]); }
+      S.d.embers = []; for (let i = 0; i < 40; i++) S.d.embers.push({ x: 0, y: 0, life: r(), v: 30 + r() * 50, ph: r() * TAU });
+    },
+    wall(c, S, k = 1) {
+      const R = Math.max(S.w, S.h) * .95 * k, g = c.createRadialGradient(S.d.fx, S.d.fy, 0, S.d.fx, S.d.fy, R);
+      g.addColorStop(0, "#8a5634"); g.addColorStop(.35, "#4a2c1c"); g.addColorStop(.75, "#1c110b"); g.addColorStop(1, "#0c0806"); return g;
+    },
+    bg(c, S, r) {
+      const { w, h, u } = S;
+      c.fillStyle = lin(c, S.d.my - S.d.mry, S.d.my + S.d.mry, ["#0d1a33", "#33507a", "#9fb4c8"]); c.fillRect(0, 0, w, h);
+      c.fillStyle = "#e8eef6"; for (let i = 0; i < 70; i++) { c.globalAlpha = .3 + r() * .7; circle(c, S.d.mx + (r() - .5) * S.d.mrx * 2, S.d.my - S.d.mry + r() * S.d.mry, r() * 1.2 + .3); } c.globalAlpha = 1;
+      c.fillStyle = "#7f93a8"; c.fillRect(S.d.mx - S.d.mrx * 1.4, S.d.my + S.d.mry * .25, S.d.mrx * 2.8, h);
+      c.fillStyle = "#c7d3de"; c.beginPath(); c.moveTo(S.d.mx - S.d.mrx * 1.4, S.d.my + S.d.mry * .5); c.quadraticCurveTo(S.d.mx, S.d.my + S.d.mry * .3, S.d.mx + S.d.mrx * 1.4, S.d.my + S.d.mry * .45); c.lineTo(S.d.mx + S.d.mrx * 1.4, h); c.lineTo(S.d.mx - S.d.mrx * 1.4, h); c.fill();
+      shape(c, S.d.mx - S.d.mrx * .2, S.d.my + S.d.mry * .3, u * .025, "#2b3546", mammoth);
+      shape(c, S.d.mx + S.d.mrx * .35, S.d.my + S.d.mry * .36, u * .018, "#3a4558", mammoth);
+      const g = SCENES.paleolitico.wall(c, S);
+      c.fillStyle = g; c.beginPath(); c.rect(0, 0, w, h); c.moveTo(S.d.mouth[0][0], S.d.mouth[0][1]); S.d.mouth.forEach(([x, y]) => c.lineTo(x, y)); c.closePath(); c.fill("evenodd");
+      for (let i = 0; i < 90; i++) { c.fillStyle = `rgba(0,0,0,${r() * .12})`; c.beginPath(); c.ellipse(r() * w, r() * h, u * (.01 + r() * .06), u * (.005 + r() * .03), r() * 3, 0, TAU); c.fill(); }
+      const px = S.cx + u * .1, py = h * .32;
+      for (let i = 0; i < 4; i++) { c.globalAlpha = .82; shape(c, px + i * u * .045, py + i * u * .05, u * .075, "#1b120d", horseHead); }
+      c.globalAlpha = .7; shape(c, px + u * .3, py + u * .14, u * .05, "#8e3a22", (cc) => { cc.lineWidth = .05; cc.beginPath(); cc.ellipse(0, 0, .9, .5, 0, Math.PI * 1.05, Math.PI * 2.1); cc.stroke(); cc.beginPath(); cc.moveTo(.9, .05); cc.quadraticCurveTo(1.3, -.2, 1.2, .4); cc.stroke(); cc.beginPath(); cc.moveTo(1.15, -.2); cc.lineTo(1.4, -.55); cc.stroke(); });
+      c.globalAlpha = 1;
+      [[S.cx - u * .06, h * .5, .4], [S.cx - u * .0, h * .56, -.2], [S.cx + u * .42, h * .42, .15]].forEach(([x, y, a]) => {
+        for (let k = 0; k < 60; k++) { const ang = r() * TAU, d = u * (.02 + r() * .05); c.fillStyle = `rgba(163,59,34,${.08 + r() * .2})`; circle(c, x + Math.cos(ang) * d, y + Math.sin(ang) * d, u * .004 + r() * 2); }
+        glow(c, x, y, u * .06, "#a33b22", .45);
+        c.save(); c.translate(x, y); c.rotate(a); c.scale(u * .05, u * .05); c.fillStyle = c.strokeStyle = "#5a3522"; c.lineCap = "round"; handShape(c); c.restore();
+      });
+      c.fillStyle = "#070504"; c.beginPath(); c.moveTo(-10, h + 10); c.lineTo(-10, h * .8); c.quadraticCurveTo(w * .15, h * .78, w * .25, h * .95); c.lineTo(w * .7, h * .97); c.quadraticCurveTo(w * .85, h * .8, w + 10, h * .82); c.lineTo(w + 10, h + 10); c.fill();
+    },
+    fg(c, S, t, dt) {
+      const { u } = S, fx = S.d.fx, fy = S.d.fy, fl = 1 + Math.sin(t * 7) * .04 + Math.sin(t * 13.3) * .03;
+      c.globalCompositeOperation = "lighter"; glow(c, fx, fy - u * .05, u * .6 * fl, "#ff8a2a", .22); c.globalCompositeOperation = "source-over";
+      c.fillStyle = "#1a0f08"; c.save(); c.translate(fx, fy); c.rotate(.25); c.fillRect(-u * .07, -u * .008, u * .14, u * .016); c.rotate(-.5); c.fillRect(-u * .07, -u * .008, u * .14, u * .016); c.restore();
+      [["#d4421e", 1], ["#ff8a2a", .75], ["#ffd27a", .45]].forEach(([col, k]) => {
+        for (let i = -2; i <= 2; i++) { const hh = u * .11 * k * (1 - Math.abs(i) * .18) * (1 + .18 * Math.sin(t * 9 + i * 1.7)), wd = u * .022 * k, x = fx + i * u * .016 * k, sw = Math.sin(t * 6 + i) * u * .01;
+          c.fillStyle = col; c.beginPath(); c.moveTo(x - wd, fy); c.quadraticCurveTo(x - wd, fy - hh * .5, x + sw, fy - hh); c.quadraticCurveTo(x + wd, fy - hh * .5, x + wd, fy); c.closePath(); c.fill(); }
+      });
+      for (const p of S.d.embers) { p.life += dt * .5; if (p.life > 1) { p.life = 0; p.x = fx + (Math.random() - .5) * u * .06; p.y = fy - u * .04; } const yy = p.y - p.life * p.v * 6, xx = p.x + Math.sin(t * 2 + p.ph) * u * .02 * p.life; c.fillStyle = `rgba(255,${150 + p.life * 60 | 0},60,${(1 - p.life) * .9})`; circle(c, xx, yy, 1.4); }
+      c.fillStyle = `rgba(0,0,0,${.05 + .05 * Math.sin(t * 5.1) * Math.sin(t * 3.3)})`; c.fillRect(0, 0, S.w, S.h);
+    }
+  },
+
+  egitto: {
+    setup(S, r) {
+      const { u, H, cx } = S;
+      const B = Math.min(S.vx * .55, (H * .78) / .635); S.d.B = B; S.d.px = cx - u * .02; S.d.Hp = .635 * B;
+      S.d.sand = []; for (let i = 0; i < 50; i++) S.d.sand.push({ x: r() * S.w, y: H + r() * (S.h - H), v: 40 + r() * 90, l: 6 + r() * 20 });
+    },
+    bg(c, S, r) {
+      const { w, h, H, u } = S, { B, px, Hp } = S.d, top = H - Hp, cut = .9;
+      sky(c, S, ERAS[2].sky);
+      glow(c, S.cx - u * .42, H - u * .5, u * .4, "#ffffff", .7); c.fillStyle = "#fffaf0"; circle(c, S.cx - u * .42, H - u * .5, u * .035);
+      ridge(c, S, H - u * .01, u * .012, 3, "#dfbe86");
+      c.fillStyle = lin(c, H, h, ["#e3c48e", "#c49d63"]); c.fillRect(0, H - 1, w, h);
+      const L = [px - B / 2, H], R = [px + B / 2, H], F = [px + B * .12, H + u * .025], A = [px + B * .03, top];
+      const lerp = (P, k) => [P[0] + (A[0] - P[0]) * k, P[1] + (A[1] - P[1]) * k];
+      const l2 = lerp(L, cut), f2 = lerp(F, cut), r2 = lerp(R, cut);
+      c.fillStyle = "#f3ead2"; poly(c, [L[0], L[1], F[0], F[1], f2[0], f2[1], l2[0], l2[1]]);
+      c.fillStyle = "#cdb68a"; poly(c, [F[0], F[1], R[0], R[1], r2[0], r2[1], f2[0], f2[1]]);
+      c.fillStyle = "#b89c70"; poly(c, [l2[0] + u * .01, l2[1], f2[0], f2[1], r2[0] - u * .01, r2[1], f2[0], f2[1] - u * .04]);
+      c.save(); c.beginPath(); c.moveTo(L[0], L[1]); c.lineTo(F[0], F[1]); c.lineTo(R[0], R[1]); c.lineTo(r2[0], r2[1]); c.lineTo(l2[0], l2[1]); c.closePath(); c.clip();
+      c.strokeStyle = "rgba(90,70,40,.08)"; c.lineWidth = 1; for (let y = top; y < H + u * .03; y += Math.max(3, Hp / 70)) { c.beginPath(); c.moveTo(px - B, y); c.lineTo(px + B, y); c.stroke(); }
+      c.restore();
+      S.d.ramp = [px + B * .62, H + u * .015, px + B * .2, H - Hp * .62];
+      c.strokeStyle = "#a77b4f"; c.lineWidth = u * .028; c.lineCap = "butt"; c.beginPath(); c.moveTo(S.d.ramp[0], S.d.ramp[1]); c.lineTo(S.d.ramp[2], S.d.ramp[3]); c.stroke();
+      c.strokeStyle = "rgba(60,40,20,.25)"; c.lineWidth = u * .004; c.beginPath(); c.moveTo(S.d.ramp[0], S.d.ramp[1] + u * .012); c.lineTo(S.d.ramp[2], S.d.ramp[3] + u * .012); c.stroke();
+      for (let i = 0; i < 3; i++) { const qb = B * .12, qx = px + B * .7 + i * qb * 1.15, qy = H + u * .04 + i * u * .006; c.fillStyle = "#efe3c6"; poly(c, [qx - qb / 2, qy, qx + qb * .1, qy + u * .006, qx + qb * .05, qy - qb * .63]); c.fillStyle = "#c8af82"; poly(c, [qx + qb * .1, qy + u * .006, qx + qb / 2, qy, qx + qb * .05, qy - qb * .63]); }
+      for (let i = 0; i < 14; i++) { c.fillStyle = r() < .5 ? "#b08a5c" : "#9c7a50"; c.fillRect(px - B * .9 + r() * B * .3, H + u * (.03 + r() * .05), u * (.015 + r() * .02), u * (.008 + r() * .01)); }
+      const ny = H + (h - H) * .62;
+      c.fillStyle = "#4f7a3a"; c.fillRect(0, ny - u * .03, w, u * .04);
+      c.fillStyle = lin(c, ny, h, ["#5f8f95", "#3e6a72"]); c.fillRect(0, ny, w, h - ny);
+      c.fillStyle = "rgba(255,255,255,.15)"; for (let i = 0; i < 30; i++) c.fillRect(r() * w, ny + r() * (h - ny), u * (.02 + r() * .05), 1);
+      for (let i = 0; i < 9; i++) palm(c, r() * w, ny - u * .01, u * (.08 + r() * .06), "#2f3d22");
+    },
+    fg(c, S, t, dt) {
+      const { u } = S, [x0, y0, x1, y1] = S.d.ramp, k = (t * .02) % 1, x = x0 + (x1 - x0) * k, y = y0 + (y1 - y0) * k;
+      c.fillStyle = "#e9dcc0"; c.save(); c.translate(x, y); c.rotate(Math.atan2(y1 - y0, x1 - x0) + Math.PI); c.fillRect(-u * .012, -u * .018, u * .024, u * .016);
+      c.fillStyle = "#4a2f1c"; for (let i = 1; i <= 6; i++) { const bob = Math.sin(t * 6 + i) * u * .0015; c.fillRect(u * .012 + i * u * .009, -u * .016 + bob, u * .003, u * .012); circle(c, u * .0135 + i * u * .009, -u * .019 + bob, u * .0022); }
+      c.restore();
+      for (const p of S.d.sand) { p.x += p.v * dt; if (p.x > S.w + 30) { p.x = -30; p.y = S.H + Math.random() * (S.h - S.H); } c.fillStyle = "rgba(240,220,170,.35)"; c.fillRect(p.x, p.y, p.l, 1); }
+    }
+  },
+
+  roma: {
+    setup(S, r) {
+      const { u, H, cx } = S;
+      S.d.R = Math.min(S.vx * .44, u * .55); S.d.Fh = Math.min(H * .7, S.d.R * .72); S.d.X = cx + u * .04;
+      S.d.birds = []; for (let i = 0; i < 9; i++) S.d.birds.push({ x: r() * S.w, y: S.H * (.1 + r() * .4), v: 30 + r() * 50, ph: r() * TAU, s: u * (.006 + r() * .006) });
+    },
+    bg(c, S, r) {
+      const { w, h, H, u } = S, { R, Fh, X } = S.d, base = H + u * .03;
+      sky(c, S, ERAS[3].sky);
+      glow(c, X - R * .9, H - Fh * 1.3, u * .5, "#fff6dc", .45);
+      ridge(c, S, H - u * .02, u * .025, 5, "#93a7ad");
+      c.fillStyle = lin(c, H, h, ["#dcc9a2", "#b19a70"]); c.fillRect(0, H, w, h);
+      const levels = [.22, .22, .22, .24], th = [-1.25, 1.25], N = 22;
+      const yAt = (yy, th) => base + (yy - base) * (.86 + .14 * Math.cos(th));
+      for (let i = 0; i < N; i++) {
+        const a = th[0] + (th[1] - th[0]) * i / N, b = th[0] + (th[1] - th[0]) * (i + 1) / N, m = (a + b) / 2;
+        const xa = X + R * Math.sin(a), xb = X + R * Math.sin(b), shade = Math.max(0, Math.min(1, .55 - Math.sin(m) * .45));
+        let y = base;
+        levels.forEach((lv, li) => {
+          const y2 = base - Fh * levels.slice(0, li + 1).reduce((s, v) => s + v, 0);
+          const ya1 = yAt(y, a), yb1 = yAt(y, b), ya2 = yAt(y2, a), yb2 = yAt(y2, b);
+          c.fillStyle = mix("#b6a27f", "#f1e5c8", shade); poly(c, [xa, ya1, xb, yb1, xb, yb2, xa, ya2]);
+          const bw = xb - xa, ow = bw * .58, ox = xa + (bw - ow) / 2, ym1 = (ya1 + yb1) / 2, ym2 = (ya2 + yb2) / 2, hgt = ym1 - ym2;
+          c.fillStyle = mix("#3b2f25", "#6a5743", shade);
+          if (li < 3) { const ob = ym1 - hgt * .08, ot = ym2 + hgt * .3; c.beginPath(); c.moveTo(ox, ob); c.lineTo(ox, ot); c.quadraticCurveTo(ox + ow / 2, ot - hgt * .32, ox + ow, ot); c.lineTo(ox + ow, ob); c.fill(); }
+          else if (i % 2 === 0) c.fillRect(ox + ow * .25, ym2 + hgt * .35, ow * .5, hgt * .25);
+          c.strokeStyle = "rgba(80,60,40,.35)"; c.lineWidth = Math.max(1, u * .002); c.beginPath(); c.moveTo(xa, ya2); c.lineTo(xb, yb2); c.stroke();
+          y = y2;
+        });
+        if (i % 2 === 0) { const xt = (xa + xb) / 2, yt = yAt(base - Fh * .9, m); c.strokeStyle = "#6e5a40"; c.lineWidth = Math.max(1, u * .0025); c.beginPath(); c.moveTo(xt, yt); c.lineTo(xt, yt - u * .05); c.stroke(); c.strokeStyle = "rgba(90,70,50,.35)"; c.lineWidth = 1; c.beginPath(); c.moveTo(xt, yt - u * .05); c.lineTo(X + (xt - X) * .4, yt - u * .16); c.stroke(); }
+      }
+      const cxL = Math.max(u * .08, X - R * 1.12), ch = Fh * .78;
+      c.fillStyle = "#8d7a5a"; c.fillRect(cxL - u * .035, base - u * .05, u * .07, u * .05);
+      const g = c.createLinearGradient(cxL - u * .05, 0, cxL + u * .05, 0); g.addColorStop(0, "#5b4326"); g.addColorStop(.45, "#b48a4a"); g.addColorStop(1, "#4a361e");
+      shape(c, cxL, base - u * .05, ch, g, colossus);
+      pine(c, X + R * 1.02, base + u * .01, u * .3, "#2e4630"); pine(c, X + R * 1.2, base + u * .02, u * .24, "#263c28");
+      for (let i = 0; i < 260; i++) { const x = X - R * 1.05 + r() * R * 2.3, y = base + u * (.005 + r() * .06); c.fillStyle = ["#7a2e24", "#ece2cc", "#3b4a6a", "#b08a3c", "#5a4636"][(r() * 5) | 0]; c.fillRect(x, y - u * .012, u * .004, u * .012); }
+    },
+    fg(c, S, t, dt) {
+      for (const b of S.d.birds) { b.x += b.v * dt; if (b.x > S.w + 20) b.x = -20; const f = Math.sin(t * 9 + b.ph) * b.s * .8, y = b.y + Math.sin(t * .7 + b.ph) * 8; c.strokeStyle = "rgba(40,40,50,.75)"; c.lineWidth = 1.3; c.beginPath(); c.moveTo(b.x - b.s * 1.4, y - f); c.lineTo(b.x, y); c.lineTo(b.x + b.s * 1.4, y - f); c.stroke(); }
+    }
+  },
+
+  venezia: {
+    setup(S, r) {
+      S.d.gulls = []; for (let i = 0; i < 7; i++) S.d.gulls.push({ x: r() * S.w, y: S.H * (.15 + r() * .5), v: 15 + r() * 30, ph: r() * TAU, s: S.u * (.01 + r() * .008) });
+      S.d.glints = []; for (let i = 0; i < 70; i++) S.d.glints.push({ x: r() * S.w, y: S.H + 4 + Math.pow(r(), 1.6) * (S.h - S.H), l: S.u * (.01 + r() * .05), ph: r() * TAU });
+    },
+    bg(c, S, r) {
+      const { w, h, H, u, cx } = S;
+      sky(c, S, ERAS[4].sky);
+      glow(c, cx - u * .1, H - u * .05, u * .6, "#ffe2b8", .5);
+      const tx = cx - u * .38, th = H * .55; c.fillStyle = "#9c5841"; c.fillRect(tx - u * .018, H - th, u * .036, th); c.fillStyle = "#7d4433"; poly(c, [tx - u * .022, H - th, tx + u * .022, H - th, tx, H - th - u * .07]); c.fillStyle = "#e8d6b6"; c.fillRect(tx - u * .016, H - th + u * .01, u * .032, u * .02);
+      const pal = ["#d9a273", "#e6c9a3", "#c9765a", "#efe1c8", "#b5855f", "#d88f6e"];
+      let x = -10; const blds = [];
+      while (x < w + 10) { const bw = u * (.06 + r() * .07), bh = u * (.1 + r() * .16); blds.push([x, bw, bh, pal[(r() * pal.length) | 0]]); x += bw; }
+      c.fillStyle = lin(c, H, h, ["#86a0ab", "#2f4f5c"]); c.fillRect(0, H, w, h);
+      for (const [bx, bw, bh, col] of blds) {
+        c.fillStyle = col; c.fillRect(bx, H - bh, bw + 1, bh);
+        c.globalAlpha = .22; c.fillRect(bx, H, bw + 1, bh * .7); c.globalAlpha = 1;
+        c.fillStyle = "rgba(0,0,0,.08)"; c.fillRect(bx + bw * .85, H - bh, bw * .15, bh);
+        const cols = Math.max(2, Math.floor(bw / (u * .018))), rows = Math.max(2, Math.floor(bh / (u * .04)));
+        c.fillStyle = "rgba(55,35,25,.55)";
+        for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) { const wx = bx + bw * (i + .3) / cols, wy = H - bh + u * .02 + j * (bh - u * .03) / rows, ww = bw / cols * .4, wh = u * .02; c.beginPath(); c.moveTo(wx, wy + wh); c.lineTo(wx, wy + wh * .35); c.quadraticCurveTo(wx + ww / 2, wy - wh * .25, wx + ww, wy + wh * .35); c.lineTo(wx + ww, wy + wh); c.fill(); }
+        if (r() < .7) { const chx = bx + bw * (.2 + r() * .6), cy = H - bh; c.fillStyle = "#8a4e3a"; c.fillRect(chx - u * .003, cy - u * .02, u * .006, u * .02); poly(c, [chx - u * .01, cy - u * .032, chx + u * .01, cy - u * .032, chx + u * .004, cy - u * .02, chx - u * .004, cy - u * .02]); }
+      }
+      const gx = w - Math.max(u * .15, w - S.vx + u * .15); c.fillStyle = "#3b2a1e"; c.fillRect(gx - u * .06, H - u * .01, u * .12, u * .02); c.strokeStyle = "#3b2a1e"; c.lineWidth = 2; c.beginPath(); c.moveTo(gx, H - u * .01); c.lineTo(gx, H - u * .17); c.stroke(); c.fillStyle = "#e9d9b9"; poly(c, [gx + 2, H - u * .16, gx + 2, H - u * .03, gx + u * .07, H - u * .03]);
+      const by = H + u * .05, bl = cx - u * .48, br = cx + u * .48, mid = u * .09, rise = u * .1;
+      c.strokeStyle = "#4e3523"; c.fillStyle = "#4e3523";
+      c.lineWidth = Math.max(2, u * .006); for (let i = 0; i <= 14; i++) { const k = i / 14, xx = bl + (br - bl) * k; const dk = Math.abs(k - .5) * 2; if (dk < .12) continue; const yy = by - rise * (1 - dk); c.beginPath(); c.moveTo(xx, yy); c.lineTo(xx, by + u * .07); c.stroke(); }
+      c.lineWidth = Math.max(3, u * .012); c.beginPath(); c.moveTo(bl, by); c.lineTo(cx - mid / 2, by - rise * .88); c.moveTo(cx + mid / 2, by - rise * .88); c.lineTo(br, by); c.stroke();
+      c.lineWidth = Math.max(1, u * .003); c.beginPath(); c.moveTo(bl, by - u * .025); c.lineTo(cx - mid / 2, by - rise * .88 - u * .025); c.moveTo(cx + mid / 2, by - rise * .88 - u * .025); c.lineTo(br, by - u * .025); c.stroke();
+      c.lineWidth = Math.max(3, u * .01); c.beginPath(); c.moveTo(cx - mid / 2, by - rise * .88); c.lineTo(cx - mid * .15, by - rise * 1.5); c.moveTo(cx + mid / 2, by - rise * .88); c.lineTo(cx + mid * .15, by - rise * 1.5); c.stroke();
+      c.globalAlpha = .25; c.fillRect(bl, by + u * .07, br - bl, u * .01); c.globalAlpha = 1;
+    },
+    fg(c, S, t, dt) {
+      const { u, H, w } = S;
+      for (const g of S.d.glints) { const a = .25 + .25 * Math.sin(t * 2.2 + g.ph); c.fillStyle = `rgba(255,232,205,${a})`; c.fillRect(g.x + Math.sin(t * .6 + g.ph) * 6, g.y, g.l, 1.2); }
+      const bx = ((t * u * .03) % (w + u * .6)) - u * .3, by = H + (S.h - H) * .55, L = u * .22;
+      c.fillStyle = "#7a2e24"; c.beginPath(); c.moveTo(bx - L / 2, by - u * .02); c.quadraticCurveTo(bx, by + u * .022, bx + L / 2, by - u * .03); c.quadraticCurveTo(bx, by + u * .005, bx - L / 2, by - u * .02); c.fill();
+      c.fillStyle = "rgba(30,20,15,.25)"; c.fillRect(bx - L * .4, by + u * .012, L * .8, u * .006);
+      const rx = bx + L * .3, sw = Math.sin(t * 1.6) * u * .01; c.strokeStyle = "#241812"; c.fillStyle = "#241812"; c.lineWidth = Math.max(1.5, u * .006); c.lineCap = "round";
+      c.beginPath(); c.moveTo(rx, by - u * .01); c.lineTo(rx, by - u * .06); c.stroke(); circle(c, rx, by - u * .07, u * .008);
+      c.lineWidth = Math.max(1, u * .003); c.beginPath(); c.moveTo(rx - u * .02 + sw, by - u * .07); c.lineTo(rx + u * .02 + sw * 1.5, by + u * .03); c.stroke();
+      c.fillStyle = "#5b3a2a"; c.fillRect(bx - L * .1, by - u * .035, u * .03, u * .02);
+      for (const g of S.d.gulls) { g.x += g.v * dt; if (g.x > S.w + 20) g.x = -20; const f = Math.sin(t * 5 + g.ph) * g.s * .6, y = g.y + Math.sin(t * .5 + g.ph) * 10; c.strokeStyle = "rgba(250,250,245,.9)"; c.lineWidth = 1.6; c.beginPath(); c.moveTo(g.x - g.s, y - f); c.quadraticCurveTo(g.x - g.s * .4, y - g.s * .3, g.x, y); c.quadraticCurveTo(g.x + g.s * .4, y - g.s * .3, g.x + g.s, y - f); c.stroke(); }
+    }
+  },
+
+  firenze: {
+    setup(S, r) {
+      S.d.birds = []; for (let i = 0; i < 12; i++) S.d.birds.push({ x: r() * S.w, y: S.H * (.08 + r() * .45), v: 50 + r() * 80, ph: r() * TAU, s: S.u * (.006 + r() * .005), dir: r() < .5 ? 1 : -1 });
+    },
+    bg(c, S, r) {
+      const { w, h, H, u, cx } = S;
+      sky(c, S, ERAS[5].sky);
+      glow(c, cx + u * .1, H - u * .02, u * .7, "#ffd59a", .55);
+      ridge(c, S, H - u * .09, u * .035, 7, "#7a6a7c"); ridge(c, S, H - u * .05, u * .025, 9, "#56526a");
+      const roofs = (y0, hmin, hmax, wall, roof, k) => { let x = -10; while (x < w + 10) { const bw = u * (.04 + r() * .05), bh = u * (hmin + r() * (hmax - hmin)); c.fillStyle = wall; c.fillRect(x, y0 - bh, bw + 1, bh + u); c.fillStyle = roof; poly(c, [x - 1, y0 - bh, x + bw * .5, y0 - bh - u * .015 * k, x + bw + 1, y0 - bh]); c.fillStyle = "rgba(60,30,20,.35)"; for (let i = 0; i < 2; i++) c.fillRect(x + bw * (.2 + i * .45), y0 - bh + u * .015, bw * .14, u * .014); x += bw; } };
+      roofs(H - u * .03, .03, .07, "#b88e6c", "#8c4a33", 1);
+      const dx = cx - u * .08, Dw = u * .22, yb = H - u * .1, dh = u * .055, Dh = u * .19, top = yb - dh - Dh;
+      c.fillStyle = "#c79f7a"; c.fillRect(dx + u * .08, yb - u * .02, u * .2, u * .07); c.fillStyle = "#9a4d32"; poly(c, [dx + u * .08, yb - u * .02, dx + u * .18, yb - u * .06, dx + u * .28, yb - u * .02]);
+      c.fillStyle = "#e7dcc6"; c.fillRect(dx - Dw * .55, yb - dh, Dw * 1.1, dh + u * .03);
+      c.fillStyle = "#6f4a35"; for (let i = 0; i < 3; i++) circle(c, dx + (i - 1) * Dw * .35, yb - dh * .5, u * .011);
+      const g = c.createLinearGradient(dx - Dw / 2, 0, dx + Dw / 2, 0); g.addColorStop(0, "#d06a3e"); g.addColorStop(.6, "#a64a2a"); g.addColorStop(1, "#7c3520"); c.fillStyle = g;
+      c.beginPath(); c.moveTo(dx - Dw / 2, yb - dh); c.bezierCurveTo(dx - Dw / 2, yb - dh - Dh * .62, dx - Dw * .16, top + Dh * .08, dx, top); c.bezierCurveTo(dx + Dw * .16, top + Dh * .08, dx + Dw / 2, yb - dh - Dh * .62, dx + Dw / 2, yb - dh); c.closePath(); c.fill();
+      c.strokeStyle = "#f1e7d2"; c.lineWidth = Math.max(1.5, u * .005); c.beginPath(); c.moveTo(dx, yb - dh); c.lineTo(dx, top); c.moveTo(dx - Dw * .36, yb - dh); c.bezierCurveTo(dx - Dw * .36, yb - dh - Dh * .5, dx - Dw * .1, top + Dh * .12, dx, top); c.moveTo(dx + Dw * .36, yb - dh); c.bezierCurveTo(dx + Dw * .36, yb - dh - Dh * .5, dx + Dw * .1, top + Dh * .12, dx, top); c.stroke();
+      c.fillStyle = "#f1e7d2"; c.fillRect(dx - u * .012, top - u * .035, u * .024, u * .035); poly(c, [dx - u * .014, top - u * .035, dx + u * .014, top - u * .035, dx, top - u * .065]);
+      const gx = dx + u * .16, gw = u * .036, gh = u * .3; c.fillStyle = "#ede3cf"; c.fillRect(gx - gw / 2, yb + u * .02 - gh, gw, gh); c.fillStyle = "#5b7a63"; for (let i = 1; i < 6; i++) c.fillRect(gx - gw / 2, yb + u * .02 - gh * i / 6, gw, u * .004); c.fillStyle = "#c08a84"; for (let i = 1; i < 6; i++) c.fillRect(gx - gw * .3, yb + u * .02 - gh * i / 6 + u * .012, gw * .6, u * .012); c.fillStyle = "#d9cdb4"; c.fillRect(gx - gw * .6, yb + u * .02 - gh - u * .006, gw * 1.2, u * .008);
+      const pvx = cx + u * .3, pw = u * .15, ph = u * .12, pby = H + u * .02; c.fillStyle = "#c8a678"; c.fillRect(pvx - pw / 2, pby - ph, pw, ph); c.fillStyle = "#a88a60"; c.fillRect(pvx - pw / 2 - u * .004, pby - ph - u * .012, pw + u * .008, u * .012);
+      for (let i = 0; i < 9; i++) c.fillRect(pvx - pw / 2 + i * pw / 8.6, pby - ph - u * .024, pw / 18, u * .012);
+      c.fillStyle = "rgba(60,40,25,.45)"; for (let i = 0; i < 5; i++) for (let j = 0; j < 2; j++) c.fillRect(pvx - pw / 2 + pw * (.1 + i * .18), pby - ph + u * (.03 + j * .04), pw * .06, u * .018);
+      const tw = u * .03, tX = pvx + pw * .12, tTop = pby - ph - u * .2; c.fillStyle = "#c8a678"; c.fillRect(tX - tw / 2, tTop, tw, u * .2); c.fillStyle = "#b89566"; c.fillRect(tX - tw * .8, tTop - u * .03, tw * 1.6, u * .03); for (let i = 0; i < 4; i++) c.fillRect(tX - tw * .8 + i * tw * .45, tTop - u * .042, tw * .2, u * .012);
+      c.fillRect(tX - tw * .3, tTop - u * .08, tw * .6, u * .04); c.fillStyle = "#3a2a20"; c.fillRect(tX - tw * .15, tTop - u * .072, tw * .3, u * .024); c.fillStyle = "#b89566"; poly(c, [tX - tw * .35, tTop - u * .08, tX + tw * .35, tTop - u * .08, tX, tTop - u * .1]);
+      c.fillStyle = lin(c, H, h, ["#b09070", "#7d6650"]); c.fillRect(0, H + u * .02, w, h);
+      const sx = Math.min(S.vx - u * .1, cx + u * .5), sh = Math.min((h - H) * 1.1, u * .32), sb = h - u * .015;
+      c.fillStyle = "#cfc6b6"; c.fillRect(sx - u * .045, sb - u * .06, u * .09, u * .06 + 4);
+      const mg = c.createLinearGradient(-.2, 0, .2, 0); mg.addColorStop(0, "#fff8ec"); mg.addColorStop(.6, "#ddd3c2"); mg.addColorStop(1, "#a59d90");
+      shape(c, sx, sb - u * .06, sh, mg, david);
+    },
+    fg(c, S, t, dt) {
+      for (const b of S.d.birds) { b.x += b.v * dt * b.dir; if (b.x > S.w + 20) b.x = -20; if (b.x < -20) b.x = S.w + 20; const f = Math.sin(t * 12 + b.ph) * b.s, y = b.y + Math.sin(t * 1.3 + b.ph) * 14; c.strokeStyle = "rgba(30,25,35,.8)"; c.lineWidth = 1.4; c.beginPath(); c.moveTo(b.x - b.s * 1.6 * b.dir, y - f); c.lineTo(b.x, y); c.lineTo(b.x - b.s * 1.2 * b.dir, y + f * .7); c.stroke(); }
+    }
+  },
+
+  parigi: {
+    setup(S, r) {
+      const Ht = S.H * .88; S.d.Ht = Ht; S.d.B = Math.min(Ht / 4.8, S.vx * .2); S.d.tx = S.cx;
+      S.d.drops = []; for (let i = 0; i < 160; i++) S.d.drops.push({ life: r(), x: 0, y: 0, vx: 0, vy: 0, j: (r() * 3) | 0, init: false });
+      S.d.lamps = []; for (let i = 0; i < 60; i++) S.d.lamps.push({ u: r() * .9, side: r() < .5 ? -1 : 1, ph: r() * TAU });
+    },
+    hw(S, k) { return S.d.B * (Math.pow(1 - k, 2.3) * .96 + .015); },
+    bg(c, S, r) {
+      const { w, h, H, u } = S, { Ht, tx } = S.d, hw = (k) => SCENES.parigi.hw(S, k), base = H + u * .02;
+      const skyG = lin(c, 0, S.H, ERAS[6].sky); c.fillStyle = skyG; c.fillRect(0, 0, w, h);
+      c.fillStyle = "#fff"; for (let i = 0; i < 40; i++) { c.globalAlpha = r() * .6; circle(c, r() * w, r() * H * .5, r() + .2); } c.globalAlpha = 1;
+      ridge(c, S, H - u * .01, u * .012, 4, "#2a2440", [3.1, 7.3, 13]);
+      c.fillStyle = "#211c36"; c.fillRect(tx - u * .62, base - u * .1, u * .3, u * .1); c.beginPath(); c.ellipse(tx - u * .47, base - u * .1, u * .06, u * .07, 0, Math.PI, TAU); c.fill(); c.fillRect(tx - u * .475, base - u * .19, u * .01, u * .03);
+      c.fillStyle = "#1d1930"; c.beginPath(); c.moveTo(tx + u * .28, base); c.lineTo(tx + u * .28, base - u * .06); c.quadraticCurveTo(tx + u * .6, base - u * .16, tx + u * .92, base - u * .06); c.lineTo(tx + u * .92, base); c.fill();
+      c.fillStyle = "rgba(255,206,120,.85)"; for (let i = 0; i < 40; i++) { const x = tx - u * .6 + r() * u * .27, y = base - u * (.02 + r() * .07); c.fillRect(x, y, 2, 3); } for (let i = 0; i < 26; i++) { const x = tx + u * .32 + r() * u * .55, y = base - u * (.015 + r() * .04); c.fillRect(x, y, 2, 2); }
+      const tg = c.createLinearGradient(tx - S.d.B, 0, tx + S.d.B, 0); tg.addColorStop(0, "#9a4430"); tg.addColorStop(.5, "#7a2f22"); tg.addColorStop(1, "#4e1d15");
+      c.fillStyle = tg; c.beginPath(); for (let k = 0; k <= 1.0001; k += .02) c.lineTo(tx - hw(k), base - Ht * k); for (let k = 1; k >= -.0001; k -= .02) c.lineTo(tx + hw(k), base - Ht * k); c.closePath(); c.fill();
+      c.save(); c.clip(); c.strokeStyle = "rgba(20,8,6,.35)"; c.lineWidth = 1; for (let y = 0; y < Ht; y += Math.max(4, Ht / 60)) { c.beginPath(); c.moveTo(tx - S.d.B, base - y); c.lineTo(tx + S.d.B, base - y - Ht / 30); c.moveTo(tx + S.d.B, base - y); c.lineTo(tx - S.d.B, base - y - Ht / 30); c.stroke(); } c.restore();
+      c.fillStyle = skyG; const aw = hw(0) * .62, at = Ht * .15; c.beginPath(); c.moveTo(tx - aw, base + 1); c.quadraticCurveTo(tx - aw * .9, base - at * 1.1, tx, base - at); c.quadraticCurveTo(tx + aw * .9, base - at * 1.1, tx + aw, base + 1); c.fill();
+      c.beginPath(); c.moveTo(tx - hw(.21) * .55, base - Ht * .21); c.lineTo(tx, base - Ht * .36); c.lineTo(tx + hw(.21) * .55, base - Ht * .21); c.fill();
+      c.fillStyle = "#5a2219"; [[.19, 1.25], [.39, 1.4], [.9, 2.6]].forEach(([k, m]) => c.fillRect(tx - hw(k) * m, base - Ht * k - u * .008, hw(k) * m * 2, u * .016));
+      c.fillStyle = "#3b1712"; c.fillRect(tx - u * .002, base - Ht - u * .04, u * .004, u * .04);
+      c.fillStyle = "#181428"; c.fillRect(0, base - 1, w, h);
+    },
+    fg(c, S, t, dt) {
+      const { u, H } = S, { Ht, tx } = S.d, base = H + u * .02, hw = (k) => SCENES.parigi.hw(S, k);
+      for (const l of S.d.lamps) { const a = .5 + .5 * Math.sin(t * 3 + l.ph); c.fillStyle = `rgba(255,214,140,${.45 + .55 * a})`; circle(c, tx + l.side * hw(l.u) * .98, base - Ht * l.u, 1.3); }
+      const ang = t * .7, bx = tx, by = base - Ht * .93, col = ["#9fb8ff", "#fff4dc", "#ff8a7a"][Math.floor(t * .7 / TAU * 3) % 3], L = u * 1.2;
+      c.save(); c.globalCompositeOperation = "lighter"; const g = c.createRadialGradient(bx, by, 0, bx, by, L); g.addColorStop(0, hexA(col.length === 7 ? col : "#ffffff", .35)); g.addColorStop(1, hexA(col, 0)); c.fillStyle = g;
+      c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + Math.cos(ang - .05) * L, by + Math.sin(ang - .05) * L * .35); c.lineTo(bx + Math.cos(ang + .05) * L, by + Math.sin(ang + .05) * L * .35); c.closePath(); c.fill();
+      glow(c, bx, by, u * .03, col, .9); c.restore();
+      const jets = [tx - u * .22, tx, tx + u * .22], hue = (t * 25) % 360;
+      for (const p of S.d.drops) {
+        p.life += dt * .7; if (p.life > 1 || !p.init) { p.init = true; p.life = p.init && Math.random() < .5 ? 0 : Math.random() * .2; p.x = jets[p.j]; p.y = S.h; p.vx = (Math.random() - .5) * u * .12; p.vy = -u * (.45 + Math.random() * .2); }
+        p.vy += u * .55 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+        c.fillStyle = `hsla(${(hue + p.j * 90) % 360},85%,70%,${(1 - p.life) * .8})`; circle(c, p.x, p.y, 1.6);
+      }
+    }
+  },
+
+  luna: {
+    setup(S, r) {
+      const { w, h, u } = S;
+      S.d.blds = []; S.d.wins = []; let x = -10;
+      while (x < w + 10) { const bw = u * (.1 + r() * .12), bh = Math.min(h * .55, u * (.14 + r() * .22)); S.d.blds.push([x, bw, bh]); const cols = Math.max(2, Math.floor(bw / (u * .03))), rows = Math.max(2, Math.floor(bh / (u * .045)));
+        for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) { const q = r(); S.d.wins.push({ x: x + bw * (i + .25) / cols, y: h - bh + u * .02 + j * (bh - u * .03) / rows, w: bw / cols * .5, h: u * .022, k: q < .42 ? "tv" : q < .62 ? "warm" : "off", ph: r() * 100 }); }
+        x += bw + u * .005; }
+      S.d.stars = []; for (let i = 0; i < 120; i++) S.d.stars.push({ x: r() * w, y: r() * h * .6, s: r() * 1.3 + .2, ph: r() * TAU });
+      S.d.flies = []; for (let i = 0; i < 18; i++) S.d.flies.push({ x: r() * w, y: h * (.6 + r() * .4), ph: r() * TAU, v: r() * .5 + .2 });
+    },
+    bg(c, S, r) {
+      const { w, h, u, cx } = S;
+      c.fillStyle = lin(c, 0, h, ERAS[7].sky); c.fillRect(0, 0, w, h);
+      const mx = cx - u * .28, my = h * .2, mr = u * .06;
+      glow(c, mx, my, mr * 4, "#c9d6ff", .18);
+      c.fillStyle = "#1a2236"; circle(c, mx, my, mr);
+      c.fillStyle = "#f4f1e4"; c.beginPath(); c.arc(mx, my, mr, -Math.PI / 2, Math.PI / 2, false); c.ellipse(mx, my, mr * .18, mr, 0, Math.PI / 2, -Math.PI / 2, true); c.fill();
+      c.fillStyle = "rgba(150,150,140,.35)"; circle(c, mx + mr * .55, my - mr * .25, mr * .14); circle(c, mx + mr * .4, my + mr * .3, mr * .1); circle(c, mx + mr * .7, my + mr * .1, mr * .08);
+      for (const [x, bw, bh] of S.d.blds) {
+        c.fillStyle = "#0b1120"; c.fillRect(x, h - bh, bw, bh); c.fillStyle = "#16203a"; c.fillRect(x, h - bh, bw, 2);
+        c.strokeStyle = "#26324e"; c.lineWidth = 1.2; const n = 1 + ((r() * 3) | 0);
+        for (let i = 0; i < n; i++) { const ax = x + bw * (.15 + r() * .7), ah = u * (.04 + r() * .05); c.beginPath(); c.moveTo(ax, h - bh); c.lineTo(ax, h - bh - ah); for (let k = 0; k < 3; k++) { const yy = h - bh - ah + k * u * .012, ww = u * (.03 - k * .007); c.moveTo(ax - ww / 2, yy); c.lineTo(ax + ww / 2, yy); } c.stroke(); }
+      }
+      for (const wd of S.d.wins) { c.fillStyle = wd.k === "warm" ? "#e8b85e" : "#141b2c"; if (wd.k !== "tv") c.fillRect(wd.x, wd.y, wd.w, wd.h); }
+    },
+    fg(c, S, t, dt) {
+      for (const s of S.d.stars) { c.fillStyle = `rgba(230,236,255,${.35 + .35 * Math.sin(t * 1.7 + s.ph)})`; circle(c, s.x, s.y, s.s); }
+      const cut = Math.floor(t * 2.2);
+      for (const wd of S.d.wins) if (wd.k === "tv") { const n = Math.sin((cut + wd.ph) * 12.9898) * 43758.5453, base = .45 + (n - Math.floor(n)) * .35, fl = base + .12 * Math.sin(t * 17 + wd.ph); c.fillStyle = `rgba(160,190,255,${fl})`; c.fillRect(wd.x, wd.y, wd.w, wd.h); }
+      for (const f of S.d.flies) { const a = Math.max(0, Math.sin(t * f.v * 3 + f.ph)); const x = f.x + Math.sin(t * .4 + f.ph) * 20, y = f.y + Math.cos(t * .5 + f.ph) * 12; glow(c, x, y, 6, "#d6ff7a", a * .9); }
+    }
+  }
+};
+
+/* ------------------------------------------------------------------ */
+/*  Motore della scena                                                 */
+/* ------------------------------------------------------------------ */
+const cv = $("scene"), ctx = cv.getContext("2d");
+const S = { w: 0, h: 0, dpr: 1, vx: 0, cx: 0, H: 0, u: 0, d: {} };
+let sceneEra = -1, bgCv = document.createElement("canvas"), lastT = performance.now(), clock = 0;
+
+function layout() {
+  const rc = cv.getBoundingClientRect();
+  S.w = Math.max(1, rc.width); S.h = Math.max(1, rc.height); S.dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(S.w * S.dpr); cv.height = Math.round(S.h * S.dpr);
+  const wide = innerWidth > 760;
+  S.vx = wide ? Math.max(300, S.w - 470) : S.w; S.cx = S.vx / 2; S.H = S.h * (wide ? .66 : .62); S.u = Math.min(S.vx, S.h * 1.25);
+  buildScene();
+}
+function buildScene() {
+  if (sceneEra < 0 || S.u <= 0) return;
+  const e = ERAS[sceneEra], sc = SCENES[e.id]; S.d = {};
+  sc.setup(S, rng(7 + sceneEra * 101));
+  bgCv.width = cv.width; bgCv.height = cv.height;
+  const b = bgCv.getContext("2d"); b.setTransform(S.dpr, 0, 0, S.dpr, 0, 0); b.clearRect(0, 0, S.w, S.h);
+  sc.bg(b, S, rng(11 + sceneEra * 37));
+}
+function setSceneEra(i) { if (i !== sceneEra) { sceneEra = i; buildScene(); } }
+function frame(now) {
+  const dt = Math.min(.05, (now - lastT) / 1000); lastT = now; clock += reduced ? dt * .35 : dt;
+  if (sceneEra >= 0) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(bgCv, 0, 0);
+    ctx.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
+    try { SCENES[ERAS[sceneEra].id].fg(ctx, S, clock, reduced ? dt * .35 : dt); } catch (err) { console.error(err); }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Suono (Web Audio, tutto sintetizzato)                              */
+/* ------------------------------------------------------------------ */
+let AC = null, master = null, noiseBuf = null, amb = null, soundOn = store("mdt-sound") !== false;
+function ensureAudio() {
+  if (!AC) {
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      master = AC.createGain(); master.gain.value = soundOn ? .85 : 0; master.connect(AC.destination);
+      noiseBuf = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    } catch (e) { AC = null; }
+  }
+  if (AC && AC.state === "suspended") AC.resume().catch(() => {});
+  return !!AC;
+}
+function bed(out, type, freq, Q, gain, lfoRate = 0, lfoDepth = 0) {
+  const s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = true; s.loopStart = Math.random();
+  const f = AC.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = Q;
+  const g = AC.createGain(); g.gain.value = gain; s.connect(f).connect(g).connect(out); s.start();
+  const nodes = [s];
+  if (lfoRate) { const o = AC.createOscillator(), og = AC.createGain(); o.frequency.value = lfoRate; og.gain.value = lfoDepth; o.connect(og).connect(g.gain); o.start(); nodes.push(o); }
+  return nodes;
+}
+function tone(out, f, dur, o = {}) {
+  const t0 = AC.currentTime + (o.delay || 0), osc = AC.createOscillator(), g = AC.createGain();
+  osc.type = o.type || "sine"; osc.frequency.setValueAtTime(f, t0); if (o.glide) osc.frequency.exponentialRampToValueAtTime(o.glide, t0 + dur);
+  const a = o.a ?? .01, pk = o.g ?? .2;
+  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(pk, t0 + a); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  let node = osc.connect(g);
+  if (o.lp) { const fl = AC.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.value = o.lp; g.connect(fl); node = fl; }
+  node.connect(out); osc.start(t0); osc.stop(t0 + dur + .05);
+}
+function hit(out, dur, freq, Q, gain, type = "bandpass", delay = 0) {
+  const t0 = AC.currentTime + delay, s = AC.createBufferSource(); s.buffer = noiseBuf;
+  const f = AC.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = Q;
+  const g = AC.createGain(); g.gain.setValueAtTime(gain, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  s.connect(f).connect(g).connect(out); s.start(t0, Math.random() * 1.5); s.stop(t0 + dur + .05);
+}
+function bell(out, f, dur, gain, ratio = 2.76, delay = 0) {
+  const t0 = AC.currentTime + delay, car = AC.createOscillator(), mod = AC.createOscillator(), mg = AC.createGain(), g = AC.createGain();
+  car.frequency.value = f; mod.frequency.value = f * ratio; mg.gain.setValueAtTime(f * 2.2, t0); mg.gain.exponentialRampToValueAtTime(f * .05, t0 + dur);
+  mod.connect(mg).connect(car.frequency); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gain, t0 + .005); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  car.connect(g).connect(out); car.start(t0); mod.start(t0); car.stop(t0 + dur + .05); mod.stop(t0 + dur + .05);
+}
+function swell(out, dur, freq, gain) {
+  const t0 = AC.currentTime, s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+  const f = AC.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq; f.Q.value = .8;
+  const g = AC.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gain, t0 + dur * .3); g.gain.linearRampToValueAtTime(0, t0 + dur);
+  s.connect(f).connect(g).connect(out); s.start(t0); s.stop(t0 + dur + .1);
+}
+const PENT = [293.7, 349.2, 392, 440, 523.3, 587.3];
+const SOUNDS = {
+  cretaceo: { bed: (o) => [...bed(o, "lowpass", 380, .7, .28, .07, .1), ...bed(o, "bandpass", 4300, 9, .05, 11, .03)],
+    tick(o, n) { if (Math.random() < .025) tone(o, 72, 2.4, { type: "sawtooth", glide: 46, g: .16, a: .4, lp: 280 }); if (Math.random() < .04) tone(o, 2600, .12, { glide: 3300, g: .03 }); } },
+  paleolitico: { bed: (o) => bed(o, "lowpass", 240, .7, .16, .05, .04),
+    tick(o, n) { for (let i = 0; i < 3; i++) if (Math.random() < .5) hit(o, .02 + Math.random() * .04, 1500 + Math.random() * 3000, 1.5, .08 + Math.random() * .22, "bandpass", Math.random() * .25);
+      if (Math.random() < .03) tone(o, 1300, .09, { glide: 700, g: .06 });
+      if (Math.random() < .018) { let d = 0; for (let i = 0; i < 4 + (Math.random() * 3 | 0); i++) { const f = PENT[(Math.random() * PENT.length) | 0] * 2; tone(o, f, .7, { g: .05, a: .08, delay: d }); d += .45 + Math.random() * .3; } } } },
+  egitto: { bed: (o) => bed(o, "bandpass", 700, .5, .14, .1, .06),
+    tick(o, n) { if (n % 3 === 0) tone(o, 90, .3, { g: .2, glide: 60 }); if (Math.random() < .25) hit(o, .03, 3200, 3, .14, "bandpass", Math.random() * .2);
+      if (n % 24 === 0) [196, 196, 220, 174.6].forEach((f, i) => tone(o, f, .55, { type: "sawtooth", g: .04, a: .05, lp: 900, delay: i * .75 }));
+      if (n % 24 === 12) [220, 196].forEach((f, i) => tone(o, f * .75, .7, { type: "sawtooth", g: .05, a: .05, lp: 700, delay: i * .75 })); } },
+  roma: { bed: (o) => [...bed(o, "bandpass", 600, .7, .22, .05, .08), ...bed(o, "bandpass", 1400, .9, .08, .13, .04)],
+    tick(o, n) { if (Math.random() < .012) swell(o, 3.5, 700, .5); if (Math.random() < .01) [196, 293.7, 392, 392].forEach((f, i) => tone(o, f, .5, { type: "sawtooth", g: .07, a: .03, lp: 1600, delay: i * .38 })); } },
+  venezia: { bed: (o) => bed(o, "lowpass", 480, .6, .16, .3, .08),
+    tick(o, n) { if (Math.random() < .2) hit(o, .35, 380, .7, .12, "lowpass", Math.random() * .2);
+      if (Math.random() < .03) { tone(o, 1900, .18, { glide: 1350, g: .05 }); tone(o, 1750, .25, { glide: 1200, g: .045, delay: .25 }); }
+      if (n % 60 === 5) for (let i = 0; i < 4; i++) bell(o, i % 2 ? 330 : 392, 3.5, .06, 1.41, i * 1.2); } },
+  firenze: { bed: (o) => bed(o, "bandpass", 650, .7, .1, .06, .05),
+    tick(o, n) { if (n % 70 === 2) for (let i = 0; i < 6; i++) bell(o, [523, 440, 392, 349][i % 4], 3, .05, 1.41, i * .8);
+      if (Math.random() < .02) { const ch = [[293.7, 370, 440, 587.3], [261.6, 329.6, 392, 523.3], [220, 293.7, 349.2, 440]][(Math.random() * 3) | 0]; ch.forEach((f, i) => tone(o, f, 1.4, { type: "triangle", g: .06, a: .003, lp: 2200, delay: i * .16 })); }
+      if (Math.random() < .05) tone(o, 4200, .05, { glide: 5200, g: .02 }); } },
+  parigi: { bed: (o) => bed(o, "bandpass", 700, .7, .09, .07, .04),
+    tick(o, n) { const sl = [280, 322, 370, 425, 489, 560]; if (n % 2 === 0 && Math.random() < .7) bell(o, sl[(Math.random() * sl.length) | 0], 1.6, .045, 3.5);
+      if (n % 8 === 0) bell(o, 140, 3, .05, 1.5); if (Math.random() < .006) { tone(o, 900, .9, { g: .03, a: .05 }); tone(o, 1130, .9, { g: .02, a: .05 }); } } },
+  luna: { bed: (o) => bed(o, "bandpass", 900, 1.5, .05, 3, .03),
+    tick(o, n) { if (n % 3 === 0) for (let i = 0; i < 3; i++) tone(o, 4800, .03, { g: .025, delay: i * .06 + Math.random() * .02 });
+      if (Math.random() < .03) tone(o, 2525, .25, { g: .05, a: .005 }); if (Math.random() < .004) tone(o, 110, 3, { type: "sawtooth", glide: 80, g: .06, a: 1, lp: 600 }); } }
+};
+function startAmbient(id) {
+  stopAmbient(); if (!AC) return;
+  const out = AC.createGain(); out.gain.setValueAtTime(0, AC.currentTime); out.gain.linearRampToValueAtTime(1, AC.currentTime + 1.5); out.connect(master);
+  const spec = id ? SOUNDS[id] : null, nodes = spec ? spec.bed(out) : [];
+  if (!spec) { [55, 110.5].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.value = i ? .015 : .03; o.connect(g).connect(out); o.start(); nodes.push(o); }); }
+  let n = 0; const timer = spec ? setInterval(() => { if (soundOn && document.visibilityState === "visible") spec.tick(out, n); n++; }, 250) : 0;
+  amb = { out, nodes, timer };
+}
+function stopAmbient() {
+  if (!amb || !AC) return; const a = amb; amb = null; clearInterval(a.timer);
+  a.out.gain.cancelScheduledValues(AC.currentTime); a.out.gain.setValueAtTime(a.out.gain.value, AC.currentTime); a.out.gain.linearRampToValueAtTime(0, AC.currentTime + .8);
+  setTimeout(() => { a.nodes.forEach((x) => { try { x.stop(); } catch (e) {} }); a.out.disconnect(); }, 1000);
+}
+function whoosh(dur) {
+  if (!AC) return; const t0 = AC.currentTime, s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+  const f = AC.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 2.5; f.frequency.setValueAtTime(180, t0); f.frequency.exponentialRampToValueAtTime(3200, t0 + dur * .7); f.frequency.exponentialRampToValueAtTime(300, t0 + dur);
+  const g = AC.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.45, t0 + dur * .25); g.gain.linearRampToValueAtTime(0, t0 + dur);
+  s.connect(f).connect(g).connect(master); s.start(t0); s.stop(t0 + dur + .1);
+  tone(master, 70, dur, { glide: 520, g: .08, a: dur * .5 });
+}
+
+/* ------------------------------------------------------------------ */
+/*  Interfaccia                                                        */
+/* ------------------------------------------------------------------ */
+let sel = 3, here = -1, busy = false, tab = "posto";
+let stamps = new Set((store("mdt-stamps") || []).filter((id) => ERAS.some((e) => e.id === id)));
+const chats = {};
+
+function renderList() {
+  const ol = $("eraList"); ol.textContent = "";
+  ERAS.forEach((e, i) => {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.type = "button"; b.className = "era-btn"; b.id = "era-" + e.id; b.setAttribute("aria-current", i === sel ? "true" : "false");
+    b.innerHTML = `<span class="y"></span><span class="n"></span><span class="s${stamps.has(e.id) ? " on" : ""}">${stamps.has(e.id) ? "Timbrato" : ""}</span>`;
+    b.querySelector(".y").textContent = e.yearLabel; b.querySelector(".n").textContent = e.name;
+    b.addEventListener("click", () => select(i));
+    b.addEventListener("keydown", (ev) => { if (ev.key === "ArrowDown" || ev.key === "ArrowUp") { ev.preventDefault(); const j = (i + (ev.key === "ArrowDown" ? 1 : -1) + ERAS.length) % ERAS.length; select(j); $("era-" + ERAS[j].id).focus(); } });
+    li.append(b); ol.append(li);
+  });
+}
+function select(i) {
+  sel = i; const e = ERAS[i];
+  $("dName").textContent = e.name; $("dMeta").textContent = `${e.place} · ${e.date}`; $("dTeaser").textContent = e.teaser;
+  document.querySelectorAll(".era-btn").forEach((b, j) => b.setAttribute("aria-current", j === i ? "true" : "false"));
+  setSceneEra(i); updateFoot();
+}
+function curYear() { return here < 0 ? PRESENT : ERAS[here].year; }
+function updateFoot() {
+  const docked = here < 0;
+  $("lever").hidden = !docked; $("navRow").hidden = docked;
+  if (docked) { const e = ERAS[sel]; $("leverTxt").textContent = "Parti per " + e.short; $("jump").innerHTML = `Salto: <b></b> indietro`; $("jump").querySelector("b").textContent = fmtSpan(PRESENT - e.year); }
+  else {
+    const nx = (here + 1) % ERAS.length, e = ERAS[nx], back = e.year < curYear();
+    $("nextBtn").textContent = "Vai a " + e.short; $("backBtn").textContent = "Torna al " + PRESENT;
+    $("jump").innerHTML = `Prossima tappa: <b></b> ${back ? "indietro" : "avanti"}`; $("jump").querySelector("b").textContent = fmtSpan(e.year - curYear());
+  }
+}
+function updateOdo() {
+  if (here < 0) { $("odoK").textContent = "Sei nel"; $("odoY").textContent = PRESENT + " d.C."; $("odoP").textContent = "Laboratorio, oggi"; }
+  else { const e = ERAS[here]; $("odoK").textContent = "Sei qui"; $("odoY").textContent = fmtYear(e.year); $("odoP").textContent = e.place; }
+}
+function updatePass() {
+  $("passCount").textContent = `Timbri ${stamps.size}/${ERAS.length}`;
+  $("passLed").style.background = stamps.size ? "var(--signal)" : "";
+  const g = $("stamps"); g.textContent = "";
+  ERAS.forEach((e) => { const d = document.createElement("div"); d.className = "stamp" + (stamps.has(e.id) ? " on" : ""); d.style.transform = `rotate(${((e.id.charCodeAt(0) * 37) % 24) - 12}deg)`; d.innerHTML = "<div><b></b><i></i></div>"; d.querySelector("b").textContent = e.stamp; d.querySelector("i").textContent = stamps.has(e.id) ? e.yearLabel : "—"; d.setAttribute("aria-label", `${e.name}: ${stamps.has(e.id) ? "visitata" : "da visitare"}`); g.append(d); });
+  $("passNote").textContent = stamps.size === ERAS.length ? "Hai visitato tutte le epoche. Bentornato, viaggiatore." : "Ogni epoca che visiti lascia un timbro. I timbri restano salvati in questo browser.";
+}
+function showTab(name) {
+  tab = name;
+  ["posto", "vita", "parla"].forEach((n) => { $("tab-" + n).setAttribute("aria-selected", n === name ? "true" : "false"); $("p-" + n).hidden = n !== name; });
+}
+function renderHere() {
+  const e = ERAS[here];
+  $("hName").textContent = e.name; $("hMeta").textContent = `${e.place} · ${e.date}`;
+  $("hLede").textContent = e.lede; $("hSee").textContent = e.see; $("hHear").textContent = e.hear; $("hSmell").textContent = e.smell; $("hFact").textContent = e.fact;
+  $("hLife").textContent = e.life; $("hMoney").textContent = e.money; $("hFood").textContent = e.food; $("hGreet").textContent = e.greet; $("hGreetT").textContent = e.greetT; $("hDont").textContent = e.dont;
+  $("tab-parla").textContent = "Parla con " + e.who.name; $("cName").textContent = e.who.name; $("cRole").textContent = e.who.role;
+  $("chatIn").placeholder = `Scrivi a ${e.who.name}…`;
+  renderChat(); showTab("posto");
+}
+function setMode() {
+  const docked = here < 0;
+  $("dock").hidden = !docked; $("here").hidden = docked; $("previewTag").hidden = !docked;
+  cv.classList.toggle("preview", docked);
+  if (docked) select(sel); else { setSceneEra(here); renderHere(); }
+  updateOdo(); updateFoot(); $("scroll").scrollTop = 0;
+}
+
+/* Il salto */
+const wcv = $("warpCv"), wctx = wcv.getContext("2d");
+function travel(to) {
+  if (busy) return; busy = true;
+  const audio = soundOn && ensureAudio(); if (!soundOn) ensureAudio();
+  const fromY = curYear(), toY = to < 0 ? PRESENT : ERAS[to].year, dur = reduced ? .9 : 3.4;
+  const a0 = Math.log1p(Math.max(0, PRESENT - fromY)), a1 = Math.log1p(Math.max(0, PRESENT - toY));
+  const accent = to < 0 ? "#c9a255" : ERAS[to].accent;
+  $("warpD").textContent = to < 0 ? "Ritorno al laboratorio" : `${ERAS[to].name} · ${ERAS[to].place}`;
+  $("warp").hidden = false; $("lever").disabled = true;
+  if (audio) { stopAmbient(); whoosh(dur); }
+  const W = innerWidth, Hh = innerHeight, dpr = Math.min(2, devicePixelRatio || 1); wcv.width = W * dpr; wcv.height = Hh * dpr; wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const streaks = Array.from({ length: 220 }, () => ({ a: Math.random() * TAU, z: Math.random(), s: .4 + Math.random() }));
+  const t0 = performance.now(); let swapped = false;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / (dur * 1000)), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    const yrs = Math.expm1(a0 + (a1 - a0) * e); $("warpY").textContent = fmtYear(PRESENT - yrs);
+    const speed = Math.sin(k * Math.PI);
+    wctx.fillStyle = `rgba(5,9,10,${reduced ? 1 : .28})`; wctx.fillRect(0, 0, W, Hh);
+    if (!reduced) {
+      const cx = W / 2, cy = Hh / 2, R = Math.hypot(W, Hh) / 2;
+      glow(wctx, cx, cy, R * (.3 + speed * .5), accent, .12 + speed * .2);
+      for (const s of streaks) { s.z += (.004 + speed * .045) * s.s; if (s.z > 1) s.z = .02; const r1 = Math.pow(s.z, 2) * R, r2 = r1 + speed * 60 * s.s * s.z + 2;
+        wctx.strokeStyle = k < .5 ? hexA("#ecd08a", .5 + .5 * s.z) : hexA(accent, .5 + .5 * s.z); wctx.lineWidth = 1 + s.z * 2.2; wctx.beginPath(); wctx.moveTo(cx + Math.cos(s.a + k) * r1, cy + Math.sin(s.a + k) * r1); wctx.lineTo(cx + Math.cos(s.a + k) * r2, cy + Math.sin(s.a + k) * r2); wctx.stroke(); }
+    }
+    if (!swapped && k > .7) { swapped = true; here = to; if (to >= 0) { stamps.add(ERAS[to].id); store("mdt-stamps", [...stamps]); updatePass(); renderList(); } setMode(); }
+    if (k < 1) requestAnimationFrame(step);
+    else { $("warp").hidden = true; $("lever").disabled = false; busy = false; if (AC) startAmbient(to < 0 ? null : ERAS[to].id); (to < 0 ? $("lever") : $("tab-posto")).focus({ preventScroll: true }); }
+  };
+  requestAnimationFrame(step);
+}
+
+/* Conversazione con il personaggio (capacità "sample") */
+const sampleP = (window.claude && typeof window.claude.use === "function") ? window.claude.use("sample").catch(() => null) : Promise.resolve(null);
+let chatOff = "", ctl = null;
+function rulesFor(e) {
+  return `Stai interpretando un personaggio in un'app educativa italiana chiamata «Macchina del Tempo». Chi ti scrive è un viaggiatore arrivato con una macchina del tempo dal ${PRESENT}.
+Personaggio: ${e.who.name}, ${e.who.role}.
+Luogo e momento: ${e.place}, ${e.date}.
+${e.who.brief}
+Contesto storico che conosci: ${e.lede} ${e.life}
+Regole:
+- Rispondi sempre in italiano, in prima persona, restando nel personaggio.
+- Resta fedele ai fatti storici; se una cosa è incerta anche per gli storici, fallo capire con naturalezza («si dice che…»).
+- Le cose del futuro che il viaggiatore nomina ti stupiscono o ti incuriosiscono, a meno che il personaggio venga anch'esso dal futuro.
+- Risposte brevi: 2-4 frasi vivaci e concrete (oggetti, cibi, suoni, prezzi, persone). Ogni tanto fai tu una domanda al viaggiatore.
+- Niente elenchi puntati, niente violenza esplicita, linguaggio adatto anche ai ragazzi.`;
+}
+function bubble(text, who, extra = "") { const p = document.createElement("p"); p.className = `msg ${who} ${extra}`.trim(); p.textContent = text; $("msgs").append(p); return p; }
+function renderChat() {
+  const e = ERAS[here]; if (!chats[e.id]) chats[e.id] = [{ role: "assistant", content: e.who.hello }];
+  $("msgs").textContent = ""; chats[e.id].forEach((m) => bubble(m.content, m.role === "user" ? "me" : "them"));
+  const sg = $("sugg"); sg.textContent = ""; e.who.sugg.forEach((q) => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = q; b.addEventListener("click", () => send(q)); sg.append(b); });
+  setChatEnabled(!chatOff);
+}
+function setChatEnabled(on) { $("chatIn").disabled = !on; $("sendBtn").disabled = !on; $("sugg").hidden = !on; if (chatOff) $("chatNote").textContent = chatOff; }
+const ERR = {
+  not_granted: "Hai scelto di non far rispondere Claude: la conversazione resta spenta per questa visita. Il resto della macchina funziona.",
+  sampling_disabled: "Claude non è disponibile per questo account, quindi la conversazione è spenta.",
+  rate_limited: "Troppi messaggi in poco tempo. Aspetta un po' e riprova.",
+  session_expired: "La sessione è scaduta: accedi di nuovo a claude.ai e riprova.",
+  refused: "Questa domanda non ha avuto risposta. Prova a chiederla in un altro modo.",
+  empty_completion: "Nessuna risposta questa volta. Prova con una domanda più semplice.",
+  upstream_error: "Il collegamento con il passato si è interrotto. Riprova."
+};
+const PERMANENT = new Set(["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"]);
+async function send(text) {
+  text = (text || "").trim(); if (!text || here < 0) return;
+  const e = ERAS[here], hist = chats[e.id];
+  $("chatIn").value = ""; bubble(text, "me"); hist.push({ role: "user", content: text });
+  const out = bubble("Sta pensando…", "them", "wait"); setChatEnabled(false); $("sugg").hidden = true;
+  const sample = await sampleP;
+  if (!sample) { out.remove(); hist.pop(); chatOff = `Per parlare con ${e.who.name} apri la pagina dentro claude.ai: lì risponde Claude, interpretando il personaggio.`; setChatEnabled(false); return; }
+  ctl = new AbortController(); const myCtl = ctl;
+  try {
+    const turns = [{ role: "user", content: rulesFor(e) }, ...hist.slice(-12)];
+    const { text: ans } = await sample(turns, { cache: false, modelTier: "quick", signal: myCtl.signal, onText: ({ text }) => { out.classList.remove("wait"); out.textContent = text; } });
+    out.textContent = ans; hist.push({ role: "assistant", content: ans });
+  } catch (err) {
+    const code = err && err.code;
+    if (code === "cancelled") { out.remove(); hist.pop(); }
+    else {
+      if (err && err.text && code !== "refused") { out.classList.remove("wait"); out.textContent = err.text; hist.push({ role: "assistant", content: err.text }); }
+      else { out.remove(); hist.pop(); }
+      const msg = ERR[code] || ERR.upstream_error;
+      if (PERMANENT.has(code)) chatOff = ERR[code] || "La conversazione non è disponibile in questa visita.";
+      else $("chatNote").textContent = msg;
+    }
+  } finally { if (ctl === myCtl) ctl = null; if (here >= 0 && ERAS[here].id === e.id) setChatEnabled(!chatOff); }
+}
+
+/* Eventi */
+$("lever").addEventListener("click", () => travel(sel));
+$("backBtn").addEventListener("click", () => { ctl?.abort(); travel(-1); });
+$("nextBtn").addEventListener("click", () => { ctl?.abort(); travel((here + 1) % ERAS.length); });
+["posto", "vita", "parla"].forEach((n, i, all) => {
+  const b = $("tab-" + n); b.addEventListener("click", () => showTab(n));
+  b.addEventListener("keydown", (ev) => { if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") { const j = (i + (ev.key === "ArrowRight" ? 1 : -1) + all.length) % all.length; showTab(all[j]); $("tab-" + all[j]).focus(); } });
+});
+$("chatForm").addEventListener("submit", (ev) => { ev.preventDefault(); send($("chatIn").value); });
+const soundBtn = $("soundBtn");
+function paintSound() { soundBtn.setAttribute("aria-pressed", soundOn ? "true" : "false"); soundBtn.lastChild.textContent = soundOn ? "Suono" : "Muto"; }
+soundBtn.addEventListener("click", () => {
+  soundOn = !soundOn; store("mdt-sound", soundOn); paintSound();
+  if (soundOn && ensureAudio()) { master.gain.setTargetAtTime(.85, AC.currentTime, .1); if (!amb) startAmbient(here < 0 ? null : ERAS[here].id); }
+  else if (AC) master.gain.setTargetAtTime(0, AC.currentTime, .1);
+});
+$("passBtn").addEventListener("click", () => { updatePass(); $("pass").hidden = false; $("passClose").focus(); });
+$("passClose").addEventListener("click", () => { $("pass").hidden = true; $("passBtn").focus(); });
+$("pass").addEventListener("click", (ev) => { if (ev.target === $("pass")) { $("pass").hidden = true; $("passBtn").focus(); } });
+addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("pass").hidden) { $("pass").hidden = true; $("passBtn").focus(); } });
+let rT = 0; addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(layout, 120); });
+
+renderList(); paintSound(); updatePass(); setMode(); layout(); requestAnimationFrame(frame);
+</script>

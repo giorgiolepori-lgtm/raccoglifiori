@@ -23,3 +23,14 @@ Apri `index.html` in un browser moderno (serve la connessione per caricare Three
 
 `raccogli-fiori.html` è lo stesso gioco in un unico file, con Three.js già incluso:
 si apre con un doppio clic e funziona anche offline (senza rete usa i font di sistema).
+
+# Macchina del Tempo
+
+`macchina-del-tempo.html` è un'altra app: una macchina del tempo da tirare per la leva.
+Scegli una delle otto epoche (Cretaceo, Grotta Chauvet, Giza, Roma dell'80 d.C., Venezia 1295,
+Firenze 1504, Parigi 1889, la notte dell'allunaggio del 1969) e arrivi in una scena animata con
+suoni d'ambiente sintetizzati, cosa vedi/senti/annusi, la vita quotidiana, una frase dell'epoca,
+un fatto vero e un personaggio del tempo con cui parlare. Ogni viaggio lascia un timbro sul passaporto.
+
+La conversazione con i personaggi funziona quando la pagina è aperta come Artifact su claude.ai
+(risponde Claude interpretando il personaggio); il resto funziona anche aprendo il file nel browser.
