@@ -233,7 +233,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <h2 class="howto">Scegli con chi giocare</h2>
     <div class="heroPick" id="heroPick">
       <button class="hero" data-hero="protagonista"><img alt=""><span>Lei<small>Camicia bianca, jeans e occhiali</small></span></button>
-      <button class="hero" data-hero="tuta"><img alt=""><span>Lui<small>Tuta nera a tre strisce · immortale online</small></span></button>
+      <button class="hero" data-hero="tuta"><img alt=""><span>Lui<small>Tuta nera · online immortale e punti ×3</small></span></button>
     </div>
     <h2 class="howto">Come si gioca</h2>
     <div class="sec"><div class="em">🎯</div><div><h3>Come fare punti</h3>
@@ -252,7 +252,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
       e ogni volta ci mette di più.</p></div></div>
     <div class="sec"><div class="em">🌐</div><div><h3>Online contro un amico</h3>
       <p>Premete <b>GIOCA ONLINE</b> nello stesso momento su due telefoni o computer: la sfida parte appena vi trovate. Per essere sicuri di trovare proprio voi due, scrivete lo stesso <b>codice stanza</b>.
-      Partite entrambi da zero, con gli stessi colleghi e lo stesso negozio. Potete anche picchiarvi: chi fa fuori l'altro <b>si prende tutti i suoi punti e le sue armi</b>, e chi muore rientra poco dopo in un'altra stanza. <b>Chi gioca con il ragazzo in tuta è immortale</b>: non può morire e colpirlo non dà punti.
+      Partite entrambi da zero, con gli stessi colleghi e lo stesso negozio. Potete anche picchiarvi: chi fa fuori l'altro <b>si prende tutti i suoi punti e le sue armi</b>, e chi muore rientra poco dopo in un'altra stanza. <b>Chi gioca con il ragazzo in tuta è immortale</b> (non può morire e colpirlo non dà punti) <b>e guadagna il triplo dei punti</b>.
       Nel Death Note compare anche il volto dell'avversario. Con il pulsante <b>💬</b> (o il tasto <kbd>T</kbd>) potete scrivervi in chat. I progressi della partita da solo restano salvati a parte.</p></div></div>
     <div class="sec"><div class="em">🎮</div><div><h3>Comandi</h3>
       <div class="keys">
@@ -6008,7 +6008,9 @@ const hudCache = {};
 function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; $(id).innerHTML = v; } }
 let plusT = null, plusAcc = 0;
 function addPts(v, label) {
-  if (v <= 0) return; pts += v; dirty = true; plusAcc += v;
+  if (v <= 0) return;
+  if (immortal() && label !== 'BOTTINO') v = Math.round(v * 3);   // online il ragazzo in tuta guadagna il triplo
+  pts += v; dirty = true; plusAcc += v;
   const el = $('plus'); el.textContent = (label ? label + ' ' : '') + '+' + fmt(plusAcc); el.classList.add('show');
   clearTimeout(plusT); plusT = setTimeout(() => { el.classList.remove('show'); plusAcc = 0; }, 1100);
 }
@@ -6018,7 +6020,7 @@ function updHud() {
   const m = mult(); setText('mult', m > 1 ? '×' + String(Math.round(m * 10) / 10).replace('.', ',') : '');
   const w = WMAP[equip]; setText('wName', w.name);
   setText('wSub', w.type === 'note' ? (dnCd > 0 ? `Ricarica: ${Math.ceil(dnCd)} s` : 'Pronto · +1.000 pt') : (w.type === 'saw' || w.type === 'flame' || w.type === 'spray') ? `+${w.pts} punti al secondo` : `+${w.pts} punt${w.pts === 1 ? 'o' : 'i'} a colpo`);
-  if (NET.on) { const hp = Math.max(0, Math.round(player.hp)); if (hudCache.hp !== hp) { hudCache.hp = hp; const f = $('hpFill'); f.style.width = (immortal() ? 100 : hp) + '%'; f.style.background = immortal() ? 'linear-gradient(90deg, #f5c542, #fff3b0, #f5c542)' : hp > 50 ? '#4be36b' : hp > 25 ? '#f5c542' : '#e0413a'; } if (immortal()) hudCache.hp = -1; setText('opp', (immortal() ? '♾️ Immortale · ' : '') + `Avversario ${fmt(RP.pts)} pt`); }
+  if (NET.on) { const hp = Math.max(0, Math.round(player.hp)); if (hudCache.hp !== hp) { hudCache.hp = hp; const f = $('hpFill'); f.style.width = (immortal() ? 100 : hp) + '%'; f.style.background = immortal() ? 'linear-gradient(90deg, #f5c542, #fff3b0, #f5c542)' : hp > 50 ? '#4be36b' : hp > 25 ? '#f5c542' : '#e0413a'; } if (immortal()) hudCache.hp = -1; setText('opp', (immortal() ? '♾️ Immortale · punti ×3 · ' : '') + `Avversario ${fmt(RP.pts)} pt`); }
   if (hudCache.icon !== equip && ICONS[equip]) { hudCache.icon = equip; $('wIcon').src = ICONS[equip]; }
   setText('atkIc', { note: '✒️', melee: equip === 'pugni' ? '👊' : '💥', gun: equip === 'taser' ? '⚡' : '🎯', saw: '⚙️', flame: '🔥', spray: '🧯', lob: equip === 'torte' ? '🎂' : '🎉', rocket: '🚀' }[w.type]);
   setText('atkLb', w.type === 'note' ? 'SCRIVI' : w.type === 'melee' || w.type === 'saw' ? 'COLPISCI' : w.anim === 'throw' ? 'LANCIA' : 'SPARA');
