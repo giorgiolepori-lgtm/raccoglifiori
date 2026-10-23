@@ -45,7 +45,8 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
   (scegli il volto di un collega e scrivi come morirà: succede davvero; se scrivi una stanza, ci va da solo).
 - **Online a due giocatori**: premete «Gioca online» nello stesso momento su due dispositivi (con lo stesso codice stanza, se volete trovarvi tra voi).
   Partite entrambi da zero, con gli stessi colleghi e lo stesso negozio, e vi contendete i punti. Potete attaccarvi: chi fa fuori l'altro
-  si prende tutti i suoi punti e le sue armi, e chi muore rientra poco dopo in un'altra stanza. Nel Death Note compare anche il volto dell'avversario.
+  si prende tutti i suoi punti e le sue armi, e chi muore rientra poco dopo in un'altra stanza.
+  Chi gioca online con il ragazzo in tuta è **immortale**: non può morire (nemmeno col Death Note) e colpirlo non dà punti. Nel Death Note compare anche il volto dell'avversario.
   Con il pulsante 💬 (o il tasto `T`) si apre la chat per scriversi, con alcune frasi rapide già pronte.
   I progressi della partita da solo restano salvati a parte. Serve internet: i messaggi passano da un server MQTT pubblico e gratuito
   (broker.emqx.io, in alternativa broker.hivemq.com o test.mosquitto.org), senza registrazione.
