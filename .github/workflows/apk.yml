@@ -1,0 +1,61 @@
+name: APK Android
+
+# Compila "Il Cammino di Bruno" come app Android e la pubblica nella release "apk".
+on:
+  push:
+    paths:
+      - 'cammino-di-bruno.html'
+      - 'android/**'
+      - '.github/workflows/apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Copia il gioco nell'app
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp cammino-di-bruno.html android/app/src/main/assets/index.html
+
+      - name: Compila l'APK
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Prepara il file
+        run: cp android/app/build/outputs/apk/release/app-release.apk cammino-di-bruno.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cammino-di-bruno-apk
+          path: cammino-di-bruno.apk
+
+      - name: Pubblica nella release "apk"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk --yes --cleanup-tag || true
+          gh release create apk cammino-di-bruno.apk \
+            --target "${GITHUB_SHA}" \
+            --title "Il Cammino di Bruno · app Android" \
+            --notes "Scarica cammino-di-bruno.apk sul telefono Android e aprilo per installarlo (consenti l'installazione da origini sconosciute). Versione compilata dal commit ${GITHUB_SHA::7}."

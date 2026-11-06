@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icona: un bicchiere di latte e menta su sfondo verde menta -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#3FBF8F" android:pathData="M2,24 A22,22 0 1,1 46,24 A22,22 0 1,1 2,24 Z" />
+    <path android:fillColor="#E0533A" android:pathData="M27,5 L29.2,5 L27.6,26 L25.4,26 Z" />
+    <path android:fillColor="#FFFFFF" android:strokeColor="#1F2A44" android:strokeWidth="1.5" android:pathData="M15,12 L33,12 L30.5,38 L17.5,38 Z" />
+    <path android:fillColor="#BFF0D6" android:pathData="M16.1,22 L31.9,22 L30.5,37.3 L17.5,37.3 Z" />
+    <path android:fillColor="#23845F" android:pathData="M16.9,30 L31.1,30 L30.5,37.3 L17.5,37.3 Z" />
+    <path android:fillColor="#FFD23F" android:pathData="M10,40 L38,40 L36,43 L12,43 Z" />
+</vector>

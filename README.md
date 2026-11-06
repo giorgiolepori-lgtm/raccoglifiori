@@ -42,3 +42,11 @@ Si apre con un doppio clic e funziona anche offline.
 - Ogni latte e menta vale un timbro sulla credenziale del pellegrino.
 - Camminare consuma energia (lo zaino pesa!): fontanelle e latte e menta la ricaricano.
 - Nomi, aspetto e abbinamenti sfida-persona si cambiano nelle liste `AMICI` e `TAPPE` all'inizio dello script.
+
+## Giocare e condividere
+
+- **App Android (APK):** [scarica cammino-di-bruno.apk](https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/download/apk/cammino-di-bruno.apk).
+  Si installa aprendo il file sul telefono (bisogna consentire l'installazione da origini sconosciute).
+  L'APK viene ricompilato da GitHub Actions a ogni modifica del gioco (`.github/workflows/apk.yml`, progetto in `android/`).
+- **Link web:** con GitHub Pages attivo (Settings → Pages → Deploy from a branch) il gioco è su
+  `https://giorgiolepori-lgtm.github.io/raccoglifiori/cammino-di-bruno.html`.
