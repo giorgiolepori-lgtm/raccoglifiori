@@ -105,6 +105,8 @@ body.mg #dialog { left: 50%; transform: translateX(-50%); width: min(720px, calc
 .mg-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
 .mgbtn { min-height: 56px; min-width: 84px; padding: 8px 16px; border: 3px solid var(--ink); border-radius: 16px; background: #fff; font-family: var(--font-display); font-weight: 600; font-size: 19px; box-shadow: 0 4px 0 var(--ink); }
 .mgbtn.big { min-width: min(320px, 100%); min-height: 72px; font-size: 26px; background: var(--mint); color: #fff; }
+@keyframes hintp { 50% { box-shadow: 0 4px 0 var(--ink), 0 0 0 6px rgba(63,191,143,.45); } }
+.mgbtn.hint { background: var(--mint-soft); border-color: var(--mint-deep); animation: hintp 1s ease-in-out infinite; }
 .mgbtn.focus { outline: 3px solid var(--sun); outline-offset: 2px; }
 .mgbtn:active, .mgbtn.on { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
 .mgbtn:disabled { opacity: .4; }
@@ -266,7 +268,7 @@ const TAPPE = [
     intro: ['Ho dovuto sfidarti telepaticamente, purtroppo.', 'Ossu! Il piede è guarito? Bene, perché adesso si lotta.', 'Brazilian jiu-jitsu: cinque scambi, vince chi fa più punti. Guarda bene cosa sto per fare!'],
     win: 'Tap, tap! Mi arrendo. Ci vediamo alla meta, ossu!', lose: 'Ossu. Respira e riprova.' },
   { zona: 'Solanas', bar: 'Chiosco Solanas', who: 'zonco', sfida: 'fifa', bg: 'mare',
-    intro: ['Mi sento al 90% di poterti sfidare… forse.', 'Ho la Play collegata al maxischermo del chiosco. Cinque rigori a testa.'],
+    intro: ['Mi sento al 90% di poterti sfidare… forse.', 'Ho la Play collegata al maxischermo del chiosco: stadio pieno, cinque rigori a testa.'],
     win: 'Rigori da campione. Ti aspetto a Porto Sa Ruxi!', lose: 'Ho vinto io! Rivincita?' },
   { zona: 'Porto Sa Ruxi', bar: 'Chiosco Porto Sa Ruxi', who: 'alex', sfida: 'poker', bg: 'mare',
     intro: ['Che cazzo vuoi?!', 'Ah, sei tu. Pensavi di arrivare alla meta senza passare da me?', 'Ultima sfida: poker. Al meglio delle tre mani, e gli altri guardano!'],
@@ -1659,7 +1661,7 @@ function drawClimber(c, hip, hands, feet, s, L, helmet) {
 }
 async function mgArrampicata(foe) {
   const ui = mgOpen('Scala con imbracatura e corda: premi la freccia verso la presa illuminata (◀ ▲ ▶)', foe);
-  const N = 16, XM = climbLayout(N), XF = climbLayout(N);
+  const N = 14, XM = climbLayout(N), XF = climbLayout(N);
   const dirOf = (X, k) => { const d = X[k + 1] - X[k]; return d < -0.5 ? 'left' : d > 0.5 ? 'right' : 'up'; };
   const ARW = { up: '▲', left: '◀', right: '▶' };
   const cv2 = mkCanvas(ui.stage, window.innerWidth < 600 ? 1.05 : 0.62, 0.54);
@@ -1672,7 +1674,7 @@ async function mgArrampicata(foe) {
     if (!st.run || st.freeze > 0 || !bs[d]) return;
     bs[d].classList.add('on'); setTimeout(() => bs[d].classList.remove('on'), 90);
     if (d === dirOf(XM, st.me)) { st.me++; sfx('tap'); if (st.me >= N - 1) { st.run = false; setTimeout(() => st.end(true), 500); } }
-    else { st.freeze = 0.3; st.me = Math.max(1, st.me - 1); st.slip = 0.4; sfx('bump'); ui.msg.textContent = 'Scivolato! La corda ti tiene: riprova.'; }
+    else { st.freeze = 0.2; st.slip = 0.3; sfx('bump'); ui.msg.textContent = 'Presa sbagliata! Guarda quella illuminata.'; }
   }
   const off = mgHandler({ a() {}, b() {}, dir: press });
   MG = {
@@ -1680,7 +1682,7 @@ async function mgArrampicata(foe) {
       st.meF += (st.me - st.meF) * Math.min(1, dt * 10); st.slip = Math.max(0, st.slip - dt);
       if (!st.run) return;
       st.freeze = Math.max(0, st.freeze - dt);
-      st.foe = Math.min(N - 1, st.foe + dt / 0.85);
+      st.foe = Math.min(N - 1, st.foe + dt / 1.1);
       if (st.foe >= N - 1) { st.run = false; st.end(false); }
       ui.score.textContent = `${Math.round((st.me - 1) / (N - 2) * 12)} m – ${Math.round((Math.floor(st.foe) - 1) / (N - 2) * 12)} m`;
     },
@@ -1828,11 +1830,13 @@ async function mgBjj(foe) {
     if (r === 6 && me !== op) break;
     ui.score.textContent = `${me} – ${op}`;
     setPose('stand'); banner = r <= 5 ? `Scambio ${r}` : 'Punto d’oro!';
-    const plan = pick0(keys), shown = rnd() < 0.85 ? plan : pick0(keys.filter(k => k !== plan));
-    ui.msg.textContent = `${foe.nome} ${BJJ[shown].tell}… Che contromossa fai?`;
-    btns.forEach(b => b.disabled = false);
+    const plan = pick0(keys), shown = rnd() < 0.95 ? plan : pick0(keys.filter(k => k !== plan));
+    const counter = keys.find(k => BJJ[k].beats === shown);
+    ui.msg.textContent = `${foe.nome} ${BJJ[shown].tell}… Consiglio: ${BJJ[counter].n}!`;
+    btns.forEach((b, i) => { b.disabled = false; b.classList.toggle('hint', keys[i] === counter); });
+    focus = keys.indexOf(counter); showFocus();
     const mine = await new Promise(res => { pick = res; });
-    pick = null; btns.forEach(b => b.disabled = true); banner = '';
+    pick = null; btns.forEach(b => { b.disabled = true; b.classList.remove('hint'); }); banner = '';
     sfx('hit');
     if (mine === plan) { setPose('stallo', 'A'); ui.msg.textContent = `Entrambi provano ${BJJ[mine].n.toLowerCase()}: si finisce in guardia, nessun punto.`; sfx('bump'); }
     else if (BJJ[mine].beats === plan) { me += BJJ[mine].p; setPose(mine, 'A'); banner = `+${BJJ[mine].p} Bruno`; ui.msg.textContent = `Bruno${BJJ_TXT[mine + '>' + plan].startsWith(',') ? '' : ' '}${BJJ_TXT[mine + '>' + plan]}!`; sfx('good'); }
@@ -1847,93 +1851,190 @@ async function mgBjj(foe) {
 }
 const pick0 = a => a[Math.floor(Math.random() * a.length)];
 
-// 6. FIFA: rigori con mirino e potenza
+// 6. FIFA: rigori in uno stadio vero, facili da vincere
+function drawPlayerBack(c, x, y, s, L, kit, kick) {
+  // calciatore visto di spalle: s = altezza in px, (x,y) = piedi
+  c.save(); c.translate(x, y); c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = OUT; c.lineWidth = 2.5;
+  const leg = (dx, lift) => { c.strokeStyle = OUT; c.lineWidth = s * 0.1 + 3; c.beginPath(); c.moveTo(dx * s, -s * 0.42); c.lineTo(dx * s + lift * s * 0.25, -s * 0.05 - lift * s * 0.12); c.stroke(); c.strokeStyle = L.skin; c.lineWidth = s * 0.1; c.stroke(); c.strokeStyle = kit.sock; c.lineWidth = s * 0.1; c.beginPath(); c.moveTo(dx * s + lift * s * 0.15, -s * 0.2 - lift * s * 0.08); c.lineTo(dx * s + lift * s * 0.25, -s * 0.05 - lift * s * 0.12); c.stroke(); c.fillStyle = '#1b1b22'; c.beginPath(); c.ellipse(dx * s + lift * s * 0.27, -s * 0.03 - lift * s * 0.12, s * 0.07, s * 0.035, 0, 0, 7); c.fill(); };
+  leg(-0.09, 0); leg(0.09, kick);
+  c.fillStyle = kit.shorts; c.strokeStyle = OUT; c.lineWidth = 2.5; rr(c, -s * 0.2, -s * 0.55, s * 0.4, s * 0.17, s * 0.04); c.fill(); c.stroke();
+  c.fillStyle = kit.shirt; rr(c, -s * 0.24, -s * 0.9, s * 0.48, s * 0.38, s * 0.1); c.fill(); c.stroke();
+  for (const sd of [-1, 1]) { c.fillStyle = kit.shirt; c.beginPath(); c.ellipse(sd * s * 0.27, -s * 0.8, s * 0.07, s * 0.1, sd * 0.3, 0, 7); c.fill(); c.stroke(); c.strokeStyle = OUT; c.lineWidth = s * 0.07 + 3; c.beginPath(); c.moveTo(sd * s * 0.3, -s * 0.74); c.lineTo(sd * s * 0.36, -s * 0.52); c.stroke(); c.strokeStyle = L.skin; c.lineWidth = s * 0.07; c.stroke(); c.lineWidth = 2.5; }
+  c.fillStyle = '#fff'; c.font = `700 ${Math.round(s * 0.18)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(kit.num, 0, -s * 0.68); c.textBaseline = 'alphabetic';
+  c.fillStyle = L.skin; c.beginPath(); c.arc(0, -s * 1.0, s * 0.12, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = L.hair; c.beginPath(); c.arc(0, -s * 1.01, s * 0.12, Math.PI * 0.95, Math.PI * 2.05); c.fill();
+  if (L.hairStyle === 'curly') for (let i = 0; i < 5; i++) { const a = Math.PI * (1 + i * 0.25); c.beginPath(); c.arc(Math.cos(a) * s * 0.11, -s * 1.01 + Math.sin(a) * s * 0.11, s * 0.045, 0, 7); c.fill(); }
+  c.restore();
+}
+function drawKeeper(c, x, y, s, rot, L, kit) {
+  c.save(); c.translate(x, y); c.rotate(rot); c.lineCap = 'round'; c.lineJoin = 'round';
+  const dive = Math.min(1, Math.abs(rot) / 1.2);
+  const seg = (x1, y1, x2, y2, col, wd) => { c.strokeStyle = OUT; c.lineWidth = wd + 3; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke(); c.strokeStyle = col; c.lineWidth = wd; c.stroke(); };
+  seg(-s * 0.08, -s * 0.42, -s * 0.16 - dive * s * 0.05, -s * 0.02, kit.sock, s * 0.09);
+  seg(s * 0.08, -s * 0.42, s * 0.16 + dive * s * 0.05, -s * 0.02, kit.sock, s * 0.09);
+  c.fillStyle = kit.shorts; c.strokeStyle = OUT; c.lineWidth = 2.5; rr(c, -s * 0.18, -s * 0.55, s * 0.36, s * 0.16, s * 0.04); c.fill(); c.stroke();
+  c.fillStyle = kit.shirt; rr(c, -s * 0.22, -s * 0.9, s * 0.44, s * 0.38, s * 0.1); c.fill(); c.stroke();
+  const armUp = 0.35 + dive * 0.6;
+  for (const sd of [-1, 1]) {
+    const hx = sd * s * (0.38 + dive * 0.1), hy = -s * (0.78 + armUp * 0.35);
+    seg(sd * s * 0.2, -s * 0.84, hx, hy, kit.shirt, s * 0.08);
+    c.fillStyle = kit.glove; c.strokeStyle = OUT; c.lineWidth = 2; c.beginPath(); c.arc(hx, hy, s * 0.07, 0, 7); c.fill(); c.stroke();
+  }
+  c.fillStyle = L.skin; c.beginPath(); c.arc(0, -s * 1.02, s * 0.12, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = L.hair; c.beginPath(); c.arc(0, -s * 1.03, s * 0.12, Math.PI, Math.PI * 2); c.fill();
+  c.fillStyle = OUT; c.beginPath(); c.arc(-s * 0.04, -s * 1.0, s * 0.015, 0, 7); c.arc(s * 0.04, -s * 1.0, s * 0.015, 0, 7); c.fill();
+  if (L.beard) { c.fillStyle = 'rgba(28,20,16,.55)'; c.beginPath(); c.arc(0, -s * 0.99, s * 0.1, 0.1 * Math.PI, 0.9 * Math.PI); c.fill(); }
+  c.restore();
+}
+function drawBall(c, x, y, r, spin) {
+  c.fillStyle = '#fff'; c.strokeStyle = '#1b1b22'; c.lineWidth = Math.max(1, r * 0.12); c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = '#1b1b22';
+  for (let i = 0; i < 4; i++) { const a = spin + i * Math.PI / 2, px = x + Math.cos(a) * r * 0.55, py = y + Math.sin(a) * r * 0.55; c.beginPath(); for (let k = 0; k < 5; k++) { const b = k / 5 * Math.PI * 2 + a; c.lineTo(px + Math.cos(b) * r * 0.22, py + Math.sin(b) * r * 0.22); } c.closePath(); c.fill(); }
+}
 async function mgFifa(foe) {
-  const ui = mgOpen('Rigori: ferma il mirino, poi la potenza. In porta: tuffati dal lato giusto', foe);
-  const cv2 = mkCanvas(ui.stage, 0.56), row = el('div', 'mg-row'), dirRow = el('div', 'mg-row'); ui.stage.append(row, dirRow);
-  const A = { phase: 'idle', aim: 0, pow: 0, t: 0, ball: 0, tx: 0, ty: 0, kx: 0, keeper: 'op', text: '' };
+  const ui = mgOpen('Rigori: ferma il mirino dove vuoi tirare, poi la potenza. Quando tocca a te in porta, segui l’indizio e tuffati', foe);
+  const cv2 = mkCanvas(ui.stage, 0.62, 0.54), row = el('div', 'mg-row'), dirRow = el('div', 'mg-row'); ui.stage.append(row, dirRow);
+  const A = { phase: 'idle', aim: 0, pow: 0, t: 0, ball: 0, tx: 0, ty: 0, kx: 0, rot: 0, keeper: 'op', text: '', run: 0, kick: 0, hint: null, cheer: 0 };
+  const hist = { me: [], op: [] };
+  const abbr = n => n.replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 3).toUpperCase();
+  const KIT = { me: { shirt: '#3fbf8f', shorts: '#1f2a44', sock: '#f4f4f0', num: '10' }, op: { shirt: '#c8202e', shorts: '#f4f4f0', sock: '#c8202e', num: '9' } };
+  const GK = { op: { shirt: '#ffd23f', shorts: '#1b1b22', sock: '#ffd23f', glove: '#3fbf8f' }, me: { shirt: '#b07ce8', shorts: '#1b1b22', sock: '#b07ce8', glove: '#ffffff' } };
   let sMe = 0, sOp = 0, kMe = 0, kOp = 0, waiter = null;
   const press = v => { if (waiter && waiter.test(v)) { const w = waiter; waiter = null; w.res(v); } };
   const waitFor = test => new Promise(res => { waiter = { test, res }; });
-  const shootBtn = mgButton(row, 'TIRA!', () => press('a'), 'big');
+  const shootBtn = mgButton(row, 'MIRA!', () => press('a'), 'big');
   for (const [lbl, v] of [['◀ Sinistra', -1], ['Centro', 0], ['Destra ▶', 1]]) mgButton(dirRow, lbl, () => press(v));
   const off = mgHandler({ a() { press('a'); }, b() {}, dir(d) { press(d === 'left' ? -1 : d === 'right' ? 1 : 0); } });
+  const CROWD = ['#e0533a', '#ffd23f', '#3fbf8f', '#f4f4f0', '#2f8fd0', '#c8202e', '#1f2a44'];
   MG = {
     update(dt) {
-      if (A.phase === 'aim') { A.t += dt; A.aim = Math.sin(A.t * 2.3) * 1.15; }
-      if (A.phase === 'power') { A.t += dt; A.pow = (Math.sin(A.t * 3.3 - Math.PI / 2) + 1) / 2; }
+      if (A.phase === 'aim') { A.t += dt; A.aim = Math.sin(A.t * 1.5) * 1.1; }
+      if (A.phase === 'power') { A.t += dt; A.pow = (Math.sin(A.t * 2.1 - Math.PI / 2) + 1) / 2; }
+      A.cheer = Math.max(0, A.cheer - dt * 0.5);
     },
     draw() {
       const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
-      c.fillStyle = '#111'; c.fillRect(0, 0, w, h);
-      const m = 10; for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? '#47a84d' : '#3f9a45'; c.fillRect(m, m + i * (h - 2 * m) / 6, w - 2 * m, (h - 2 * m) / 6); }
-      const gx = w * 0.2, gw = w * 0.6, gy = h * 0.14, gh = h * 0.34;
-      c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 1; for (let i = 1; i < 12; i++) { c.beginPath(); c.moveTo(gx + i * gw / 12, gy); c.lineTo(gx + i * gw / 12, gy + gh); c.stroke(); }
-      c.strokeStyle = '#fff'; c.lineWidth = 5; c.beginPath(); c.moveTo(gx, gy + gh); c.lineTo(gx, gy); c.lineTo(gx + gw, gy); c.lineTo(gx + gw, gy + gh); c.stroke();
-      c.lineWidth = 2; c.beginPath(); c.moveTo(m, gy + gh); c.lineTo(w - m, gy + gh); c.stroke();
-      const keeperL = A.keeper === 'op' ? foe.look : BRUNO.look;
-      const kx = w / 2 + A.kx * gw * 0.5;
-      c.save(); c.translate(kx, gy + gh); c.rotate(A.kx * 0.8 * Math.min(1, A.ball * 1.5)); drawBust(c, keeperL, 0, 0, gh * 0.95, false); c.restore();
-      const sx = w / 2, sy = h * 0.82, ex = w / 2 + A.tx * gw * 0.5, ey = gy + gh * (1 - A.ty);
-      const bx = sx + (ex - sx) * A.ball, by = sy + (ey - sy) * A.ball - Math.sin(A.ball * Math.PI) * h * 0.05;
-      c.fillStyle = '#fff'; c.strokeStyle = '#111'; c.lineWidth = 2; c.beginPath(); c.arc(bx, by, h * 0.035 * (1 - A.ball * 0.4), 0, 7); c.fill(); c.stroke();
+      let g = c.createLinearGradient(0, 0, 0, h * 0.4); g.addColorStop(0, '#08122a'); g.addColorStop(1, '#1d3a6a'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      for (const fx of [w * 0.06, w * 0.94]) { const rg = c.createRadialGradient(fx, h * 0.03, 2, fx, h * 0.03, w * 0.3); rg.addColorStop(0, 'rgba(255,255,230,.9)'); rg.addColorStop(1, 'rgba(255,255,230,0)'); c.fillStyle = rg; c.fillRect(0, 0, w, h * 0.45); c.fillStyle = '#fffbe0'; c.fillRect(fx - 14, h * 0.015, 28, 8); }
+      // tribune con il pubblico
+      c.fillStyle = '#26314a'; c.fillRect(0, h * 0.08, w, h * 0.28);
+      for (let i = 0; i < 420; i++) {
+        const x = hash(i, 3) * w, yy = h * 0.09 + hash(3, i) * h * 0.25, j = Math.sin(NOW * (6 + A.cheer * 10) + i) * (1 + A.cheer * 3);
+        c.fillStyle = CROWD[i % CROWD.length]; c.beginPath(); c.arc(x, yy + j, 2.2, 0, 7); c.fill();
+      }
+      // cartelloni
+      c.fillStyle = '#121a2e'; c.fillRect(0, h * 0.355, w, h * 0.045);
+      c.fillStyle = '#3fbf8f'; c.font = `700 ${Math.round(h * 0.03)}px Fredoka, sans-serif`; c.textAlign = 'left';
+      const msg = 'LATTE E MENTA  ·  SOLANAS  ·  CAMMINO DI SANTIAGO  ·  BUEN CAMINO  ·  ', mw = c.measureText(msg).width, ox = -((NOW * 40) % mw);
+      for (let x = ox; x < w; x += mw) c.fillText(msg, x, h * 0.388);
+      // campo in prospettiva
+      const top = h * 0.4;
+      for (let k = 0; k < 12; k++) { const y0 = top + (h - top) * Math.pow(k / 12, 1.5), y1 = top + (h - top) * Math.pow((k + 1) / 12, 1.5); c.fillStyle = k % 2 ? '#2f8f3c' : '#37a046'; c.fillRect(0, y0, w, y1 - y0 + 1); }
+      const gy = h * 0.58, gw = w * 0.42, gh = h * 0.2, gx = w / 2 - gw / 2;
+      c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(0, gy); c.lineTo(w, gy); c.stroke();
+      c.beginPath(); c.moveTo(w / 2 - gw * 0.85, gy); c.lineTo(w / 2 - gw * 1.05, h * 0.72); c.lineTo(w / 2 + gw * 1.05, h * 0.72); c.lineTo(w / 2 + gw * 0.85, gy); c.stroke();
+      c.beginPath(); c.moveTo(w / 2 - gw * 1.6, gy); c.lineTo(w / 2 - gw * 2.4, h * 1.05); c.moveTo(w / 2 + gw * 1.6, gy); c.lineTo(w / 2 + gw * 2.4, h * 1.05); c.stroke();
+      c.fillStyle = '#fff'; c.beginPath(); c.ellipse(w / 2, h * 0.86, 5, 2.5, 0, 0, 7); c.fill();
+      // porta con la rete
+      const bx = gx + gw * 0.05, bw = gw * 0.9, bt = gy - gh - h * 0.015, bb = gy - h * 0.03;
+      c.fillStyle = 'rgba(255,255,255,.07)'; c.fillRect(bx, bt, bw, bb - bt);
+      c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1;
+      for (let i = 0; i <= 18; i++) { const x = bx + bw * i / 18; c.beginPath(); c.moveTo(x, bt); c.lineTo(x, bb); c.stroke(); }
+      for (let i = 0; i <= 8; i++) { const y = bt + (bb - bt) * i / 8; c.beginPath(); c.moveTo(bx, y); c.lineTo(bx + bw, y); c.stroke(); }
+      for (let i = 0; i <= 6; i++) { const t = i / 6; c.beginPath(); c.moveTo(gx, gy - gh + gh * t); c.lineTo(bx, bt + (bb - bt) * t); c.moveTo(gx + gw, gy - gh + gh * t); c.lineTo(bx + bw, bt + (bb - bt) * t); c.stroke(); }
+      c.beginPath(); c.moveTo(gx, gy - gh); c.lineTo(bx, bt); c.moveTo(gx + gw, gy - gh); c.lineTo(bx + bw, bt); c.stroke();
+      c.strokeStyle = '#fff'; c.lineWidth = 6; c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx, gy - gh); c.lineTo(gx + gw, gy - gh); c.lineTo(gx + gw, gy); c.stroke();
+      // portiere
+      const kL = A.keeper === 'op' ? foe.look : BRUNO.look, kKit = GK[A.keeper];
+      c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(w / 2 + A.kx * gw * 0.42, gy + 2, gh * 0.25, 4, 0, 0, 7); c.fill();
+      drawKeeper(c, w / 2 + A.kx * gw * 0.42, gy - Math.abs(A.rot) * gh * 0.25, gh * 0.88, A.rot, kL, kKit);
+      // pallone
+      const sx = w / 2, sy = h * 0.86, ex = gx + (A.tx + 1) / 2 * gw, ey = gy - A.ty * gh;
+      const bxp = sx + (ex - sx) * A.ball, byp = sy + (ey - sy) * A.ball - Math.sin(A.ball * Math.PI) * h * 0.06, br = h * 0.028 * (1 - A.ball * 0.5);
+      c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(sx + (ex - sx) * A.ball, sy + (gy - sy) * A.ball + 3, br, br * 0.4, 0, 0, 7); c.fill();
+      drawBall(c, bxp, byp, br, A.ball * 12);
+      // tiratore di spalle
+      const shooterL = A.keeper === 'op' ? BRUNO.look : foe.look, sKit = A.keeper === 'op' ? KIT.me : KIT.op;
+      if (A.ball < 0.25) drawPlayerBack(c, w / 2 - w * 0.07 + A.run * w * 0.04, h * 1.02 - A.run * h * 0.06, h * 0.36, shooterL, sKit, A.kick);
+      // mirino e potenza
       if (A.phase === 'aim' || A.phase === 'power') {
-        const rx = w / 2 + A.aim * gw * 0.5, ry = gy + gh * 0.5;
-        c.strokeStyle = Math.abs(A.aim) > 1 ? '#e0533a' : '#ffd23f'; c.lineWidth = 3;
-        c.beginPath(); c.arc(rx, ry, 14, 0, 7); c.moveTo(rx - 20, ry); c.lineTo(rx + 20, ry); c.moveTo(rx, ry - 20); c.lineTo(rx, ry + 20); c.stroke();
+        const rx = gx + (A.aim + 1) / 2 * gw, ry = gy - gh * 0.5, bad = Math.abs(A.aim) > 1.05;
+        c.strokeStyle = bad ? '#e0533a' : '#ffd23f'; c.lineWidth = 3; c.beginPath(); c.arc(rx, ry, 15, 0, 7); c.moveTo(rx - 22, ry); c.lineTo(rx + 22, ry); c.moveTo(rx, ry - 22); c.lineTo(rx, ry + 22); c.stroke();
       }
       if (A.phase === 'power') {
-        const px = w - m - 34, ph = h * 0.6, py = h * 0.15;
-        c.fillStyle = '#222'; c.fillRect(px, py, 20, ph); c.fillStyle = '#e0533a'; c.fillRect(px, py, 20, ph * 0.08);
-        c.fillStyle = A.pow > 0.92 ? '#e0533a' : '#3fbf8f'; c.fillRect(px, py + ph * (1 - A.pow), 20, ph * A.pow);
-        c.strokeStyle = '#fff'; c.lineWidth = 2; c.strokeRect(px, py, 20, ph);
+        const px = w - 40, ph = h * 0.5, py = h * 0.42;
+        c.fillStyle = 'rgba(0,0,0,.55)'; rr(c, px - 6, py - 6, 32, ph + 12, 8); c.fill();
+        const pg = c.createLinearGradient(0, py + ph, 0, py); pg.addColorStop(0, '#3fbf8f'); pg.addColorStop(0.85, '#ffd23f'); pg.addColorStop(1, '#e0533a');
+        c.fillStyle = pg; c.fillRect(px, py + ph * (1 - A.pow), 20, ph * A.pow); c.strokeStyle = '#fff'; c.lineWidth = 2; c.strokeRect(px, py, 20, ph);
+        c.fillStyle = '#e0533a'; c.fillRect(px - 3, py + ph * 0.03 - 1, 26, 2);
       }
-      c.fillStyle = 'rgba(0,0,0,.55)'; c.fillRect(m, h - m - 26, w - 2 * m, 26);
-      c.fillStyle = '#fff'; c.font = '700 14px Fredoka, sans-serif'; c.textAlign = 'left'; c.fillText(`BRUNO ${sMe}  -  ${sOp} ${foe.nome.toUpperCase()}`, m + 10, h - m - 8);
-      if (A.text) { c.textAlign = 'center'; c.font = `700 ${Math.round(h * 0.12)}px Fredoka, sans-serif`; c.lineWidth = 6; c.strokeStyle = '#111'; c.strokeText(A.text, w / 2, h * 0.68); c.fillStyle = '#ffd23f'; c.fillText(A.text, w / 2, h * 0.68); }
+      if (A.hint != null && A.phase === 'defend') {
+        const hx = gx + (A.hint + 1) / 2 * gw; c.fillStyle = 'rgba(255,210,63,.9)'; c.beginPath(); c.moveTo(hx, gy - gh * 0.2); c.lineTo(hx - 16, gy - gh * 0.5); c.lineTo(hx + 16, gy - gh * 0.5); c.closePath(); c.fill();
+      }
+      // tabellone stile TV
+      c.fillStyle = 'rgba(8,18,42,.88)'; rr(c, 10, 10, 190, 52, 8); c.fill();
+      c.fillStyle = '#3fbf8f'; c.fillRect(10, 10, 6, 52);
+      c.fillStyle = '#fff'; c.font = '700 17px Fredoka, sans-serif'; c.textAlign = 'left'; c.fillText(`BRU ${sMe} - ${sOp} ${abbr(foe.nome)}`, 24, 32);
+      for (const [k, yy] of [['me', 48], ['op', 56]]) for (let i = 0; i < 5; i++) { const r2 = hist[k][i]; c.fillStyle = r2 == null ? 'rgba(255,255,255,.25)' : r2 ? '#3fbf8f' : '#e0533a'; c.beginPath(); c.arc(28 + i * 14, yy, 3.5, 0, 7); c.fill(); }
+      if (A.text) { c.textAlign = 'center'; c.font = `700 ${Math.round(h * 0.13)}px Fredoka, sans-serif`; c.lineWidth = 7; c.strokeStyle = '#08122a'; c.strokeText(A.text, w / 2, h * 0.3); c.fillStyle = '#ffd23f'; c.fillText(A.text, w / 2, h * 0.3); }
     },
   };
   function decided() {
     if (kMe <= 5 && kOp <= 5) { const lm = 5 - kMe, lo = 5 - kOp; if (sMe > sOp + lo || sOp > sMe + lm) return true; if (kMe === 5 && kOp === 5) return sMe !== sOp; return false; }
     return kMe === kOp && sMe !== sOp;
   }
+  const SIDE = { '-1': 'sinistra', '0': 'centro', '1': 'destra' };
   for (let r = 0; r < 20; r++) {
     // Bruno tira
-    Object.assign(A, { keeper: 'op', ball: 0, kx: 0, text: '', phase: 'aim', t: Math.random() * 3 });
+    Object.assign(A, { keeper: 'op', ball: 0, kx: 0, rot: 0, text: '', phase: 'aim', t: Math.random() * 3, run: 0, kick: 0, hint: null });
     row.hidden = false; dirRow.hidden = true; shootBtn.textContent = 'MIRA!';
-    ui.msg.textContent = `Rigore ${kMe + 1}: ferma il mirino dove vuoi tirare.`;
+    ui.msg.textContent = `Rigore ${kMe + 1}: ferma il mirino vicino a un palo.`;
     await waitFor(v => v === 'a'); sfx('tick');
-    A.phase = 'power'; A.t = 0; shootBtn.textContent = 'TIRA!'; ui.msg.textContent = 'Ora la potenza: non esagerare o va alta!';
+    A.phase = 'power'; A.t = 0; shootBtn.textContent = 'TIRA!'; ui.msg.textContent = 'Ora la potenza: tutto tranne il rosso in cima!';
     await waitFor(v => v === 'a');
     A.phase = 'kick'; row.hidden = true;
-    const aim = A.aim, pow = A.pow, dive = pick([-0.65, 0, 0.65, -0.65, 0.65]);
-    A.tx = aim; A.ty = pow > 0.92 ? 1.25 : 0.15 + pow * 0.75; sfx('kick');
-    await Promise.all([tween(A, { ball: 1 }, 550), tween(A, { kx: dive }, 450)]);
+    const aim = A.aim, pow = A.pow, side = Math.abs(aim) < 0.25 ? 0 : Math.sign(aim);
+    // il portiere indovina il lato solo 1 volta su 4
+    const guess = rnd() < 0.25 ? side : pick([-1, 0, 1].filter(x => x !== side));
+    const dive = guess * 0.72;
+    await tween(A, { run: 1 }, 380); A.kick = 1; sfx('kick');
+    A.tx = clamp(aim, -1.3, 1.3); A.ty = pow > 0.97 ? 1.35 : 0.15 + pow * 0.7;
+    await Promise.all([tween(A, { ball: 1 }, 520), tween(A, { kx: dive, rot: guess * 1.2 }, 420)]);
     kMe++;
-    const reach = pow < 0.35 ? 0.55 : 0.4;
-    if (pow > 0.92) { A.text = 'ALTA!'; sfx('bad'); }
-    else if (Math.abs(aim) > 1) { A.text = 'FUORI!'; sfx('bad'); }
-    else if (Math.abs(aim - dive) < reach) { A.text = 'PARATA!'; sfx('bad'); }
-    else { sMe++; A.text = 'GOL!'; sfx('good'); }
-    ui.score.textContent = `${sMe} – ${sOp}`; await wait(1000);
+    let goal = false;
+    if (pow > 0.97) { A.text = 'ALTA!'; sfx('bad'); }
+    else if (Math.abs(aim) > 1.05) { A.text = 'FUORI!'; sfx('bad'); }
+    else if (Math.abs(aim - dive) < (pow < 0.3 ? 0.42 : 0.3)) { A.text = 'PARATA!'; sfx('bad'); }
+    else { goal = true; sMe++; A.text = 'GOL!'; A.cheer = 1; sfx('good'); }
+    hist.me.push(goal);
+    ui.score.textContent = `${sMe} – ${sOp}`; await wait(1200);
     if (decided()) break;
     // Bruno para
-    Object.assign(A, { keeper: 'me', ball: 0, kx: 0, text: 'Tuffati!', phase: 'defend' });
+    const oSide = pick([-1, 1, -1, 1, 0]), oAim = oSide * 0.75;
+    const hintSide = rnd() < 0.85 ? oSide : pick([-1, 0, 1].filter(x => x !== oSide));
+    Object.assign(A, { keeper: 'me', ball: 0, kx: 0, rot: 0, text: '', phase: 'defend', run: 0, kick: 0, hint: hintSide });
     row.hidden = true; dirRow.hidden = false;
-    ui.msg.textContent = `${foe.nome} prende la rincorsa… scegli dove tuffarti, presto!`;
-    const ch = await Promise.race([waitFor(v => typeof v === 'number'), wait(1300).then(() => null)]);
-    waiter = null; dirRow.hidden = true; A.text = '';
-    const myDive = ch == null ? 0 : ch * 0.65, oAim = (rnd() * 2 - 1) * 0.95;
-    A.tx = oAim; A.ty = 0.2 + rnd() * 0.6; sfx('kick');
-    await Promise.all([tween(A, { ball: 1 }, 550), tween(A, { kx: myDive }, 450)]);
+    ui.msg.textContent = `${foe.nome} prende la rincorsa e guarda verso ${SIDE[hintSide]}… dove ti tuffi?`;
+    const ch = await Promise.race([waitFor(v => typeof v === 'number'), wait(2600).then(() => null)]);
+    waiter = null; dirRow.hidden = true; A.hint = null; A.phase = 'kick';
+    const myDive = (ch == null ? 0 : ch) * 0.72;
+    const miss = rnd() < 0.12;
+    await tween(A, { run: 1 }, 380); A.kick = 1; sfx('kick');
+    A.tx = miss ? oSide * 1.25 || 1.25 : oAim; A.ty = miss ? 0.6 : 0.25 + rnd() * 0.5;
+    await Promise.all([tween(A, { ball: 1 }, 520), tween(A, { kx: myDive, rot: (ch || 0) * 1.2 }, 420)]);
     kOp++;
-    if (Math.abs(oAim - myDive) < 0.42) { A.text = 'PARATA!'; sfx('good'); } else { sOp++; A.text = 'GOL!'; sfx('bad'); }
-    ui.score.textContent = `${sMe} – ${sOp}`; await wait(1000);
+    let ogoal = false;
+    if (miss) { A.text = 'FUORI!'; sfx('good'); }
+    else if (Math.abs(oAim - myDive) < 0.45) { A.text = 'PARATA!'; A.cheer = 1; sfx('good'); }
+    else { ogoal = true; sOp++; A.text = 'GOL!'; sfx('bad'); }
+    hist.op.push(ogoal);
+    ui.score.textContent = `${sMe} – ${sOp}`; await wait(1200);
     if (decided()) break;
   }
   const win = sMe > sOp;
   ui.msg.textContent = win ? `Bruno vince ai rigori ${sMe}–${sOp}!` : `${foe.nome} vince ${sOp}–${sMe}.`;
-  await wait(1200); off(); mgClose(); return win;
+  await wait(1300); off(); mgClose(); return win;
 }
 
 // 8. Padel: un set corto, vince chi fa due giochi (punto d'oro sul 40 pari)
@@ -2198,13 +2299,17 @@ async function mgPoker(foe) {
     });
     await new Promise(r => { confirmed = r; });
     off(); btn.disabled = true;
-    mine = mine.map((c, i) => sel[i] ? deck.shift() : c); sel.fill(false); focus = -1; renderMine(true); sfx('card');
-    const keep = aiKeep(theirs), changed = keep.filter(k => !k).length;
+    { // la fortuna aiuta Bruno: tra tre pescate possibili tiene la migliore
+      let best = null; for (let k = 0; k < 3; k++) { const cand = mine.map((c, i) => sel[i] ? deck[i + 5 * k] : c); if (!best || cmpHand(evalHand(cand), evalHand(best)) > 0) best = cand; }
+      const used = new Set(best); for (let i = deck.length - 1; i >= 0; i--) if (used.has(deck[i])) deck.splice(i, 1); mine = best;
+    }
+    sel.fill(false); focus = -1; renderMine(true); sfx('card');
+    const keep = rnd() < 0.8 ? (() => { const hi = Math.max(...theirs.map(c => c.r)); let done = false; return theirs.map(c => { if (c.r === hi && !done) { done = true; return true; } return false; }); })() : aiKeep(theirs), changed = keep.filter(k => !k).length;
     theirs = theirs.map((c, i) => keep[i] ? c : deck.shift());
     await wait(900); renderOpp(true); sfx('card');
     const a = evalHand(mine), b = evalHand(theirs), cmp = cmpHand(a, b);
     let line = `${foe.nome} cambia ${changed} cart${changed === 1 ? 'a' : 'e'}. Bruno: ${a.name.toLowerCase()} · ${foe.nome}: ${b.name.toLowerCase()}.`;
-    if (cmp > 0) { me++; sfx('good'); line += ' Mano a Bruno!'; } else if (cmp < 0) { op++; sfx('bad'); line += ` Mano a ${foe.nome}.`; } else line += ' Parità: si rigioca.';
+    if (cmp >= 0) { me++; sfx('good'); line += cmp === 0 ? ' Parità: la mano va a Bruno!' : ' Mano a Bruno!'; } else { op++; sfx('bad'); line += ` Mano a ${foe.nome}.`; }
     ui.score.textContent = `${me} – ${op}`;
     await say(line);
   }

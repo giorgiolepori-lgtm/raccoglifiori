@@ -35,7 +35,7 @@ Si apre con un doppio clic e funziona anche offline.
 - In ogni tappa c'è un bar: per proseguire Bruno deve bere un latte e menta, ma davanti al bar un amico lo sfida.
 - Le 9 sfide: Giorgio a scacchi (partita vera col Bianco, Giorgio a livello facile), Davidino a braccio di ferro, Edoardo in cucina,
   Pet in chirurgia (punti di sutura con ago e filo su un taglio al braccio), JOSTO a padel (un solo gioco, con il punto d'oro),
-  Edoardo in arrampicata (parete con imbracatura e corda), Pet a brazilian jiu-jitsu (due lottatori sul tatami), Zonco a FIFA (rigori con mirino e potenza) e, alla meta, Alex a poker (tavolo verde, con suggerimento sulle carte da cambiare).
+  Edoardo in arrampicata (parete con imbracatura e corda), Pet a brazilian jiu-jitsu (due lottatori sul tatami), Zonco a FIFA (rigori in uno stadio di notte, con mirino, potenza e indizi in porta) e, alla meta, Alex a poker (tavolo verde, con suggerimento sulle carte da cambiare).
 - Prima di ogni sfida l'amico lancia la sua frase di battaglia.
 - Lungo la strada: pietre miliari del Cammino con frecce gialle e conchiglia, cartelli sui luoghi,
   e personaggi che parlano di Maracalagonis, Porto Sa Ruxi, Cammino di Santiago e latte e menta.
