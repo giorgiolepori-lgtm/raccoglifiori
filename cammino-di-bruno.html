@@ -113,11 +113,6 @@ body.mg #dialog { left: 50%; transform: translateX(-50%); width: min(720px, calc
 .sq { display: grid; place-items: center; font-size: min(8.4vw, 4.8vh, 40px); line-height: 1; position: relative; }
 .sq.l { background: #f0dcb4; } .sq.d { background: #b58863; }
 .sq.hi { box-shadow: inset 0 0 0 4px #3fbf8f; }
-.clocks { display: flex; gap: 8px; width: min(92vw, 52vh, 440px); max-width: 100%; }
-.clock { flex: 1; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 18px; padding: 6px 8px; border: 2.5px solid var(--ink); border-radius: 10px; background: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.clock.on { background: var(--mint); color: #fff; }
-.clock.low { color: var(--red); }
-.clock.on.low { background: var(--red); color: #fff; }
 .sq.lm { background-image: linear-gradient(rgba(255,210,63,.28), rgba(255,210,63,.28)); }
 .sq.tg::before { content: ""; position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(31,42,68,.35); }
 .sq.tgc { box-shadow: inset 0 0 0 4px rgba(224,83,58,.75); }
@@ -134,14 +129,25 @@ body.mg #dialog { left: 50%; transform: translateX(-50%); width: min(720px, calc
 .timer .zone { position: absolute; top: 0; bottom: 0; background: var(--mint); }
 .timer .zone.perf { background: #ffd23f; }
 .timer .needle { position: absolute; top: -2px; bottom: -2px; width: 6px; margin-left: -3px; background: var(--ink); border-radius: 3px; }
-.cards { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.card2 { width: min(17vw, 86px); aspect-ratio: 5 / 7; border: 2.5px solid var(--ink); border-radius: 10px; background: #fff; position: relative; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; box-shadow: 0 3px 0 rgba(31,42,68,.3); transition: transform .15s; }
-.card2 .rk { position: absolute; top: 4px; left: 7px; font-size: min(5vw, 22px); }
-.card2 .st { font-size: min(9vw, 40px); }
-.card2.red { color: #d23a3a; }
-.card2.back { background: repeating-linear-gradient(45deg, #2f8fd0 0 8px, #3fa6e6 8px 16px); }
-.card2.sel { transform: translateY(-12px); }
-.card2.sel::after { content: "CAMBIA"; position: absolute; bottom: -22px; font-size: 11px; letter-spacing: .06em; color: var(--red); }
+.felt { width: min(720px, 100%); display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 10px; border-radius: 26px; border: 6px solid #6b3f1f; background: radial-gradient(ellipse at 50% 40%, #2f9a5a, #1d6a3c 70%); box-shadow: inset 0 0 0 2px rgba(255,255,255,.15), 0 6px 0 rgba(31,42,68,.3); }
+.seat { display: flex; align-items: center; gap: 8px; color: #fff; font-family: var(--font-display); font-size: 15px; }
+.seat canvas { background: rgba(255,255,255,.85); border-radius: 50%; }
+.chips { position: relative; width: 26px; height: 34px; }
+.chip-p { position: absolute; left: 0; width: 26px; height: 9px; border-radius: 50%; border: 2px solid rgba(0,0,0,.45); box-shadow: inset 0 0 0 2px rgba(255,255,255,.55); }
+.pot { display: flex; align-items: center; gap: 10px; color: #e9f7ee; font-weight: 800; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+.cards { display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap; }
+.card2 { width: min(16vw, 84px); aspect-ratio: 5 / 7; border: 1.5px solid #c9c4b8; border-radius: 9px; background: #fffdf8; position: relative; display: grid; place-items: center; font-family: "Georgia", "Times New Roman", serif; color: #1b1b22; box-shadow: 0 4px 8px rgba(0,0,0,.35); transition: transform .15s; animation: deal .35s ease-out both; }
+@keyframes deal { from { transform: translateY(-40px) rotate(-8deg); opacity: 0; } }
+.card2 .idx { position: absolute; top: 4px; left: 5px; display: flex; flex-direction: column; align-items: center; line-height: .95; }
+.card2 .idx b { font-size: min(4.2vw, 19px); font-weight: 700; }
+.card2 .idx i { font-style: normal; font-size: min(3.4vw, 15px); }
+.card2 .idx.br { top: auto; left: auto; bottom: 4px; right: 5px; transform: rotate(180deg); }
+.card2 .st { font-size: min(9vw, 42px); }
+.card2.face .st { font-size: min(7vw, 34px); font-weight: 700; border: 2px solid currentColor; border-radius: 6px; padding: 2px 6px; background: rgba(255,210,63,.18); }
+.card2.red { color: #c8202e; }
+.card2.back { background: repeating-linear-gradient(45deg, #b8232f 0 6px, #d23a3a 6px 12px); border: 4px solid #fffdf8; outline: 1.5px solid #c9c4b8; }
+.card2.sel { transform: translateY(-14px); box-shadow: 0 0 0 3px var(--sun), 0 8px 12px rgba(0,0,0,.35); }
+.card2.sel::after { content: "CAMBIA"; position: absolute; bottom: -20px; font-family: var(--font-body); font-weight: 800; font-size: 11px; letter-spacing: .06em; color: #ffd23f; }
 .card2.focus { outline: 3px solid var(--sun); outline-offset: 2px; }
 .arrows { display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(2, 64px); gap: 8px; justify-content: center; }
 .arrows .mgbtn { min-width: 0; font-size: 26px; }
@@ -239,7 +245,7 @@ const SFIDE = { scacchi: 'Scacchi', braccio: 'Braccio di ferro', cucina: 'Cucina
 // Per cambiare chi fa cosa, modifica "who" (id in AMICI) e "sfida" (chiave in SFIDE).
 const TAPPE = [
   { zona: 'Maracalagonis', bar: 'Bar della Piazza', who: 'giorgio', sfida: 'scacchi', bg: 'paese',
-    intro: ['Se perdi ascoltiamo Stereo Love 365 volte.', 'Bruno! Prima di partire, una partita a scacchi. Quella vera, con l’orologio: 5 minuti a testa.', 'Tu hai il Bianco: se mi dai scacco matto o mi finisce il tempo, il latte e menta è tuo.'],
+    intro: ['Se perdi ascoltiamo Stereo Love 365 volte.', 'Bruno! Prima di partire, una partita a scacchi. Quella vera, ma giocherò tranquillo.', 'Tu hai il Bianco: se mi dai scacco matto, il latte e menta è tuo.'],
     win: 'Scacco matto a me… Bella partita! Il latte e menta te lo sei meritato. Ci vediamo alla meta!', lose: 'Hai perso! Si parte: Stereo Love, ascolto 1 di 365…' },
   { zona: 'Colline di Maracalagonis', bar: 'Bar del Bivio', who: 'davidino', sfida: 'braccio', bg: 'colline',
     intro: ['Pronto Frari?', 'Qui al Bivio si passa solo in un modo.', 'Braccio di ferro. Se vinci, il latte e menta lo offro io.'],
@@ -254,7 +260,7 @@ const TAPPE = [
     intro: ['Sei Bruno.', 'Ho prenotato il campo di padel dietro il bar.', 'Un solo gioco: 15, 30, 40 e gioco. Sul 40 pari si gioca il punto d’oro!'],
     win: 'Che bandeja! Ci vediamo alla meta.', lose: 'Ti ho chiuso a rete! Rivincita?' },
   { zona: 'Baccu Mandara', bar: 'Bar Baccu Mandara', who: 'edoardo', sfida: 'arrampicata', bg: 'mare',
-    intro: ['Fra, sei il più strano. Sfidami!', 'Sì, sono ancora io. Stavolta niente fornelli.', 'Gara di arrampicata sul granito: chi arriva prima in cima vince.'],
+    intro: ['Fra, sei il più strano. Sfidami!', 'Sì, sono ancora io. Stavolta niente fornelli.', 'Gara di arrampicata sulla parete del bar: imbracatura, corda e via. Chi tocca prima l’ancoraggio in cima vince.'],
     win: 'Sei salito come uno stambecco! Ci vediamo a Porto Sa Ruxi.', lose: 'Sei rimasto a metà parete! Riprova.' },
   { zona: 'Torre delle Stelle', bar: 'Bar della Torre', who: 'pet', sfida: 'bjj', bg: 'mare',
     intro: ['Ho dovuto sfidarti telepaticamente, purtroppo.', 'Ossu! Il piede è guarito? Bene, perché adesso si lotta.', 'Brazilian jiu-jitsu: cinque scambi, vince chi fa più punti. Guarda bene cosa sto per fare!'],
@@ -1375,35 +1381,10 @@ function boardEl(b, o = {}) {
 }
 async function mgScacchi(foe) {
   const lvl = 0;
-  const ui = mgOpen('Partita a scacchi con l’orologio: 5 minuti a testa, chi finisce il tempo perde. Tu hai il Bianco', foe);
+  const ui = mgOpen('Partita a scacchi: tu hai il Bianco. Tocca un pezzo, poi una casa evidenziata', foe);
   let s = CH.parse('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'), sel = null, last = null, cur = null, kc = [6, 4], thinking = false, over = false, moves = 0, legal = CH.legal(s), done;
-  const clock = { w: 300, b: 300 };
-  const clocks = el('div', 'clocks'), cW = el('div', 'clock'), cB = el('div', 'clock');
-  clocks.append(cW, cB);
   const boardWrap = el('div'), row = el('div', 'mg-row');
-  ui.stage.append(clocks, boardWrap, row);
-  const fmt = t => { const sec = Math.max(0, Math.ceil(t)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
-  function drawClocks() {
-    for (const [elc, side, name] of [[cW, 'w', 'Bruno'], [cB, 'b', foe.nome]]) {
-      const txt = `${name} ${fmt(clock[side])}`; if (elc.textContent !== txt) elc.textContent = txt;
-      elc.classList.toggle('on', !over && s.turn === side); elc.classList.toggle('low', clock[side] < 30);
-    }
-    const mv = `Mossa ${Math.floor(moves / 2) + 1}`; if (ui.score.textContent !== mv) ui.score.textContent = mv;
-  }
-  const hasMating = side => s.b.some(p => p && CH.col(p) === side && p.toLowerCase() !== 'k') && !(s.b.filter(p => p && CH.col(p) === side && p.toLowerCase() !== 'k').length === 1 && 'nb'.includes(s.b.find(p => p && CH.col(p) === side && p.toLowerCase() !== 'k').toLowerCase()));
-  MG = {
-    update(dt) {
-      if (over) return;
-      clock[s.turn] -= dt;
-      if (clock[s.turn] <= 0) {
-        clock[s.turn] = 0; sfx('alert');
-        const loser = s.turn, other = loser === 'w' ? 'b' : 'w';
-        finish(hasMating(other) ? (loser === 'w' ? 'flagW' : 'flagB') : 'draw', 'tempo');
-      }
-      drawClocks();
-    },
-    draw() {},
-  };
+  ui.stage.append(boardWrap, row);
   mgButton(row, 'Abbandona', async () => {
     if (over || thinking) return;
     const c = await choose('Vuoi abbandonare la partita?', [{ label: 'Sì, abbandono' }, { label: 'No, continuo' }], { cancel: false });
@@ -1413,6 +1394,7 @@ async function mgScacchi(foe) {
     const targets = sel != null ? legal.filter(m => m.from === sel).map(m => m.to) : [];
     const check = CH.inCheck(s) ? s.b.indexOf(s.turn === 'w' ? 'K' : 'k') : null;
     boardWrap.innerHTML = ''; boardWrap.append(boardEl(s.b, { sel, last, cur, targets, check, onTap: tap }));
+    ui.score.textContent = `Mossa ${Math.floor(moves / 2) + 1}`;
   }
   function tap(sq) {
     if (over || thinking || s.turn !== 'w') return;
@@ -1421,7 +1403,7 @@ async function mgScacchi(foe) {
     render();
   }
   function after() {
-    legal = CH.legal(s); moves++;
+    legal = CH.legal(s); moves++; ui.score.textContent = `Mossa ${Math.floor(moves / 2) + 1}`;
     const st = CH.status(s);
     if (st === 'mate') return finish(s.turn === 'b' ? 'win' : 'lose');
     if (st !== 'play') return finish('draw', st);
@@ -1448,9 +1430,7 @@ async function mgScacchi(foe) {
   render();
   const res = await new Promise(r => { done = r; });
   off();
-  const WHY = { stalemate: 'stallo', insufficient: 'materiale insufficiente', fifty: 'regola delle 50 mosse', tempo: 'tempo scaduto, ma senza materiale per dare matto' };
-  if (res.r === 'flagW') { sfx('bad'); await say(`Bandierina! Il tempo di Bruno è finito: vince ${foe.nome}.`); return (mgClose(), false); }
-  if (res.r === 'flagB') { sfx('good'); await say(`Bandierina! Il tempo di ${foe.nome} è finito: vince Bruno!`); mgClose(); return true; }
+  const WHY = { stalemate: 'stallo', insufficient: 'materiale insufficiente', fifty: 'regola delle 50 mosse' };
   if (res.r === 'win') { sfx('good'); await say(`Scacco matto! Bruno batte ${foe.nome}.`); }
   else if (res.r === 'lose') { sfx('bad'); await say(`Scacco matto… ${foe.nome} vince la partita.`); }
   else if (res.r === 'resign') await say('Bruno abbandona la partita.');
@@ -1640,88 +1620,232 @@ async function mgCucina(foe) {
   await wait(1400); off(); mgClose(); return win;
 }
 
-// 4. Arrampicata
+// 4. Arrampicata: parete indoor, imbracatura e corda dall'alto
+function climbLayout(n) {
+  const X = [0, 0]; let x = 0;
+  for (let i = 2; i < n; i++) {
+    const opts = ['up']; if (x > -1) opts.push('left'); if (x < 1) opts.push('right');
+    const d = opts[Math.floor(Math.random() * opts.length)]; x += d === 'left' ? -1 : d === 'right' ? 1 : 0; X.push(x);
+  }
+  X[1] = X[0] + 0.0001; return X;
+}
+function drawClimber(c, hip, hands, feet, s, L, helmet) {
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  const neck = [hip[0], hip[1] - s * 0.62], shL = [neck[0] - s * 0.17, neck[1] + s * 0.05], shR = [neck[0] + s * 0.17, neck[1] + s * 0.05];
+  const hpL = [hip[0] - s * 0.1, hip[1]], hpR = [hip[0] + s * 0.1, hip[1]];
+  const joint = (a, b, out) => [(a[0] + b[0]) / 2 + out, (a[1] + b[1]) / 2 + Math.abs(out) * 0.4];
+  const lw = s * 0.11;
+  const line = (pts, col, width) => { c.strokeStyle = OUT; c.lineWidth = width + 3; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.stroke(); c.strokeStyle = col; c.lineWidth = width; c.stroke(); };
+  // gambe
+  const fl = feet[0], fr = feet[1];
+  const kl = joint(hpL, fl, -s * 0.18), kr = joint(hpR, fr, s * 0.18);
+  line([hpL, kl, fl], L.skin, lw); line([hpR, kr, fr], L.skin, lw);
+  line([hpL, joint(hpL, kl, 0)], L.shorts, lw * 1.25); line([hpR, joint(hpR, kr, 0)], L.shorts, lw * 1.25);
+  c.fillStyle = '#3a3a44'; for (const f of [fl, fr]) { c.beginPath(); c.ellipse(f[0], f[1], s * 0.08, s * 0.05, 0, 0, 7); c.fill(); }
+  // busto
+  c.fillStyle = L.top && L.topKind === 'tee' ? L.top : (L.top || L.skin); c.strokeStyle = OUT; c.lineWidth = 2.5;
+  rr(c, hip[0] - s * 0.2, neck[1], s * 0.4, hip[1] - neck[1] + s * 0.04, s * 0.1); c.fill(); c.stroke();
+  // imbracatura: cintura, cosciali e anello
+  c.strokeStyle = '#d0302e'; c.lineWidth = s * 0.06; c.beginPath(); c.moveTo(hip[0] - s * 0.21, hip[1] - s * 0.04); c.lineTo(hip[0] + s * 0.21, hip[1] - s * 0.04); c.stroke();
+  c.lineWidth = s * 0.045; c.beginPath(); c.moveTo(hpL[0], hpL[1]); c.lineTo(kl[0] * 0.3 + hpL[0] * 0.7, kl[1] * 0.3 + hpL[1] * 0.7); c.moveTo(hpR[0], hpR[1]); c.lineTo(kr[0] * 0.3 + hpR[0] * 0.7, kr[1] * 0.3 + hpR[1] * 0.7); c.stroke();
+  c.strokeStyle = '#c9ced6'; c.lineWidth = 2.5; c.beginPath(); c.arc(hip[0], hip[1], s * 0.05, 0, 7); c.stroke();
+  // braccia
+  const hl = hands[0], hr = hands[1];
+  line([shL, joint(shL, hl, -s * 0.12), hl], L.skin, lw * 0.95); line([shR, joint(shR, hr, s * 0.12), hr], L.skin, lw * 0.95);
+  c.fillStyle = L.skin; c.strokeStyle = OUT; c.lineWidth = 2; for (const hnd of [hl, hr]) { c.beginPath(); c.arc(hnd[0], hnd[1], s * 0.065, 0, 7); c.fill(); c.stroke(); }
+  // testa (di spalle) e casco
+  c.fillStyle = L.hair; c.beginPath(); c.arc(neck[0], neck[1] - s * 0.17, s * 0.16, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = helmet; c.beginPath(); c.arc(neck[0], neck[1] - s * 0.2, s * 0.17, Math.PI * 1.05, Math.PI * 1.95); c.closePath(); c.fill(); c.stroke();
+}
 async function mgArrampicata(foe) {
-  const ui = mgOpen('Premi la freccia giusta per afferrare la presa successiva', foe);
-  const N = 20, seq = Array.from({ length: N }, () => pick(['up', 'left', 'right', 'up']));
-  const ARW = { up: '▲', left: '◀', right: '▶', down: '▼' };
-  const cv2 = mkCanvas(ui.stage, 0.62);
-  const pad = el('div', 'arrows');
-  const st = { me: 0, foe: 0, run: false, freeze: 0, end: null, slip: 0 };
+  const ui = mgOpen('Scala con imbracatura e corda: premi la freccia verso la presa illuminata (◀ ▲ ▶)', foe);
+  const N = 16, XM = climbLayout(N), XF = climbLayout(N);
+  const dirOf = (X, k) => { const d = X[k + 1] - X[k]; return d < -0.5 ? 'left' : d > 0.5 ? 'right' : 'up'; };
+  const ARW = { up: '▲', left: '◀', right: '▶' };
+  const cv2 = mkCanvas(ui.stage, window.innerWidth < 600 ? 1.05 : 0.62, 0.54);
+  const pad = el('div', 'mg-row');
+  const st = { me: 1, meF: 1, foe: 1, run: false, freeze: 0, end: null, slip: 0 };
   const bs = {};
-  for (const [d, col, row] of [['up', 2, 1], ['left', 1, 2], ['down', 2, 2], ['right', 3, 2]]) { const b = el('button', 'mgbtn', ARW[d]); b.tabIndex = -1; b.style.gridColumn = col; b.style.gridRow = row; b.addEventListener('pointerdown', e => { e.preventDefault(); press(d); }); pad.append(b); bs[d] = b; }
+  for (const d of ['left', 'up', 'right']) { const b = el('button', 'mgbtn', ARW[d]); b.tabIndex = -1; b.style.fontSize = '28px'; b.addEventListener('pointerdown', e => { e.preventDefault(); press(d); }); pad.append(b); bs[d] = b; }
   ui.stage.append(pad);
   function press(d) {
-    if (!st.run || st.freeze > 0) return;
-    bs[d].classList.add('on'); setTimeout(() => bs[d].classList.remove('on'), 80);
-    if (d === seq[st.me]) { st.me++; sfx('tap'); if (st.me >= N) { st.run = false; st.end(true); } }
-    else { st.freeze = 0.45; st.me = Math.max(0, st.me - 1); st.slip = 0.4; sfx('bump'); ui.msg.textContent = 'Scivolato! Presa sbagliata.'; }
+    if (!st.run || st.freeze > 0 || !bs[d]) return;
+    bs[d].classList.add('on'); setTimeout(() => bs[d].classList.remove('on'), 90);
+    if (d === dirOf(XM, st.me)) { st.me++; sfx('tap'); if (st.me >= N - 1) { st.run = false; setTimeout(() => st.end(true), 500); } }
+    else { st.freeze = 0.3; st.me = Math.max(1, st.me - 1); st.slip = 0.4; sfx('bump'); ui.msg.textContent = 'Scivolato! La corda ti tiene: riprova.'; }
   }
   const off = mgHandler({ a() {}, b() {}, dir: press });
   MG = {
     update(dt) {
+      st.meF += (st.me - st.meF) * Math.min(1, dt * 10); st.slip = Math.max(0, st.slip - dt);
       if (!st.run) return;
-      st.freeze = Math.max(0, st.freeze - dt); st.slip = Math.max(0, st.slip - dt);
-      st.foe += dt / 0.6;
-      if (st.foe >= N) { st.run = false; st.end(false); }
-      ui.score.textContent = `${st.me} – ${Math.floor(st.foe)}`;
+      st.freeze = Math.max(0, st.freeze - dt);
+      st.foe = Math.min(N - 1, st.foe + dt / 0.85);
+      if (st.foe >= N - 1) { st.run = false; st.end(false); }
+      ui.score.textContent = `${Math.round((st.me - 1) / (N - 2) * 12)} m – ${Math.round((Math.floor(st.foe) - 1) / (N - 2) * 12)} m`;
     },
     draw() {
       const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
-      c.fillStyle = '#9fd2ff'; c.fillRect(0, 0, w, h);
-      for (const [x0, prog, L, name] of [[w * 0.08, st.me, BRUNO.look, 'Bruno'], [w * 0.56, st.foe, foe.look, foe.nome]]) {
-        const ww = w * 0.36; c.fillStyle = '#c8b2a6'; c.fillRect(x0, 0, ww, h); c.strokeStyle = OUT; c.lineWidth = 3; c.strokeRect(x0, -3, ww, h + 6);
-        const holdH = (h - 30) / N;
-        for (let k = 0; k <= N; k++) { const hx = x0 + ww * (0.3 + 0.4 * hash(k, x0 | 0)), hy = h - 12 - k * holdH; c.fillStyle = ['#e0533a', '#ffd23f', '#3fbf8f', '#2f8fd0'][k % 4]; c.beginPath(); c.arc(hx, hy, 5, 0, 7); c.fill(); c.stroke(); }
-        const p = Math.min(prog, N), cy = h - 12 - p * holdH, cx = x0 + ww * (0.3 + 0.4 * hash(Math.floor(p), x0 | 0));
-        drawBust(c, L, cx, cy + 22 + (name === 'Bruno' ? st.slip * 30 : 0), 46, true);
-        c.fillStyle = OUT; c.font = '700 13px Fredoka, sans-serif'; c.textAlign = 'center'; c.fillText(name, x0 + ww / 2, 16);
+      c.fillStyle = '#e8e4dc'; c.fillRect(0, 0, w, h);
+      const lanes = [[w * 0.04, w * 0.44, XM, st.meF, BRUNO.look, '#e0533a', true], [w * 0.52, w * 0.44, XF, st.foe, foe.look, '#ffd23f', false]];
+      for (const [lx, lw, X, k, L, helmet, mine] of lanes) {
+        const step = (h - 30) / 5.6, cam = clamp(k - 2, 0, N - 4.6), yOf = i => h - step * 2.05 - (i - cam) * step, xOf = i => lx + lw / 2 + X[Math.max(0, Math.min(N - 1, Math.round(i)))] * lw * 0.24;
+        c.save(); c.beginPath(); c.rect(lx, 0, lw, h); c.clip();
+        c.fillStyle = mine ? '#9aa6b4' : '#a6a09a'; c.fillRect(lx, 0, lw, h);
+        c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 2; const off2 = (cam * step) % (step * 1.3);
+        for (let y = h + off2; y > -step; y -= step * 1.3) { c.beginPath(); c.moveTo(lx, y); c.lineTo(lx + lw, y); c.stroke(); }
+        c.beginPath(); c.moveTo(lx + lw / 2, 0); c.lineTo(lx + lw / 2, h); c.stroke();
+        c.fillStyle = 'rgba(30,30,40,.25)'; for (let i = 0; i < 30; i++) { const bx = lx + hash(i, lx | 0) * lw, byy = ((hash(lx | 0, i) * h * 2 + cam * step) % (h + 20)); c.beginPath(); c.arc(bx, byy, 1.6, 0, 7); c.fill(); }
+        if (yOf(-1.9) < h) { c.fillStyle = '#3a6ad0'; c.fillRect(lx, yOf(-1.9), lw, h); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(lx, yOf(-1.9), lw, 3); }
+        // prese
+        for (let i = 0; i < N; i++) {
+          const x = xOf(i), y = yOf(i); if (y < -20 || y > h + 20) continue;
+          const col = ['#e0533a', '#ffd23f', '#3fbf8f', '#2f8fd0', '#b07ce8'][i % 5];
+          const glow = mine && i === st.me + 1 && st.run;
+          if (glow) { c.fillStyle = 'rgba(255,240,120,.7)'; c.beginPath(); c.arc(x, y, step * 0.28, 0, 7); c.fill(); }
+          c.fillStyle = col; c.strokeStyle = OUT; c.lineWidth = 2;
+          c.beginPath(); for (let a = 0; a < 7; a++) { const ang = a / 7 * Math.PI * 2, r = step * (0.11 + hash(i, a) * 0.05); c.lineTo(x + Math.cos(ang) * r, y + Math.sin(ang) * r * 0.8); } c.closePath(); c.fill(); c.stroke();
+          c.fillStyle = '#555'; c.beginPath(); c.arc(x, y, 2, 0, 7); c.fill();
+        }
+        // ancoraggio in cima
+        const ay = yOf(N - 0.4), ax = lx + lw / 2;
+        if (ay > -20) { c.fillStyle = '#c9ced6'; c.strokeStyle = OUT; c.lineWidth = 2; c.beginPath(); c.ellipse(ax, ay, 7, 11, 0, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#ffd23f'; c.fillRect(lx + 6, ay - 3, lw - 12, 3); }
+        // scalatore
+        const kk = Math.max(1, Math.min(N - 1, k)), k0 = Math.floor(kk), fr = kk - k0;
+        const handA = [xOf(k0), yOf(k0)], handB = [xOf(Math.max(0, k0 - 1)), yOf(Math.max(0, k0 - 1))];
+        const nextH = [xOf(k0 + 1), yOf(k0 + 1)];
+        const reach = [handB[0] + (nextH[0] - handB[0]) * fr, handB[1] + (nextH[1] - handB[1]) * fr];
+        const hands = [handA, fr > 0.05 ? reach : handB].sort((p, q) => p[0] - q[0]);
+        const slip = mine ? st.slip * step * 0.6 : 0;
+        const hipY = (handA[1] + handB[1]) / 2 + step * 1.15 + slip, hipX = (handA[0] + handB[0]) / 2;
+        const feet = [[hipX - step * 0.3, hipY + step * 0.75], [hipX + step * 0.28, hipY + step * 0.55]];
+        // corda: dall'ancoraggio all'imbracatura e giù all'assicuratore
+        c.strokeStyle = mine ? '#3fbf8f' : '#e0533a'; c.lineWidth = 3;
+        c.beginPath(); c.moveTo(ax, Math.max(-10, ay)); c.quadraticCurveTo(ax + 10, (ay + hipY) / 2, hipX, hipY); c.stroke();
+        c.beginPath(); c.moveTo(ax, Math.max(-10, ay)); c.lineTo(lx + lw * 0.84, h); c.stroke();
+        drawClimber(c, [hipX, hipY], hands, feet, step, L, helmet);
+        c.restore();
+        c.fillStyle = OUT; c.font = '700 14px Fredoka, sans-serif'; c.textAlign = 'center';
+        c.fillStyle = 'rgba(255,250,240,.9)'; rr(c, lx + lw / 2 - 44, 6, 88, 22, 8); c.fill(); c.fillStyle = OUT; c.fillText(mine ? 'Bruno' : foe.nome, lx + lw / 2, 22);
       }
-      c.fillStyle = '#ffd23f'; c.fillRect(0, 22, w, 4);
-      if (st.run && st.me < N) {
-        c.fillStyle = '#fffaf0'; c.strokeStyle = OUT; c.lineWidth = 3; rr(c, w * 0.5 - 34, h * 0.42, 68, 68, 14); c.fill(); c.stroke();
-        c.fillStyle = OUT; c.font = '700 40px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ARW[seq[st.me]], w * 0.5, h * 0.42 + 36); c.textBaseline = 'alphabetic';
+      if (st.run && st.me < N - 1) {
+        const d = dirOf(XM, st.me); cv2.cvs.dataset.next = d;
+        c.fillStyle = '#fffaf0'; c.strokeStyle = OUT; c.lineWidth = 3; rr(c, w * 0.48 - 24, h * 0.42, 48, 48, 12); c.fill(); c.stroke();
+        c.fillStyle = OUT; c.font = '700 28px sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(ARW[d], w * 0.48, h * 0.42 + 25); c.textBaseline = 'alphabetic';
       }
     },
   };
-  await countdown(ui); ui.msg.textContent = 'Arrampicati!';
+  ui.score.textContent = '0 m – 0 m';
+  await countdown(ui); ui.msg.textContent = 'Su! Segui la presa illuminata.';
   const res = await new Promise(r => { st.end = r; st.run = true; });
-  ui.msg.textContent = res ? 'Bruno arriva in cima per primo!' : `${foe.nome} è già in cima…`;
+  ui.msg.textContent = res ? 'Bruno tocca l’ancoraggio in cima per primo!' : `${foe.nome} è già in cima…`;
   await wait(1100); off(); mgClose(); return res;
 }
 
-// 5. Brazilian jiu-jitsu
+// 5. Brazilian jiu-jitsu: due lottatori sul tatami
 const BJJ = {
   atterramento: { n: 'Atterramento', p: 2, beats: 'leva', tell: 'si abbassa sulle gambe e ti guarda le ginocchia' },
-  passaggio: { n: 'Passaggio di guardia', p: 3, beats: 'atterramento', tell: 'si sistema i pantaloncini e cerca di girarti intorno' },
+  passaggio: { n: 'Passaggio di guardia', p: 3, beats: 'atterramento', tell: 'si sistema il kimono e cerca di girarti intorno' },
   leva: { n: 'Leva al braccio', p: 4, beats: 'passaggio', tell: 'fissa il tuo braccio con gli occhi da squalo' },
 };
 const BJJ_TXT = {
-  'atterramento>leva': 'prima che possa afferrargli il braccio, lo butta a terra',
+  'atterramento>leva': ', prima che l’altro gli afferri il braccio, lo butta a terra e gli sale sopra',
   'passaggio>atterramento': 'schiva l’atterramento e passa la guardia',
   'leva>passaggio': 'mentre l’altro passa la guardia, lo intrappola in una leva al braccio',
 };
+const JK = ['hd', 'nk', 'hp', 'le', 'lh', 're', 'rh', 'lk', 'lf', 'rk', 'rf'];
+const POSE = (() => {
+  const P = o => o;
+  const STAND = P({ hd: [.32, .3], nk: [.33, .38], hp: [.32, .58], le: [.39, .44], lh: [.45, .41], re: [.37, .5], rh: [.43, .48], lk: [.36, .7], lf: [.38, .82], rk: [.28, .7], rf: [.25, .82] });
+  const LY = P({ hd: [.78, .76], nk: [.7, .76], hp: [.52, .76], le: [.7, .7], lh: [.74, .64], re: [.66, .72], rh: [.64, .68], lk: [.42, .68], lf: [.32, .78], rk: [.4, .74], rf: [.3, .8] });
+  return {
+    STAND,
+    atterramento: { W: P({ hp: [.54, .64], nk: [.6, .46], hd: [.62, .38], le: [.66, .56], lh: [.7, .7], re: [.62, .58], rh: [.66, .72], lk: [.5, .78], lf: [.42, .8], rk: [.56, .79], rf: [.48, .81] }), L: LY },
+    passaggio: { W: P({ hd: [.72, .62], nk: [.66, .64], hp: [.5, .6], le: [.72, .7], lh: [.77, .74], re: [.62, .7], rh: [.6, .76], lk: [.42, .74], lf: [.32, .81], rk: [.46, .78], rf: [.37, .82] }), L: LY },
+    leva: { W: P({ hp: [.64, .74], nk: [.84, .79], hd: [.91, .79], le: [.76, .66], lh: [.665, .51], re: [.78, .68], rh: [.67, .54], lk: [.6, .6], lf: [.55, .7], rk: [.7, .6], rf: [.78, .68] }), L: { ...LY, le: [.68, .62], lh: [.66, .5] } },
+    stallo: { W: P({ hd: [.5, .48], nk: [.47, .54], hp: [.38, .62], le: [.52, .62], lh: [.56, .66], re: [.48, .64], rh: [.52, .7], lk: [.4, .8], lf: [.28, .82], rk: [.36, .8], rf: [.25, .82] }),
+      L: P({ hd: [.8, .74], nk: [.72, .74], hp: [.55, .74], le: [.7, .66], lh: [.62, .6], re: [.68, .68], rh: [.6, .64], lk: [.46, .62], lf: [.36, .64], rk: [.46, .7], rf: [.37, .72] }) },
+  };
+})();
+const mirrorPose = p => Object.fromEntries(Object.entries(p).map(([k, v]) => [k, [1 - v[0], v[1]]]));
+function drawFighter(c, J, w, h, L, gi, belt) {
+  const P = k => [J[k][0] * w, J[k][1] * h], u = Math.min(w, h * 1.4);
+  const line = (keys, col, width) => { c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = OUT; c.lineWidth = width + 4; c.beginPath(); keys.forEach((k, i) => { const p = P(k); i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]); }); c.stroke(); c.strokeStyle = col; c.lineWidth = width; c.stroke(); };
+  line(['hp', 'rk', 'rf'], gi, u * 0.034); line(['hp', 'lk', 'lf'], gi, u * 0.034);
+  for (const f of ['lf', 'rf']) { const p = P(f); c.fillStyle = L.skin; c.strokeStyle = OUT; c.lineWidth = 2; c.beginPath(); c.ellipse(p[0], p[1], u * 0.018, u * 0.012, 0, 0, 7); c.fill(); c.stroke(); }
+  line(['nk', 'hp'], gi, u * 0.06);
+  const n = P('nk'), hp = P('hp'), ang = Math.atan2(hp[1] - n[1], hp[0] - n[0]);
+  c.strokeStyle = belt; c.lineWidth = u * 0.016; c.beginPath(); const bx = hp[0] - Math.cos(ang) * u * 0.02, by = hp[1] - Math.sin(ang) * u * 0.02; c.moveTo(bx - Math.sin(ang) * u * 0.03, by + Math.cos(ang) * u * 0.03); c.lineTo(bx + Math.sin(ang) * u * 0.03, by - Math.cos(ang) * u * 0.03); c.stroke();
+  c.strokeStyle = 'rgba(31,42,68,.35)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(n[0], n[1]); c.lineTo(n[0] + (hp[0] - n[0]) * 0.45 + Math.sin(ang) * u * 0.012, n[1] + (hp[1] - n[1]) * 0.45 - Math.cos(ang) * u * 0.012); c.stroke();
+  line(['nk', 're', 'rh'], gi, u * 0.028); line(['nk', 'le', 'lh'], gi, u * 0.028);
+  for (const k of ['lh', 'rh']) { const p = P(k); c.fillStyle = L.skin; c.strokeStyle = OUT; c.lineWidth = 2; c.beginPath(); c.arc(p[0], p[1], u * 0.016, 0, 7); c.fill(); c.stroke(); }
+  const hd = P('hd'), r = u * 0.032;
+  c.fillStyle = L.skin; c.strokeStyle = OUT; c.lineWidth = 2.5; c.beginPath(); c.arc(hd[0], hd[1], r, 0, 7); c.fill(); c.stroke();
+  const ha = Math.atan2(hd[1] - n[1], hd[0] - n[0]);
+  c.fillStyle = L.hair; c.beginPath(); c.arc(hd[0], hd[1], r, ha - 1.3, ha + 1.3); c.closePath(); c.fill();
+  if (L.beard) { c.fillStyle = 'rgba(28,20,16,.6)'; c.beginPath(); c.arc(hd[0], hd[1], r * 0.95, ha + Math.PI - 1.0, ha + Math.PI + 1.0); c.closePath(); c.fill(); }
+}
 async function mgBjj(foe) {
-  const ui = mgOpen('Cinque scambi. Leggi le mosse dell’avversario!', foe);
-  const info = el('div', 'pinner'); info.style.boxShadow = 'none';
-  info.append(el('p', null, 'Atterramento batte la Leva (2 punti) · Passaggio batte l’Atterramento (3 punti) · Leva batte il Passaggio (4 punti).'));
-  ui.stage.append(info);
-  let me = 0, op = 0; const keys = Object.keys(BJJ);
+  const ui = mgOpen('Cinque scambi sul tatami: leggi cosa sta per fare l’avversario e scegli la contromossa', foe);
+  const cv2 = mkCanvas(ui.stage, 0.56, 0.46);
+  const legend = el('div', 'mg-msg', 'Atterramento batte Leva · Passaggio batte Atterramento · Leva batte Passaggio');
+  legend.style.fontSize = '13px'; legend.style.opacity = '.75';
+  const row = el('div', 'mg-row'); ui.stage.append(row, legend);
+  const keys = Object.keys(BJJ);
+  const A = {}, B = {}; const tA = {}, tB = {};
+  for (const k of JK) { A[k] = POSE.STAND[k].slice(); B[k] = mirrorPose(POSE.STAND)[k].slice(); }
+  let poseA = POSE.STAND, poseB = mirrorPose(POSE.STAND), order = 'AB', banner = '';
+  function setPose(kind, winner) {
+    if (kind === 'stand') { poseA = POSE.STAND; poseB = mirrorPose(POSE.STAND); order = 'AB'; return; }
+    const p = POSE[kind];
+    if (winner === 'A') { poseA = p.W; poseB = p.L; order = 'BA'; }
+    else { poseA = mirrorPose(p.L); poseB = mirrorPose(p.W); order = 'AB'; }
+  }
+  MG = {
+    update(dt) {
+      const k = Math.min(1, dt * 7);
+      for (const j of JK) for (const [cur, tgt] of [[A, poseA], [B, poseB]]) { cur[j][0] += (tgt[j][0] - cur[j][0]) * k; cur[j][1] += (tgt[j][1] - cur[j][1]) * k; }
+    },
+    draw() {
+      const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#f1ece2'); g.addColorStop(1, '#ddd5c4'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      c.fillStyle = '#c8302e'; c.fillRect(0, h * 0.12, w, h * 0.05); c.fillStyle = '#fff'; c.font = `700 ${Math.round(h * 0.035)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.fillText('OSS · TORRE DELLE STELLE BJJ', w / 2, h * 0.155);
+      c.fillStyle = '#2f6fb8'; c.fillRect(0, h * 0.8, w, h * 0.2);
+      c.fillStyle = '#3a7fca'; for (let i = 0; i < 8; i++) if (i % 2) c.fillRect(i * w / 8, h * 0.8, w / 8, h * 0.2);
+      c.fillStyle = '#ffd23f'; c.fillRect(0, h * 0.8, w, 4);
+      c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(w / 2, h * 0.83, w * 0.32, h * 0.03, 0, 0, 7); c.fill();
+      const fA = () => drawFighter(c, A, w, h, BRUNO.look, '#f4f4f0', '#2f5fae'), fB = () => drawFighter(c, B, w, h, foe.look, '#2f5fae', '#1b1b1b');
+      if (order === 'AB') { fA(); fB(); } else { fB(); fA(); }
+      if (banner) { c.font = `700 ${Math.round(h * 0.08)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.lineWidth = 6; c.strokeStyle = OUT; c.strokeText(banner, w / 2, h * 0.3); c.fillStyle = '#ffd23f'; c.fillText(banner, w / 2, h * 0.3); }
+    },
+  };
+  let pick = null, focus = 0;
+  const btns = keys.map((k, i) => { const b = mgButton(row, `${BJJ[k].n} · ${BJJ[k].p}`, () => { if (pick) pick(k); }); return b; });
+  const showFocus = () => btns.forEach((b, i) => b.classList.toggle('focus', i === focus));
+  const off = mgHandler({ a() { if (pick) pick(keys[focus]); }, b() {}, dir(d) { focus = (focus + (d === 'left' || d === 'up' ? 2 : 1)) % 3; showFocus(); } });
+  let me = 0, op = 0;
   for (let r = 1; r <= 6; r++) {
     if (r === 6 && me !== op) break;
     ui.score.textContent = `${me} – ${op}`;
-    const plan = pick(keys), shown = rnd() < 0.75 ? plan : pick(keys.filter(k => k !== plan));
-    const k = await choose(`${r <= 5 ? `Scambio ${r} di 5` : 'Punto d’oro!'} · ${foe.nome} ${BJJ[shown].tell}…`, keys.map(x => ({ label: BJJ[x].n, sub: `${BJJ[x].p} punti` })), { cancel: false });
-    const mine = keys[k];
-    if (mine === plan) { sfx('bump'); await say(`Entrambi provano ${BJJ[mine].n.toLowerCase()}: stallo, nessun punto.`); }
-    else if (BJJ[mine].beats === plan) { me += BJJ[mine].p; sfx('hit'); await say(`Bruno ${BJJ_TXT[mine + '>' + plan]}! +${BJJ[mine].p} punti.`); }
-    else { op += BJJ[plan].p; sfx('bad'); await say(`${foe.nome} ${BJJ_TXT[plan + '>' + mine]}! +${BJJ[plan].p} per lui.`); }
+    setPose('stand'); banner = r <= 5 ? `Scambio ${r}` : 'Punto d’oro!';
+    const plan = pick0(keys), shown = rnd() < 0.85 ? plan : pick0(keys.filter(k => k !== plan));
+    ui.msg.textContent = `${foe.nome} ${BJJ[shown].tell}… Che contromossa fai?`;
+    btns.forEach(b => b.disabled = false);
+    const mine = await new Promise(res => { pick = res; });
+    pick = null; btns.forEach(b => b.disabled = true); banner = '';
+    sfx('hit');
+    if (mine === plan) { setPose('stallo', 'A'); ui.msg.textContent = `Entrambi provano ${BJJ[mine].n.toLowerCase()}: si finisce in guardia, nessun punto.`; sfx('bump'); }
+    else if (BJJ[mine].beats === plan) { me += BJJ[mine].p; setPose(mine, 'A'); banner = `+${BJJ[mine].p} Bruno`; ui.msg.textContent = `Bruno${BJJ_TXT[mine + '>' + plan].startsWith(',') ? '' : ' '}${BJJ_TXT[mine + '>' + plan]}!`; sfx('good'); }
+    else { op += BJJ[plan].p; setPose(plan, 'B'); banner = `+${BJJ[plan].p} ${foe.nome}`; ui.msg.textContent = `${foe.nome}${BJJ_TXT[plan + '>' + mine].startsWith(',') ? '' : ' '}${BJJ_TXT[plan + '>' + mine]}.`; sfx('bad'); }
     ui.score.textContent = `${me} – ${op}`;
+    await wait(2300);
   }
+  banner = '';
   const win = me > op;
-  ui.msg.textContent = win ? 'L’arbitro alza il braccio di Bruno!' : `Vince ${foe.nome} ai punti.`;
-  await wait(1100); mgClose(); return win;
+  setPose('stand'); ui.msg.textContent = win ? 'L’arbitro alza il braccio di Bruno!' : `Vince ${foe.nome} ai punti.`;
+  await wait(1300); off(); mgClose(); return win;
 }
+const pick0 = a => a[Math.floor(Math.random() * a.length)];
 
 // 6. FIFA: rigori con mirino e potenza
 async function mgFifa(foe) {
@@ -2003,7 +2127,7 @@ async function mgChirurgia(foe) {
   await wait(1000); off(); mgClose(); return win;
 }
 
-// 7. Poker (5 carte, un cambio)
+// 7. Poker (5 carte, un cambio) al tavolo verde
 const SUITS = ['♠', '♥', '♦', '♣'], RANKN = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
 const HANDN = ['Carta alta', 'Coppia', 'Doppia coppia', 'Tris', 'Scala', 'Colore', 'Full', 'Poker', 'Scala colore'];
 function evalHand(cs) {
@@ -2020,9 +2144,16 @@ function evalHand(cs) {
   return { cat, tb, name: HANDN[cat] };
 }
 function cmpHand(a, b) { if (a.cat !== b.cat) return a.cat - b.cat; for (let i = 0; i < Math.max(a.tb.length, b.tb.length); i++) { const d = (a.tb[i] || 0) - (b.tb[i] || 0); if (d) return d; } return 0; }
-function cardEl(c, back = false) {
+function cardEl(c, back = false, delay = 0) {
   const e = el('div', 'card2' + (back ? ' back' : (c.s === 1 || c.s === 2 ? ' red' : '')));
-  if (!back) { e.append(el('span', 'rk', RANKN[c.r] || String(c.r)), el('span', 'st', SUITS[c.s] + '︎')); }
+  e.style.animationDelay = delay + 'ms';
+  if (!back) {
+    const rk = RANKN[c.r] || String(c.r), su = SUITS[c.s] + '︎';
+    const tl = el('span', 'idx'); tl.append(el('b', null, rk), el('i', null, su));
+    const br = el('span', 'idx br'); br.append(el('b', null, rk), el('i', null, su));
+    e.append(tl, el('span', 'st', c.r > 10 ? (c.r === 14 ? su : rk) : su), br);
+    if (c.r >= 11 && c.r <= 13) e.classList.add('face');
+  }
   return e;
 }
 function aiKeep(hand) {
@@ -2033,22 +2164,32 @@ function aiKeep(hand) {
   for (let s = 0; s < 4; s++) if (hand.filter(c => c.s === s).length === 4) return hand.map(c => c.s === s);
   const hi = Math.max(...hand.map(c => c.r)); return hand.map(c => c.r === hi);
 }
+function chips(n, col) { const s = el('div', 'chips'); for (let i = 0; i < n; i++) { const c = el('span', 'chip-p'); c.style.background = col; c.style.bottom = (i * 4) + 'px'; s.append(c); } return s; }
 async function mgPoker(foe) {
-  const ui = mgOpen('Al meglio delle tre mani. Tocca le carte da cambiare, poi conferma', foe);
+  const ui = mgOpen('Poker al meglio delle tre mani: tocca le carte da cambiare (ti suggerisco io quali), poi «Cambia e vedi»', foe);
   let me = 0, op = 0, hand = 0;
   while (me < 2 && op < 2 && hand < 6) {
     hand++; ui.score.textContent = `${me} – ${op}`;
     const deck = []; for (let s = 0; s < 4; s++) for (let r = 2; r <= 14; r++) deck.push({ r, s }); shuffle(deck);
     let mine = deck.splice(0, 5), theirs = deck.splice(0, 5);
     ui.stage.innerHTML = '';
-    const oppRow = el('div', 'cards'), myRow = el('div', 'cards'), row = el('div', 'mg-row');
-    ui.stage.append(el('div', 'mg-msg', `${foe.nome}`), oppRow, el('div', 'mg-msg', 'Bruno'), myRow, row);
-    const renderOpp = (open) => { oppRow.innerHTML = ''; theirs.forEach(c => oppRow.append(cardEl(c, !open))); };
+    const felt = el('div', 'felt');
+    const seatO = el('div', 'seat'); seatO.append(bustCanvas(foe.look, 42), el('b', null, foe.nome), chips(6 - me * 2, '#e0533a'));
+    const oppRow = el('div', 'cards'), pot = el('div', 'pot'), myRow = el('div', 'cards');
+    pot.append(chips(4, '#2f5fae'), el('span', null, `Mano ${hand} · piatto`), chips(4, '#ffd23f'));
+    const seatM = el('div', 'seat'); seatM.append(bustCanvas(BRUNO.look, 42), el('b', null, 'Bruno'), chips(6 - op * 2, '#3fbf8f'));
+    felt.append(seatO, oppRow, pot, myRow, seatM);
+    const row = el('div', 'mg-row');
+    const legend = el('div', 'mg-msg', 'Carta alta < Coppia < Doppia coppia < Tris < Scala < Colore < Full < Poker < Scala colore');
+    legend.style.fontSize = '12px'; legend.style.opacity = '.75';
+    ui.stage.append(felt, row, legend);
+    const renderOpp = open => { oppRow.innerHTML = ''; theirs.forEach((c, i) => oppRow.append(cardEl(c, !open, open ? 0 : i * 80))); };
     renderOpp(false); sfx('card');
-    const sel = [false, false, false, false, false]; let focus = 0; let confirmed = null;
-    const renderMine = () => { myRow.innerHTML = ''; mine.forEach((c, i) => { const e = cardEl(c); if (sel[i]) e.classList.add('sel'); if (focus === i) e.classList.add('focus'); e.addEventListener('pointerdown', ev => { ev.preventDefault(); sel[i] = !sel[i]; focus = i; sfx('card'); renderMine(); }); myRow.append(e); }); };
-    renderMine();
-    ui.msg.textContent = `Mano ${hand}: hai ${evalHand(mine).name.toLowerCase()}.`;
+    const keepHint = aiKeep(mine), sel = keepHint.map(k => !k); let focus = 0, confirmed = null;
+    const renderMine = (deal = false) => { myRow.innerHTML = ''; mine.forEach((c, i) => { const e = cardEl(c, false, deal ? 400 + i * 80 : 0); if (!deal) e.style.animation = 'none'; if (sel[i]) e.classList.add('sel'); if (focus === i) e.classList.add('focus'); e.addEventListener('pointerdown', ev => { ev.preventDefault(); sel[i] = !sel[i]; focus = i; sfx('card'); renderMine(); }); myRow.append(e); }); };
+    renderMine(true);
+    const ev0 = evalHand(mine);
+    ui.msg.textContent = `Hai ${ev0.name.toLowerCase()}. ${sel.some(Boolean) ? 'Ti ho suggerito le carte da cambiare.' : 'Ottima mano: tienile tutte!'}`;
     const btn = mgButton(row, 'Cambia e vedi', () => { if (confirmed) confirmed(); }, 'big');
     const off = mgHandler({
       a() { if (focus === 5) { if (confirmed) confirmed(); } else { sel[focus] = !sel[focus]; sfx('card'); renderMine(); } },
@@ -2057,10 +2198,10 @@ async function mgPoker(foe) {
     });
     await new Promise(r => { confirmed = r; });
     off(); btn.disabled = true;
-    mine = mine.map((c, i) => sel[i] ? deck.shift() : c); sel.fill(false); focus = -1; renderMine(); sfx('card');
+    mine = mine.map((c, i) => sel[i] ? deck.shift() : c); sel.fill(false); focus = -1; renderMine(true); sfx('card');
     const keep = aiKeep(theirs), changed = keep.filter(k => !k).length;
     theirs = theirs.map((c, i) => keep[i] ? c : deck.shift());
-    await wait(500); renderOpp(true); sfx('card');
+    await wait(900); renderOpp(true); sfx('card');
     const a = evalHand(mine), b = evalHand(theirs), cmp = cmpHand(a, b);
     let line = `${foe.nome} cambia ${changed} cart${changed === 1 ? 'a' : 'e'}. Bruno: ${a.name.toLowerCase()} · ${foe.nome}: ${b.name.toLowerCase()}.`;
     if (cmp > 0) { me++; sfx('good'); line += ' Mano a Bruno!'; } else if (cmp < 0) { op++; sfx('bad'); line += ` Mano a ${foe.nome}.`; } else line += ' Parità: si rigioca.';
