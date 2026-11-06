@@ -45,8 +45,9 @@ Si apre con un doppio clic e funziona anche offline.
 
 ## Giocare e condividere
 
-- **App Android (APK):** [scarica cammino-di-bruno.apk](https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/download/apk/cammino-di-bruno.apk).
-  Si installa aprendo il file sul telefono (bisogna consentire l'installazione da origini sconosciute).
+- **App Android (APK):** [pagina di download](https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/tag/apk)
+  (link diretto: [cammino-di-bruno.apk](https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/download/apk/cammino-di-bruno.apk)).
+  Va aperto con Chrome sul telefono; poi si apre il file e si consente l'installazione da origini sconosciute.
   L'APK viene ricompilato da GitHub Actions a ogni modifica del gioco (`.github/workflows/apk.yml`, progetto in `android/`).
 - **Link web:** con GitHub Pages attivo (Settings → Pages → Deploy from a branch) il gioco è su
   `https://giorgiolepori-lgtm.github.io/raccoglifiori/cammino-di-bruno.html`.
