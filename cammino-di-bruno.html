@@ -113,6 +113,10 @@ body.mg #dialog { left: 50%; transform: translateX(-50%); width: min(720px, calc
 .sq { display: grid; place-items: center; font-size: min(8.4vw, 4.8vh, 40px); line-height: 1; position: relative; }
 .sq.l { background: #f0dcb4; } .sq.d { background: #b58863; }
 .sq.hi { box-shadow: inset 0 0 0 4px #3fbf8f; }
+.sq.lm { background-image: linear-gradient(rgba(255,210,63,.28), rgba(255,210,63,.28)); }
+.sq.tg::before { content: ""; position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(31,42,68,.35); }
+.sq.tgc { box-shadow: inset 0 0 0 4px rgba(224,83,58,.75); }
+.sq.chk { background-image: radial-gradient(circle, rgba(224,83,58,.85), rgba(224,83,58,0) 70%); }
 .sq.sel { box-shadow: inset 0 0 0 4px var(--sun); background-image: linear-gradient(rgba(255,210,63,.35), rgba(255,210,63,.35)); }
 .sq.cur::after { content: ""; position: absolute; inset: 3px; border: 3px dashed var(--ink); border-radius: 4px; }
 .sq { cursor: pointer; }
@@ -230,8 +234,8 @@ const SFIDE = { scacchi: 'Scacchi', braccio: 'Braccio di ferro', cucina: 'Cucina
 // Per cambiare chi fa cosa, modifica "who" (id in AMICI) e "sfida" (chiave in SFIDE).
 const TAPPE = [
   { zona: 'Maracalagonis', bar: 'Bar della Piazza', who: 'giorgio', sfida: 'scacchi', bg: 'paese',
-    intro: ['Se perdi ascoltiamo Stereo Love 365 volte.', 'Bruno! Prima di partire, una partita veloce?', 'Tre posizioni, matto in una mossa: ne devi trovare almeno due. Tocca il pezzo e poi la casa dove muoverlo.'],
-    win: 'Bell’occhio! Il latte e menta te lo sei meritato. Ci vediamo alla meta!', lose: 'Hai perso! Si parte: Stereo Love, ascolto 1 di 365…' },
+    intro: ['Se perdi ascoltiamo Stereo Love 365 volte.', 'Bruno! Prima di partire, una partita a scacchi. Quella vera.', 'Tu hai il Bianco: se mi dai scacco matto, il latte e menta è tuo.'],
+    win: 'Scacco matto a me… Bella partita! Il latte e menta te lo sei meritato. Ci vediamo alla meta!', lose: 'Hai perso! Si parte: Stereo Love, ascolto 1 di 365…' },
   { zona: 'Colline di Maracalagonis', bar: 'Bar del Bivio', who: 'davidino', sfida: 'braccio', bg: 'colline',
     intro: ['Pronto Frari?', 'Qui al Bivio si passa solo in un modo.', 'Braccio di ferro. Se vinci, il latte e menta lo offro io.'],
     win: 'Hai un braccio d’acciaio! Dev’essere lo zaino. Ci vediamo alla meta!', lose: 'Troppo morbido! Mangia un panino e riprova.' },
@@ -242,7 +246,7 @@ const TAPPE = [
     intro: ['Ho dovuto sfidarti telepaticamente, purtroppo.', 'E comunque cammini storto: hai pestato un riccio di mare!', 'Sfida di chirurgia: togli le tre spine dal piede senza toccare i bordi. Io ce l’ho fatta. Tu hai tre vite.'],
     win: 'Mani da chirurgo! Ci rivediamo a Torre delle Stelle per un incontro di jiu-jitsu.', lose: 'Bzzz! Il paziente si lamenta. Riprova, dottore!' },
   { zona: 'Geremeas · Marongiu', bar: 'Padel Bar Marongiu', who: 'josto', sfida: 'padel', bg: 'mare',
-    intro: ['Sei Bruno.', 'Ho prenotato il campo di padel dietro il bar.', 'Set corto: vince chi fa due giochi. Sul 40 pari si gioca il punto d’oro!'],
+    intro: ['Sei Bruno.', 'Ho prenotato il campo di padel dietro il bar.', 'Un solo gioco: 15, 30, 40 e gioco. Sul 40 pari si gioca il punto d’oro!'],
     win: 'Che bandeja! Ci vediamo alla meta.', lose: 'Ti ho chiuso a rete! Rivincita?' },
   { zona: 'Baccu Mandara', bar: 'Bar Baccu Mandara', who: 'edoardo', sfida: 'arrampicata', bg: 'mare',
     intro: ['Fra, sei il più strano. Sfidami!', 'Sì, sono ancora io. Stavolta niente fornelli.', 'Gara di arrampicata sul granito: chi arriva prima in cima vince.'],
@@ -1205,67 +1209,219 @@ function mkCanvas(stage, ratio, maxVh = 0.46) {
 function mgButton(row, label, fn, cls = '') { const b = el('button', 'mgbtn ' + cls, label); b.tabIndex = -1; b.addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); fn(); }); row.append(b); return b; }
 async function countdown(ui) { for (const s of ['3', '2', '1', 'Via!']) { ui.msg.textContent = s; sfx('tick'); await wait(600); } }
 
-// 1. Scacchi: matto in una mossa, muovendo i pezzi sulla scacchiera
-const PUZZLES = [
-  { fen: '6k1/5ppp/8/8/8/8/5PPP/R5K1', side: 'Bianco', ans: 'Ta8#', from: 'a1', to: 'a8', tip: 'Il re nero è chiuso dai suoi pedoni: la torre sull’ottava traversa è matto (matto del corridoio).' },
-  { fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR', side: 'Bianco', ans: 'Dxf7#', from: 'h5', to: 'f7', tip: 'Donna e alfiere attaccano f7: è il matto del barbiere.' },
-  { fen: 'rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR', side: 'Nero', ans: 'Dh4#', from: 'd8', to: 'h4', tip: 'Il re bianco è scoperto sulla diagonale e1-h4: è il matto dell’imbecille, il più veloce possibile.' },
-  { fen: '6k1/5ppp/8/8/8/8/8/3Q2K1', side: 'Bianco', ans: 'Dd8#', from: 'd1', to: 'd8', tip: 'Anche la donna può dare il matto del corridoio sull’ottava traversa.' },
-];
+// 1. Scacchi: una partita vera contro l'avversario (motore semplice integrato)
+const CH = (() => {
+  const VAL = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
+  const KN = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+  const KG = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+  const ORTH = [[-1, 0], [1, 0], [0, -1], [0, 1]], DIAG = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+  const inB = (r, f) => r >= 0 && r < 8 && f >= 0 && f < 8;
+  const col = p => p ? (p === p.toUpperCase() ? 'w' : 'b') : null;
+  const opp = c => c === 'w' ? 'b' : 'w';
+  function parse(fen) {
+    const [pos, turn, cast] = fen.split(' '), b = Array(64).fill(null); let i = 0;
+    for (const ch of pos) { if (ch === '/') continue; if (/\d/.test(ch)) i += +ch; else b[i++] = ch; }
+    return { b, turn, castle: { K: cast.includes('K'), Q: cast.includes('Q'), k: cast.includes('k'), q: cast.includes('q') }, ep: -1, half: 0 };
+  }
+  function attacked(b, sq, by) {
+    const r = sq >> 3, f = sq & 7;
+    const pr = by === 'w' ? r + 1 : r - 1, P = by === 'w' ? 'P' : 'p';
+    for (const df of [-1, 1]) if (inB(pr, f + df) && b[pr * 8 + f + df] === P) return true;
+    const N = by === 'w' ? 'N' : 'n', K = by === 'w' ? 'K' : 'k';
+    for (const [dr, df] of KN) if (inB(r + dr, f + df) && b[(r + dr) * 8 + f + df] === N) return true;
+    for (const [dr, df] of KG) if (inB(r + dr, f + df) && b[(r + dr) * 8 + f + df] === K) return true;
+    for (const [dirs, kinds] of [[ORTH, 'rq'], [DIAG, 'bq']]) for (const [dr, df] of dirs) {
+      let rr = r + dr, ff = f + df;
+      while (inB(rr, ff)) { const p = b[rr * 8 + ff]; if (p) { if (col(p) === by && kinds.includes(p.toLowerCase())) return true; break; } rr += dr; ff += df; }
+    }
+    return false;
+  }
+  const kingSq = (b, c) => b.indexOf(c === 'w' ? 'K' : 'k');
+  const inCheck = s => attacked(s.b, kingSq(s.b, s.turn), opp(s.turn));
+  function gen(s) {
+    const b = s.b, me = s.turn, ms = [];
+    for (let sq = 0; sq < 64; sq++) {
+      const p = b[sq]; if (!p || col(p) !== me) continue;
+      const r = sq >> 3, f = sq & 7, t = p.toLowerCase();
+      const add = (to, extra = {}) => ms.push({ from: sq, to, cap: b[to], ...extra });
+      if (t === 'p') {
+        const d = me === 'w' ? -1 : 1, start = me === 'w' ? 6 : 1, last = me === 'w' ? 0 : 7;
+        const one = (r + d) * 8 + f;
+        if (inB(r + d, f) && !b[one]) {
+          add(one, r + d === last ? { promo: true } : {});
+          const two = (r + 2 * d) * 8 + f;
+          if (r === start && !b[two]) add(two, { dbl: true });
+        }
+        for (const df of [-1, 1]) {
+          if (!inB(r + d, f + df)) continue;
+          const to = (r + d) * 8 + f + df;
+          if (b[to] && col(b[to]) !== me) add(to, r + d === last ? { promo: true } : {});
+          else if (to === s.ep) add(to, { epc: true, cap: me === 'w' ? 'p' : 'P' });
+        }
+      } else if (t === 'n' || t === 'k') {
+        for (const [dr, df] of (t === 'n' ? KN : KG)) { if (!inB(r + dr, f + df)) continue; const to = (r + dr) * 8 + f + df; if (!b[to] || col(b[to]) !== me) add(to); }
+        if (t === 'k') {
+          const o = opp(me), home = me === 'w' ? 60 : 4, cK = me === 'w' ? s.castle.K : s.castle.k, cQ = me === 'w' ? s.castle.Q : s.castle.q;
+          if (sq === home && !attacked(b, home, o)) {
+            if (cK && !b[home + 1] && !b[home + 2] && !attacked(b, home + 1, o) && !attacked(b, home + 2, o)) add(home + 2, { castle: 'K' });
+            if (cQ && !b[home - 1] && !b[home - 2] && !b[home - 3] && !attacked(b, home - 1, o) && !attacked(b, home - 2, o)) add(home - 2, { castle: 'Q' });
+          }
+        }
+      } else {
+        const dirs = t === 'r' ? ORTH : t === 'b' ? DIAG : ORTH.concat(DIAG);
+        for (const [dr, df] of dirs) {
+          let rr = r + dr, ff = f + df;
+          while (inB(rr, ff)) { const to = rr * 8 + ff; if (b[to]) { if (col(b[to]) !== me) add(to); break; } add(to); rr += dr; ff += df; }
+        }
+      }
+    }
+    return ms;
+  }
+  function make(s, m) {
+    const b = s.b.slice(), p = b[m.from], me = s.turn, castle = { ...s.castle };
+    b[m.to] = m.promo ? (me === 'w' ? 'Q' : 'q') : p; b[m.from] = null;
+    if (m.epc) b[(m.from & ~7) + (m.to & 7)] = null;
+    if (m.castle) { const home = me === 'w' ? 60 : 4; if (m.castle === 'K') { b[home + 1] = b[home + 3]; b[home + 3] = null; } else { b[home - 1] = b[home - 4]; b[home - 4] = null; } }
+    if (p === 'K') { castle.K = castle.Q = false; } if (p === 'k') { castle.k = castle.q = false; }
+    for (const [sq, k] of [[63, 'K'], [56, 'Q'], [7, 'k'], [0, 'q']]) if (m.from === sq || m.to === sq) castle[k] = false;
+    return { b, turn: opp(me), castle, ep: m.dbl ? (m.from + m.to) / 2 : -1, half: (p.toLowerCase() === 'p' || m.cap) ? 0 : s.half + 1 };
+  }
+  function legal(s) { return gen(s).filter(m => { const n = make(s, m); return !attacked(n.b, kingSq(n.b, s.turn), n.turn); }); }
+  function insufficient(b) {
+    const ps = b.filter(p => p && p.toLowerCase() !== 'k');
+    return ps.length === 0 || (ps.length === 1 && 'nb'.includes(ps[0].toLowerCase()));
+  }
+  function status(s) {
+    if (!legal(s).length) return inCheck(s) ? 'mate' : 'stalemate';
+    if (insufficient(s.b)) return 'insufficient';
+    if (s.half >= 100) return 'fifty';
+    return 'play';
+  }
+  function evalW(b) {
+    let e = 0;
+    for (let sq = 0; sq < 64; sq++) {
+      const p = b[sq]; if (!p) continue;
+      const t = p.toLowerCase(), w = p !== t, r = sq >> 3, f = sq & 7, rr = w ? r : 7 - r;
+      let v = VAL[t];
+      const center = 3.5 - Math.max(Math.abs(3.5 - r), Math.abs(3.5 - f));
+      if (t === 'p') v += (6 - rr) * 8 + (f >= 2 && f <= 5 ? (6 - rr) * 3 : 0);
+      else if (t === 'n' || t === 'b') v += center * 10 - (rr === 7 ? 12 : 0);
+      else if (t === 'q') v += center * 3;
+      else if (t === 'k') v += rr === 7 && (f <= 2 || f >= 6) ? 20 : 0;
+      e += w ? v : -v;
+    }
+    return e;
+  }
+  const evalSide = s => s.turn === 'w' ? evalW(s.b) : -evalW(s.b);
+  const order = ms => ms.sort((a, b) => (b.cap ? VAL[b.cap.toLowerCase()] * 10 : 0) + (b.promo ? 800 : 0) - (a.cap ? VAL[a.cap.toLowerCase()] * 10 : 0) - (a.promo ? 800 : 0));
+  function quiesce(s, alpha, beta, qd) {
+    const stand = evalSide(s); if (stand >= beta) return beta; if (stand > alpha) alpha = stand;
+    if (qd <= 0) return alpha;
+    for (const m of order(legal(s).filter(m => m.cap || m.promo))) {
+      const sc = -quiesce(make(s, m), -beta, -alpha, qd - 1);
+      if (sc >= beta) return beta; if (sc > alpha) alpha = sc;
+    }
+    return alpha;
+  }
+  function negamax(s, d, alpha, beta, ply, qd) {
+    const ms = legal(s);
+    if (!ms.length) return inCheck(s) ? -100000 + ply : 0;
+    if (d === 0) return quiesce(s, alpha, beta, qd);
+    for (const m of order(ms)) {
+      const sc = -negamax(make(s, m), d - 1, -beta, -alpha, ply + 1, qd);
+      if (sc >= beta) return beta; if (sc > alpha) alpha = sc;
+    }
+    return alpha;
+  }
+  function best(s, level) {
+    const depth = level === 0 ? 1 : 2, qd = level === 0 ? 1 : 3, noise = level === 0 ? 90 : 25;
+    let bestM = null, bs = -Infinity;
+    for (const m of order(legal(s))) {
+      const sc = -negamax(make(s, m), depth - 1, -Infinity, Infinity, 1, qd) + (Math.random() - 0.5) * noise * 2;
+      if (sc > bs) { bs = sc; bestM = m; }
+    }
+    return bestM;
+  }
+  return { parse, legal, make, status, inCheck, best, col };
+})();
 const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
-function fenMap(fen) {
-  const m = {}; fen.split('/').forEach((row, r) => { let f = 0; for (const ch of row) { if (/\d/.test(ch)) f += +ch; else { m['abcdefgh'[f] + (8 - r)] = ch; f++; } } }); return m;
-}
-function boardEl(fen, o = {}) {
-  const b = el('div', 'board'), map = fenMap(fen);
-  for (let r = 0; r < 8; r++) for (let f = 0; f < 8; f++) {
-    const name = 'abcdefgh'[f] + (8 - r), p = map[name];
+const sqName = sq => 'abcdefgh'[sq & 7] + (8 - (sq >> 3));
+function boardEl(b, o = {}) {
+  const el0 = el('div', 'board');
+  for (let sq = 0; sq < 64; sq++) {
+    const r = sq >> 3, f = sq & 7, p = b[sq];
     let cls = 'sq ' + ((r + f) % 2 ? 'd' : 'l');
-    if (o.hi && o.hi.includes(name)) cls += ' hi';
-    if (o.sel === name) cls += ' sel';
-    if (o.cur === name) cls += ' cur';
+    if (o.last && (o.last.from === sq || o.last.to === sq)) cls += ' lm';
+    if (o.sel === sq) cls += ' sel';
+    if (o.cur === sq) cls += ' cur';
+    if (o.targets && o.targets.includes(sq)) cls += p ? ' tgc' : ' tg';
+    if (o.check === sq) cls += ' chk';
     const s = el('div', cls);
     if (p) s.append(el('span', 'pc ' + (p === p.toUpperCase() ? 'w' : 'b'), GLYPH[p.toLowerCase()] + '︎'));
     if (f === 0) s.append(el('span', 'coord', String(8 - r)));
-    if (r === 7) { const cf = el('span', 'coord f', 'abcdefgh'[f]); s.append(cf); }
-    if (o.onTap) s.addEventListener('pointerdown', e => { e.preventDefault(); o.onTap(name); });
-    b.append(s);
+    if (r === 7) s.append(el('span', 'coord f', 'abcdefgh'[f]));
+    if (o.onTap) s.addEventListener('pointerdown', e => { e.preventDefault(); o.onTap(sq); });
+    el0.append(s);
   }
-  return b;
+  return el0;
 }
 async function mgScacchi(foe) {
-  const ui = mgOpen('Matto in una mossa: tocca il pezzo e poi la casa dove muoverlo', foe);
-  const set = shuffle(PUZZLES.slice()).slice(0, 3); let pts = 0, n = 0;
-  ui.score.textContent = '0 – 0';
-  for (const pz of set) {
-    const map = fenMap(pz.fen), own = p => p && (pz.side === 'Bianco' ? p === p.toUpperCase() : p === p.toLowerCase());
-    ui.msg.textContent = `Puzzle ${n + 1} di 3 · muove il ${pz.side}. Trova lo scacco matto!`;
-    const mv = await new Promise(resolve => {
-      let sel = null, cur = null, kc = [6, 4];
-      const render = () => { ui.stage.innerHTML = ''; ui.stage.append(boardEl(pz.fen, { sel, cur, onTap: tap })); };
-      function tap(name) {
-        if (!sel) { if (own(map[name])) { sel = name; sfx('select'); } else sfx('bump'); }
-        else if (name === sel) sel = null;
-        else if (own(map[name])) { sel = name; sfx('select'); }
-        else { off(); resolve({ from: sel, to: name }); return; }
-        render();
-      }
-      const off = mgHandler({
-        a() { cur = 'abcdefgh'[kc[1]] + (8 - kc[0]); tap(cur); },
-        b() { sel = null; render(); },
-        dir(d) { if (d === 'up') kc[0] = Math.max(0, kc[0] - 1); if (d === 'down') kc[0] = Math.min(7, kc[0] + 1); if (d === 'left') kc[1] = Math.max(0, kc[1] - 1); if (d === 'right') kc[1] = Math.min(7, kc[1] + 1); cur = 'abcdefgh'[kc[1]] + (8 - kc[0]); sfx('blip'); render(); },
-      });
-      render();
-    });
-    n++;
-    const right = mv.from === pz.from && mv.to === pz.to;
-    ui.stage.innerHTML = ''; ui.stage.append(boardEl(pz.fen, { hi: [pz.from, pz.to] }));
-    if (right) { pts++; sfx('good'); await say(`Esatto: ${pz.ans}, scacco matto! ${pz.tip}`); }
-    else { sfx('bad'); await say(`Non è matto. La mossa giusta era ${pz.ans} (da ${pz.from} a ${pz.to}). ${pz.tip}`); }
-    ui.score.textContent = `${pts} – ${n - pts}`;
-    if (pts >= 2 || n - pts >= 2) break;
+  const lvl = await choose(`${foe.nome}: come vuoi giocare?`, [{ label: 'Facile', sub: `${foe.nome} gioca rilassato` }, { label: 'Normale', sub: `${foe.nome} fa sul serio` }], { cancel: false });
+  const ui = mgOpen('Partita a scacchi: tu hai il Bianco. Tocca un pezzo, poi una casa evidenziata', foe);
+  let s = CH.parse('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'), sel = null, last = null, cur = null, kc = [6, 4], thinking = false, over = false, moves = 0, legal = CH.legal(s), done;
+  const boardWrap = el('div'), row = el('div', 'mg-row');
+  ui.stage.append(boardWrap, row);
+  mgButton(row, 'Abbandona', async () => {
+    if (over || thinking) return;
+    const c = await choose('Vuoi abbandonare la partita?', [{ label: 'Sì, abbandono' }, { label: 'No, continuo' }], { cancel: false });
+    if (c === 0) finish('resign');
+  });
+  function render() {
+    const targets = sel != null ? legal.filter(m => m.from === sel).map(m => m.to) : [];
+    const check = CH.inCheck(s) ? s.b.indexOf(s.turn === 'w' ? 'K' : 'k') : null;
+    boardWrap.innerHTML = ''; boardWrap.append(boardEl(s.b, { sel, last, cur, targets, check, onTap: tap }));
+    ui.score.textContent = `Mossa ${Math.floor(moves / 2) + 1}`;
   }
-  mgClose(); return pts >= 2;
+  function tap(sq) {
+    if (over || thinking || s.turn !== 'w') return;
+    if (sel != null) { const m = legal.find(x => x.from === sel && x.to === sq); if (m) return play(m); }
+    if (s.b[sq] && CH.col(s.b[sq]) === 'w') { sel = sel === sq ? null : sq; sfx('select'); } else { sel = null; if (s.b[sq]) sfx('bump'); }
+    render();
+  }
+  function after() {
+    legal = CH.legal(s); moves++;
+    const st = CH.status(s);
+    if (st === 'mate') return finish(s.turn === 'b' ? 'win' : 'lose');
+    if (st !== 'play') return finish('draw', st);
+    ui.msg.textContent = CH.inCheck(s) ? (s.turn === 'w' ? 'Scacco! Proteggi il re.' : 'Scacco al re nero!') : (s.turn === 'w' ? 'Tocca a te.' : `${foe.nome} pensa…`);
+    return true;
+  }
+  function play(m) {
+    s = CH.make(s, m); last = m; sel = null; sfx(m.cap ? 'hit' : 'card');
+    if (m.promo) ui.msg.textContent = 'Promozione a donna!';
+    render(); if (after() !== true) return;
+    thinking = true;
+    setTimeout(() => {
+      const am = CH.best(s, lvl); s = CH.make(s, am); last = am; thinking = false; sfx(am.cap ? 'hit' : 'tap');
+      render(); after();
+    }, 450);
+  }
+  function finish(r, why) { if (over) return; over = true; render(); done({ r, why }); }
+  const off = mgHandler({
+    a() { cur = kc[0] * 8 + kc[1]; tap(cur); },
+    b() { sel = null; render(); },
+    dir(d) { if (d === 'up') kc[0] = Math.max(0, kc[0] - 1); if (d === 'down') kc[0] = Math.min(7, kc[0] + 1); if (d === 'left') kc[1] = Math.max(0, kc[1] - 1); if (d === 'right') kc[1] = Math.min(7, kc[1] + 1); cur = kc[0] * 8 + kc[1]; sfx('blip'); render(); },
+  });
+  ui.msg.textContent = 'Tocca a te: muovi un pezzo bianco.';
+  render();
+  const res = await new Promise(r => { done = r; });
+  off();
+  const WHY = { stalemate: 'stallo', insufficient: 'materiale insufficiente', fifty: 'regola delle 50 mosse' };
+  if (res.r === 'win') { sfx('good'); await say(`Scacco matto! Bruno batte ${foe.nome}.`); }
+  else if (res.r === 'lose') { sfx('bad'); await say(`Scacco matto… ${foe.nome} vince la partita.`); }
+  else if (res.r === 'resign') await say('Bruno abbandona la partita.');
+  else await say(`Patta per ${WHY[res.why] || 'stallo'}. Per il latte e menta serve una vittoria!`);
+  mgClose(); return res.r === 'win';
 }
 
 // 2. Braccio di ferro
@@ -1520,9 +1676,9 @@ async function mgFifa(foe) {
 
 // 8. Padel: un set corto, vince chi fa due giochi (punto d'oro sul 40 pari)
 async function mgPadel(foe) {
-  const ui = mgOpen('Padel: muoviti con ◀ ▶ o trascinando il dito sul campo. Rimbalzo sul vetro? Hai una seconda occasione!', foe);
+  const ui = mgOpen('Padel, un solo gioco: chi arriva prima a 4 punti vince. Muoviti con ◀ ▶ o trascinando il dito; se la palla rimbalza sul vetro hai una seconda occasione', foe);
   const cv2 = mkCanvas(ui.stage, 1.15, 0.56), row = el('div', 'mg-row'); ui.stage.append(row);
-  const PL = 0.86, OL = 0.14, REACH = 0.12;
+  const PL = 0.86, OL = 0.14, REACH = 0.16;
   const st = { px: 0.5, ox: 0.5, b: { x: 0.5, y: 0.5, vx: 0, vy: 0 }, speed: 0.6, glass: false, last: 'me', run: false, server: 'me', pts: [0, 0], games: [0, 0], wait: 0, over: false, target: null, hold: 0, err: 0, end: null, flash: '' };
   const L = mgButton(row, '◀', () => {}), R = mgButton(row, '▶', () => {});
   for (const [b, v] of [[L, -1], [R, 1]]) {
@@ -1535,31 +1691,31 @@ async function mgPadel(foe) {
   cv2.cvs.addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') st.target = toCourtX(e); });
   const off = mgHandler({ a() {}, b() {}, dir() {} });
   const LBL = ['0', '15', '30', '40'];
-  const scoreTxt = () => { const [a, b] = st.pts; const p = (a === 3 && b === 3) ? 'Punto d’oro' : `${LBL[Math.min(a, 3)]}–${LBL[Math.min(b, 3)]}`; ui.score.textContent = `${st.games[0]}–${st.games[1]} · ${p}`; };
+  const scoreTxt = () => { const [a, b] = st.pts; ui.score.textContent = (a === 3 && b === 3) ? 'Punto d’oro!' : `${LBL[Math.min(a, 3)]} – ${LBL[Math.min(b, 3)]}`; };
   function serve() {
     const me = st.server === 'me';
     st.b.x = me ? st.px : st.ox; st.b.y = me ? PL - 0.02 : OL + 0.02;
-    const ang = (rnd() - 0.5) * 0.6; st.speed = 0.6;
+    const ang = (rnd() - 0.5) * 0.5; st.speed = 0.5;
     st.b.vx = Math.sin(ang) * st.speed; st.b.vy = (me ? -1 : 1) * Math.cos(ang) * st.speed;
     st.glass = false; st.last = st.server; st.run = true; st.flash = '';
-    st.err = (rnd() - 0.5) * 0.16; sfx('tap');
+    st.err = (rnd() - 0.5) * 0.24; sfx('tap');
   }
   function hit(side) {
     const p = side === 'me' ? st.px : st.ox, off2 = clamp((st.b.x - p) / REACH, -1, 1);
-    st.speed = Math.min(1.15, st.speed * 1.06);
+    st.speed = Math.min(0.9, st.speed * 1.04);
     const ang = off2 * 0.6 + (rnd() - 0.5) * 0.3;
     st.b.vx = Math.sin(ang) * st.speed; st.b.vy = (side === 'me' ? -1 : 1) * Math.cos(ang) * st.speed;
     st.b.y = side === 'me' ? PL - 0.005 : OL + 0.005;
     st.glass = false; st.last = side; sfx('tap');
-    if (side === 'me') st.err = (rnd() - 0.5) * (0.12 + st.speed * 0.12);
+    if (side === 'me') st.err = (rnd() - 0.5) * (0.2 + st.speed * 0.15);
   }
   function point(w) {
     st.run = false; const k = w === 'me' ? 0 : 1; st.pts[k]++;
     st.flash = w === 'me' ? 'Punto Bruno!' : `Punto ${foe.nome}!`; sfx(w === 'me' ? 'good' : 'bad');
     if (st.pts[k] >= 4) {
-      st.games[k]++; st.pts = [0, 0]; st.server = st.server === 'me' ? 'op' : 'me';
       st.flash = w === 'me' ? 'Gioco Bruno!' : `Gioco ${foe.nome}!`;
-      if (st.games[k] >= 2) { st.over = true; scoreTxt(); setTimeout(() => st.end(w === 'me'), 1300); return; }
+      st.over = true; ui.score.textContent = w === 'me' ? 'Gioco Bruno' : `Gioco ${foe.nome}`;
+      setTimeout(() => st.end(w === 'me'), 1300); return;
     }
     scoreTxt(); st.wait = 1.2;
   }
@@ -1571,7 +1727,7 @@ async function mgPadel(foe) {
       if (!dir && st.target != null) { const d = st.target - st.px; dir = Math.abs(d) < 0.01 ? 0 : Math.sign(d); }
       st.px = clamp(st.px + dir * 0.95 * dt, 0.06, 0.94);
       const aiT = st.b.vy < 0 ? st.b.x + st.err : 0.5;
-      const dd = aiT - st.ox; st.ox = clamp(st.ox + Math.sign(dd) * Math.min(Math.abs(dd), 0.58 * dt), 0.06, 0.94);
+      const dd = aiT - st.ox; st.ox = clamp(st.ox + Math.sign(dd) * Math.min(Math.abs(dd), 0.5 * dt), 0.06, 0.94);
       if (!st.run) return;
       const steps = 4;
       for (let i = 0; i < steps && st.run; i++) {
@@ -1587,7 +1743,7 @@ async function mgPadel(foe) {
         if (y >= 0.99) { if (!st.glass && st.last === 'op') { st.glass = true; st.b.y = 0.99; st.b.vy = -Math.abs(st.b.vy) * 0.5; st.flash = 'Vetro!'; } else { point('op'); break; } }
         // lato avversario
         if ((py > OL && y <= OL) || (py < OL && y >= OL)) {
-          if (Math.abs(st.b.x - st.ox) < REACH * 0.92) { hit('op'); continue; }
+          if (Math.abs(st.b.x - st.ox) < REACH * 0.78) { hit('op'); continue; }
           if (py < OL) { point('me'); break; }
         }
         if (y <= 0.01) { if (!st.glass && st.last === 'me') { st.glass = true; st.b.y = 0.01; st.b.vy = Math.abs(st.b.vy) * 0.5; } else { point('me'); break; } }
@@ -1618,7 +1774,7 @@ async function mgPadel(foe) {
   await countdown(ui); ui.msg.textContent = 'Si gioca! Batte Bruno.';
   serve();
   const res = await new Promise(r => { st.end = r; });
-  ui.msg.textContent = res ? 'Set Bruno! Che partita.' : `Set ${foe.nome}.`;
+  ui.msg.textContent = res ? 'Gioco Bruno! Che partita.' : `Gioco ${foe.nome}.`;
   await wait(800); off(); mgClose(); return res;
 }
 
@@ -1863,7 +2019,7 @@ function frame(ts) {
 }
 showTitle();
 requestAnimationFrame(frame);
-window.__bruno = { get G() { return G; }, get mode() { return mode; }, get busy() { return busy; }, P, M, NPCS: () => NPCS, duel, run, MINIGAMES, zoneOf, TAPPE, PUZZLES, SURG, fenMap };
+window.__bruno = { get G() { return G; }, get mode() { return mode; }, get busy() { return busy; }, P, M, NPCS: () => NPCS, duel, run, MINIGAMES, zoneOf, TAPPE, SURG, CH };
 </script>
 </body>
 </html>
