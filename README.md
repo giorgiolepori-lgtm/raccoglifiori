@@ -23,3 +23,19 @@ Apri `index.html` in un browser moderno (serve la connessione per caricare Three
 
 `raccogli-fiori.html` è lo stesso gioco in un unico file, con Three.js già incluso:
 si apre con un doppio clic e funziona anche offline (senza rete usa i font di sistema).
+
+# Il Cammino di Bruno
+
+`cammino-di-bruno.html` è un gioco in stile avventura a quadretti: Bruno, con uno zaino da 10 kg,
+si allena per il Cammino di Santiago andando a piedi da Maracalagonis a Porto Sa Ruxi (Villasimius).
+Si apre con un doppio clic e funziona anche offline.
+
+- Il percorso segue le tappe reali: Maracalagonis → colline → Mari Pintau → Geremeas → Torre delle Stelle → Solanas → Porto Sa Ruxi, lungo la litoranea SP17.
+- In ogni zona c'è un bar: per proseguire Bruno deve bere un latte e menta, ma davanti al bar un amico lo sfida.
+- Sfide: scacchi (matto in una mossa), braccio di ferro, cucina, arrampicata, brazilian jiu-jitsu, FIFA (rigori) e, alla meta, poker contro tutta la banda.
+- Camminare consuma energia (lo zaino pesa!): fontanelle e latte e menta la ricaricano.
+- I nomi degli amici si cambiano nella lista `AMICI` all'inizio dello script.
+
+# Petalini
+
+`petalini.html`: piccolo gioco di cattura e lotta a turni con creature originali nate dai fiori.
