@@ -113,6 +113,10 @@ body.mg #dialog { left: 50%; transform: translateX(-50%); width: min(720px, calc
 .sq { display: grid; place-items: center; font-size: min(8.4vw, 4.8vh, 40px); line-height: 1; position: relative; }
 .sq.l { background: #f0dcb4; } .sq.d { background: #b58863; }
 .sq.hi { box-shadow: inset 0 0 0 4px #3fbf8f; }
+.sq.sel { box-shadow: inset 0 0 0 4px var(--sun); background-image: linear-gradient(rgba(255,210,63,.35), rgba(255,210,63,.35)); }
+.sq.cur::after { content: ""; position: absolute; inset: 3px; border: 3px dashed var(--ink); border-radius: 4px; }
+.sq { cursor: pointer; }
+.coord.f { left: auto; right: 2px; }
 .pc { font-family: "Segoe UI Symbol", "DejaVu Sans", "Noto Sans Symbols 2", serif; }
 .pc.w { color: #fff; text-shadow: 0 0 2px #000, 0 0 1px #000, 1px 1px 0 #000; }
 .pc.b { color: #1a1a1a; }
@@ -172,7 +176,7 @@ body.touch[data-mode="world"] #pad { display: block; }
 <div id="hud" hidden>
   <div class="hud-l">
     <div id="goal"><small id="goalTag">Tappa</small><span id="goalText"></span></div>
-    <div class="meter"><span class="lbl">Energia</span><span class="ebar"><i id="ebar"></i></span><span class="cups" id="cups">0/7</span></div>
+    <div class="meter"><span class="lbl">Energia</span><span class="ebar"><i id="ebar"></i></span><span class="cups" id="cups">0/9</span></div>
   </div>
   <div class="hud-btns">
     <button class="hudbtn" id="btnSound" aria-label="Suono">♪</button>
@@ -211,32 +215,49 @@ body.touch[data-mode="world"] #pad { display: block; }
    >>> Per cambiare i nomi degli amici modifica la lista AMICI qui sotto. <<<
    ===================================================================== */
 const AMICI = [
-  { id: 'riccio', nome: 'Il Riccio', sfida: 'scacchi',
-    look: { skin: '#e2b08c', hair: '#1c1410', hairStyle: 'curly', beard: true, top: '#b8bcc4', topKind: 'tee', shorts: '#3a3c48' } },
-  { id: 'canotta', nome: 'Canotta', sfida: 'braccio',
-    look: { skin: '#d9a07a', hair: '#1c1410', hairStyle: 'short', beard: true, top: '#f1eee4', topKind: 'tank', shorts: '#2e3a5a' } },
-  { id: 'baffo', nome: 'Il Baffo', sfida: 'cucina',
-    look: { skin: '#c98d68', hair: '#1c1410', hairStyle: 'curly', mustache: true, shades: true, top: null, shorts: '#23232b' } },
-  { id: 'spilungone', nome: 'Lo Spilungone', sfida: 'arrampicata',
-    look: { skin: '#e6b897', hair: '#2a1d16', hairStyle: 'short', top: null, shorts: '#1c1c22', tall: true } },
-  { id: 'barbuto', nome: 'Il Barbuto', sfida: 'bjj',
-    look: { skin: '#d9a07a', hair: '#2a1d16', hairStyle: 'short', beard: true, top: null, shorts: '#202028', pattern: true } },
-  { id: 'verde', nome: 'Verde Acqua', sfida: 'fifa',
-    look: { skin: '#c98d68', hair: '#1c1410', hairStyle: 'curly', beard: true, top: null, shorts: '#2bb3a0' } },
+  { id: 'giorgio', nome: 'Giorgio', look: { skin: '#e6b897', hair: '#1c1410', hairStyle: 'fringe', earrings: true, top: '#b08a5a', topKind: 'tee', shorts: '#2a2a33' } },
+  { id: 'davidino', nome: 'Davidino', look: { skin: '#e2b08c', hair: '#1c1410', hairStyle: 'short', beard: true, top: '#8a918a', topKind: 'tee', shorts: '#33363f' } },
+  { id: 'edoardo', nome: 'Edoardo', look: { skin: '#d9a07a', hair: '#1c1410', hairStyle: 'quiff', mustache: true, goatee: true, earrings: true, smile: true, top: '#7a2633', topKind: 'tee', shorts: '#3a4a6a' } },
+  { id: 'pet', nome: 'Pet', look: { skin: '#c98d68', hair: '#1c1410', hairStyle: 'short', beard: true, beardFull: true, cap: '#1f4a35', top: '#c8742e', topKind: 'tee', pattern2: true, collar: true, shorts: '#2a2a33' } },
+  { id: 'josto', nome: 'JOSTO', look: { skin: '#d9a07a', hair: '#1c1410', hairStyle: 'short', beard: true, glasses: true, top: '#18181c', topKind: 'tee', print: true, shorts: '#6a8ec0' } },
+  { id: 'zonco', nome: 'Zonco', look: { skin: '#e2b08c', hair: '#1c1410', hairStyle: 'curly', mustache: true, smile: true, top: '#c8202e', topKind: 'tee', shorts: '#22222a' } },
+  { id: 'alex', nome: 'Alex', look: { skin: '#d9a07a', hair: '#1c1410', hairStyle: 'short', beard: true, smile: true, top: '#f2f1ea', topKind: 'tee', stripes2: true, collar: true, shorts: '#2e3a5a' } },
 ];
 const BRUNO = { nome: 'Bruno', look: { skin: '#c98d68', hair: '#1c1410', hairStyle: 'curly', beard: true, hat: true, top: '#1f3554', topKind: 'tank', shorts: '#16161c', stripes: true, necklace: true, backpack: true, smile: true } };
-const SFIDE = { scacchi: 'Scacchi', braccio: 'Braccio di ferro', cucina: 'Cucina', arrampicata: 'Arrampicata', bjj: 'Brazilian jiu-jitsu', fifa: 'FIFA sulla Play', poker: 'Poker' };
+const SFIDE = { scacchi: 'Scacchi', braccio: 'Braccio di ferro', cucina: 'Cucina', chirurgia: 'Chirurgia', padel: 'Padel', arrampicata: 'Arrampicata', bjj: 'Brazilian jiu-jitsu', fifa: 'FIFA sulla Play', poker: 'Poker' };
 
-// Tappe lungo il percorso reale: Maracalagonis → colline → litoranea SP17 → Porto Sa Ruxi.
+// Nove tappe lungo il percorso reale: Maracalagonis → colline → litoranea SP17 → Porto Sa Ruxi.
+// Per cambiare chi fa cosa, modifica "who" (id in AMICI) e "sfida" (chiave in SFIDE).
 const TAPPE = [
-  { zona: 'Maracalagonis', bar: 'Bar della Piazza', who: 'riccio', door: [16, 12], bg: 'paese' },
-  { zona: 'Colline di Maracalagonis', bar: 'Bar del Bivio', who: 'canotta', door: [25, 23], bg: 'colline' },
-  { zona: 'Mari Pintau', bar: 'Chiosco Mari Pintau', who: 'baffo', door: [18, 32], bg: 'mare' },
-  { zona: 'Geremeas', bar: 'Bar Geremeas', who: 'spilungone', door: [29, 32], bg: 'mare' },
-  { zona: 'Torre delle Stelle', bar: 'Bar della Torre', who: 'barbuto', door: [40, 32], bg: 'mare' },
-  { zona: 'Solanas', bar: 'Chiosco Solanas', who: 'verde', door: [52, 32], bg: 'mare' },
-  { zona: 'Porto Sa Ruxi', bar: 'Chiosco Porto Sa Ruxi', who: 'banda', door: [64, 32], bg: 'mare' },
+  { zona: 'Maracalagonis', bar: 'Bar della Piazza', who: 'giorgio', sfida: 'scacchi', bg: 'paese',
+    intro: ['Bruno! Prima di partire, una partita veloce?', 'Tre posizioni, matto in una mossa: ne devi trovare almeno due. Tocca il pezzo e poi la casa dove muoverlo.'],
+    win: 'Bell’occhio! Il latte e menta te lo sei meritato. Ci vediamo alla meta!', lose: 'Torna quando avrai studiato un po’ di finali!' },
+  { zona: 'Colline di Maracalagonis', bar: 'Bar del Bivio', who: 'davidino', sfida: 'braccio', bg: 'colline',
+    intro: ['Ehi, pellegrino! Qui al Bivio si passa solo in un modo.', 'Braccio di ferro. Se vinci, il latte e menta lo offro io.'],
+    win: 'Hai un braccio d’acciaio! Dev’essere lo zaino. Ci vediamo alla meta!', lose: 'Troppo morbido! Mangia un panino e riprova.' },
+  { zona: 'Kal’e Moru', bar: 'Chiosco Kal’e Moru', who: 'edoardo', sfida: 'cucina', bg: 'mare',
+    intro: ['Fermo lì! Al chiosco di Kal’e Moru si cucina, mica si beve e basta.', 'Sfida di cucina: malloreddus alla campidanese. Vediamo chi fa il piatto migliore!'],
+    win: 'Mi inchino, chef Bruno. Ci rivediamo più avanti: ho un’altra sfida per te!', lose: 'Il mio sugo è imbattibile. Riprova, chef!' },
+  { zona: 'Mari Pintau', bar: 'Chiosco Mari Pintau', who: 'pet', sfida: 'chirurgia', bg: 'mare',
+    intro: ['Bruno, cammini storto: hai pestato un riccio di mare!', 'Sfida di chirurgia: togli le tre spine dal piede senza toccare i bordi. Io ce l’ho fatta. Tu hai tre vite.'],
+    win: 'Mani da chirurgo! Ci rivediamo a Torre delle Stelle per un incontro di jiu-jitsu.', lose: 'Bzzz! Il paziente si lamenta. Riprova, dottore!' },
+  { zona: 'Geremeas · Marongiu', bar: 'Padel Bar Marongiu', who: 'josto', sfida: 'padel', bg: 'mare',
+    intro: ['Ho prenotato il campo di padel dietro il bar.', 'Set corto: vince chi fa due giochi. Sul 40 pari si gioca il punto d’oro!'],
+    win: 'Che bandeja! Ci vediamo alla meta.', lose: 'Ti ho chiuso a rete! Rivincita?' },
+  { zona: 'Baccu Mandara', bar: 'Bar Baccu Mandara', who: 'edoardo', sfida: 'arrampicata', bg: 'mare',
+    intro: ['Eccomi di nuovo! Stavolta niente fornelli.', 'Gara di arrampicata sul granito: chi arriva prima in cima vince.'],
+    win: 'Sei salito come uno stambecco! Ci vediamo a Porto Sa Ruxi.', lose: 'Sei rimasto a metà parete! Riprova.' },
+  { zona: 'Torre delle Stelle', bar: 'Bar della Torre', who: 'pet', sfida: 'bjj', bg: 'mare',
+    intro: ['Ossu! Il piede è guarito? Bene, perché adesso si lotta.', 'Brazilian jiu-jitsu: cinque scambi, vince chi fa più punti. Guarda bene cosa sto per fare!'],
+    win: 'Tap, tap! Mi arrendo. Ci vediamo alla meta, ossu!', lose: 'Ossu. Respira e riprova.' },
+  { zona: 'Solanas', bar: 'Chiosco Solanas', who: 'zonco', sfida: 'fifa', bg: 'mare',
+    intro: ['Volevo parlare di… rigori!', 'Ho la Play collegata al maxischermo del chiosco. Cinque rigori a testa.'],
+    win: 'Rigori da campione. Ti aspetto a Porto Sa Ruxi!', lose: 'Ho vinto io! Rivincita?' },
+  { zona: 'Porto Sa Ruxi', bar: 'Chiosco Porto Sa Ruxi', who: 'alex', sfida: 'poker', bg: 'mare',
+    intro: ['Pensavi di arrivare alla meta senza passare da me?', 'Ultima sfida: poker. Al meglio delle tre mani, e gli altri guardano!'],
+    win: 'Va bene, va bene: hai vinto tu. Offro io l’ultimo latte e menta!', lose: 'Il banco vince sempre… a meno che tu non riprovi.' },
 ];
+const NT = TAPPE.length;
 const amico = id => AMICI.find(a => a.id === id);
 
 // ---------- Utilità ----------
@@ -252,13 +273,26 @@ const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls)
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 // ---------- Mappa ----------
-const MW = 74, MH = 50;
+const MW = 98, MH = 50;
+const CS = [2, 22, 34, 46, 58, 70, 82]; // inizio delle zone costiere (tappe 3-9)
 const M = Array.from({ length: MH }, () => Array(MW).fill('T'));
 function rect(x, y, w, h, c) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) if (j >= 0 && j < MH && i >= 0 && i < MW) M[j][i] = c; }
 function seg(x1, y1, x2, y2, c) { rect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1) + 2, Math.abs(y2 - y1) + 2, c); }
 const HOUSES = [];
 function house(x, y, w, h, door, kind, extra = {}) { HOUSES.push({ x, y, w, h, door, kind, ...extra }); }
 const COAST = [];
+const TOWER = [67, 41];
+const SIGNS = {
+  '11,6': 'Maracalagonis. Bruno parte da qui: obiettivo Porto Sa Ruxi, a piedi, con lo zaino da 10 kg.',
+  '14,14': '↓ Sentiero per le colline e per il mare. Bar del Bivio più avanti.',
+  '16,33': '← Cagliari · Litoranea SP17 · Villasimius →  Spiaggia di Kal’e Moru.',
+  '22,33': 'Mari Pintau: la caletta dietro il promontorio di Bruncu de su Monte Moru.',
+  '34,33': 'Geremeas · spiaggia di Marongiu. Campo da padel dietro il bar.',
+  '47,33': 'Riu Geremeas. Di là dal ponte: spiaggia di Baccu Mandara.',
+  '58,33': 'Torre delle Stelle. Sul promontorio, la torre che guarda il mare.',
+  '70,33': 'Solanas. Penultima tappa!',
+  '82,33': 'Porto Sa Ruxi: tre calette di granito, la prima baia prima di Capo Boi. La meta!',
+};
 (function buildMap() {
   // Maracalagonis
   rect(2, 2, 23, 13, '.');
@@ -273,68 +307,70 @@ const COAST = [];
   }
   seg(12, 14, 12, 18, '='); seg(12, 18, 22, 18, '='); seg(22, 18, 22, 27, '='); seg(14, 27, 22, 27, '='); seg(14, 27, 14, 33, '=');
   rect(24, 24, 2, 1, '=');
-  for (const [x, y] of [[7, 20], [9, 21], [8, 23], [10, 24], [8, 20], [9, 22]]) M[y][x] = '.';
   rect(16, 22, 4, 3, '.'); rect(26, 25, 3, 3, '.');
+  for (const [x, y] of [[7, 20], [9, 21], [8, 23], [10, 24], [8, 20], [9, 22]]) M[y][x] = '.';
   // Costa
-  rect(2, 30, 70, 4, '.');
-  for (let y = 30; y <= 31; y++) for (let x = 2; x <= 71; x++) { const h = hash(x * 5, y * 11); if (h < 0.18) M[y][x] = 'b'; else if (h < 0.26) M[y][x] = 'T'; }
+  rect(2, 30, MW - 4, 4, '.');
+  for (let y = 30; y <= 31; y++) for (let x = 2; x <= MW - 3; x++) { const h = hash(x * 5, y * 11); if (h < 0.18) M[y][x] = 'b'; else if (h < 0.26) M[y][x] = 'T'; }
   seg(14, 28, 14, 33, '=');
-  rect(2, 34, 70, 2, 'a');
+  rect(2, 34, MW - 4, 2, 'a');
   for (let x = 0; x < MW; x++) {
     let c = 39 + Math.round(1.4 * Math.sin(x * 0.35) + 1.1 * Math.sin(x * 0.13));
-    if (x >= 60) c += 1;
+    if (x >= 82) c += 1;
     COAST[x] = c;
-    if (x < 2 || x > 71) { for (let y = 36; y < MH; y++) M[y][x] = '~'; continue; }
+    if (x < 2 || x > MW - 3) { for (let y = 36; y < MH; y++) M[y][x] = '~'; continue; }
     M[36][x] = '.';
     for (let y = 37; y <= c; y++) M[y][x] = 's';
     for (let y = c + 1; y < MH; y++) M[y][x] = '~';
   }
+  // Promontorio di Bruncu de su Monte Moru tra Kal'e Moru e Mari Pintau
+  for (let x = 20; x <= 23; x++) for (let y = 37; y <= Math.floor(COAST[x] + 3 - Math.abs(x - 21.5)); y++) M[y][x] = 'R';
+  // Riu Geremeas tra Marongiu e Baccu Mandara, con il ponte sulla litoranea e il laghetto alla foce
+  for (let y = 29; y <= 33; y++) M[y][46] = '~';
+  for (let y = 36; y < MH; y++) M[y][46] = '~';
+  M[36][45] = '~'; M[36][47] = '~'; M[37][45] = '~'; M[37][47] = '~';
+  M[34][46] = 'B'; M[35][46] = 'B';
   // promontorio con la torre
-  for (let x = 43; x <= 47; x++) for (let y = COAST[x] + 1; y <= 44 - Math.abs(x - 45); y++) M[y][x] = 'R';
-  M[41][45] = 'Y';
-  for (let y = 37; y <= 40; y++) for (let x = 44; x <= 46; x++) if (M[y][x] === 's') M[y][x] = 'R';
-  M[38][45] = 'R';
+  for (let x = 65; x <= 69; x++) for (let y = COAST[x] + 1; y <= 44 - Math.abs(x - 67); y++) M[y][x] = 'R';
+  for (let y = 37; y <= 40; y++) for (let x = 66; x <= 68; x++) if (M[y][x] === 's') M[y][x] = 'R';
+  M[TOWER[1]][TOWER[0]] = 'Y';
   // calette di granito di Porto Sa Ruxi
-  for (const gx of [62, 67]) for (let y = 38; y <= COAST[gx] + 2; y++) M[y][gx] = 'R';
-  for (const [x, y] of [[61, 43], [63, 44], [66, 43], [69, 44], [70, 42]]) M[y][x] = 'R';
+  for (const gx of [88, 92]) for (let y = 38; y <= COAST[gx] + 2; y++) M[y][gx] = 'R';
+  for (const [x, y] of [[87, 43], [90, 44], [93, 43], [94, 42]]) M[y][x] = 'R';
   // ombrelloni
-  for (const [x, y] of [[8, 38], [20, 38], [27, 39], [31, 38], [39, 38], [51, 38], [55, 39], [58, 38], [65, 39], [69, 38]]) if (M[y][x] === 's') M[y][x] = 'u';
-  // Edifici
+  for (const s of CS) for (const [dx, dy] of [[3, 38], [8, 39], [10, 38]]) { const x = s + dx; if (M[dy][x] === 's') M[dy][x] = 'u'; }
+  // Edifici del paese
   house(3, 3, 4, 3, 4, 'casa', { roof: '#c9573a', wall: '#fff1d6', label: 'Casa di Bruno' });
   house(9, 3, 4, 3, 10, 'casa', { roof: '#c9573a', wall: '#f6e2b8' });
   house(15, 2, 5, 4, 17, 'chiesa', { roof: '#b8562f', wall: '#f3ead2' });
   house(21, 3, 4, 3, 22, 'casa', { roof: '#c9573a', wall: '#fbe7c6' });
   house(3, 10, 4, 3, 4, 'casa', { roof: '#c9573a', wall: '#f6e2b8' });
   house(7, 10, 4, 3, 8, 'casa', { roof: '#c9573a', wall: '#fff1d6' });
-  house(32, 30, 3, 3, 33, 'casa', { roof: '#c9573a', wall: '#fff6e8' });
-  house(44, 30, 3, 3, 45, 'casa', { roof: '#c9573a', wall: '#fff6e8' });
-  house(56, 30, 3, 3, 57, 'casa', { roof: '#c9573a', wall: '#fff6e8' });
-  const BARX = [[14, 10, 5, 3], [24, 21, 4, 3], [17, 30, 4, 3], [28, 30, 4, 3], [39, 30, 4, 3], [51, 30, 4, 3], [63, 30, 4, 3]];
-  TAPPE.forEach((t, i) => { const [x, y, w, h] = BARX[i]; house(x, y, w, h, t.door[0], 'bar', { tappa: i }); });
-  for (const h of HOUSES) { rect(h.x, h.y, h.w, h.h, 'H'); M[h.y + h.h - 1][h.door] = 'D'; if (M[h.y + h.h][h.door] === 'T' || M[h.y + h.h][h.door] === 'b' || M[h.y + h.h][h.door] === 'R') M[h.y + h.h][h.door] = '.'; }
-  for (let x = 2; x <= 71; x++) if (M[33][x] !== '=') M[33][x] = '.';
+  // Bar
+  house(14, 10, 5, 3, 16, 'bar', { tappa: 0 }); TAPPE[0].door = [16, 12];
+  house(24, 21, 4, 3, 25, 'bar', { tappa: 1 }); TAPPE[1].door = [25, 23];
+  CS.forEach((s, k) => {
+    const i = k + 2, bx = k === 0 ? 6 : s + 4;
+    house(bx, 30, 4, 3, bx + 1, 'bar', { tappa: i }); TAPPE[i].door = [bx + 1, 32];
+    if (k >= 1 && k <= 5) house(s + 9, 30, 3, 3, s + 10, 'casa', { roof: '#c9573a', wall: '#fff6e8' });
+  });
+  for (const h of HOUSES) { rect(h.x, h.y, h.w, h.h, 'H'); M[h.y + h.h - 1][h.door] = 'D'; if ('TbR'.includes(M[h.y + h.h][h.door])) M[h.y + h.h][h.door] = '.'; }
+  for (let x = 2; x <= MW - 3; x++) if (M[33][x] !== '=' && M[33][x] !== '~') M[33][x] = '.';
   // Fontanelle e cartelli
-  for (const [x, y] of [[21, 11], [17, 24], [22, 31], [26, 31], [37, 31], [49, 31], [60, 31]]) { M[y][x] = 'W'; if (M[y + 1][x] !== 'a') M[y + 1][x] = '.'; }
-  for (const [x, y] of [[11, 6], [14, 14], [16, 33], [24, 33], [36, 33], [48, 33], [60, 33]]) M[y][x] = 'S';
+  const fountains = [[21, 11], [17, 24], [11, 31], ...CS.slice(1).map(s => [s === 46 ? 48 : s + 1, 31])];
+  for (const [x, y] of fountains) { M[y][x] = 'W'; if (M[y + 1][x] !== 'a') M[y + 1][x] = '.'; }
+  for (const k of Object.keys(SIGNS)) { const [x, y] = k.split(',').map(Number); M[y][x] = 'S'; }
 })();
-const SIGNS = {
-  '11,6': 'Maracalagonis. Bruno parte da qui: obiettivo Porto Sa Ruxi, a piedi, con lo zaino da 10 kg.',
-  '14,14': '↓ Sentiero per le colline e per il mare. Bar del Bivio più avanti.',
-  '16,33': '← Cagliari · Litoranea SP17 · Villasimius →  Qui inizia la costa: spiaggia di Mari Pintau.',
-  '24,33': 'Geremeas. Spiaggia lunga e sabbia bianca.',
-  '36,33': 'Torre delle Stelle. Sul promontorio, la torre che guarda il mare.',
-  '48,33': 'Solanas. Ultima tappa prima della meta!',
-  '60,33': 'Porto Sa Ruxi: tre calette di granito, la prima baia prima di Capo Boi. La meta!',
-};
 const SOLID = new Set(['T', 'b', 'R', 'H', 'D', 'W', 'S', 'u', 'Y', '~']);
 const tileAt = (x, y) => (x < 0 || y < 0 || x >= MW || y >= MH) ? (y >= 36 ? '~' : 'T') : M[y][x];
 const solid = ch => SOLID.has(ch);
 function zoneOf(x, y) {
   if (y <= 14) return 0;
   if (y <= 29) return 1;
-  if (x < 24) return 2; if (x < 36) return 3; if (x < 48) return 4; if (x < 60) return 5; return 6;
+  let z = 2; for (let k = 1; k < CS.length; k++) if (x >= CS[k]) z = k + 2;
+  return z;
 }
-const BANDA_POS = [[61, 33], [62, 33], [63, 33], [65, 33], [66, 33], [67, 33]];
+const GROUP_POS = [[83, 33], [84, 33], [85, 33], [89, 33], [90, 33], [91, 33]];
 
 // ---------- Stato e salvataggio ----------
 const SAVE_KEY = 'cammino-di-bruno-v1';
@@ -342,7 +378,7 @@ let G = null;
 const newGame = () => ({ pos: { x: 4, y: 6, dir: 'down' }, done: [], beaten: [], energy: 100, steps: 0, tries: 0, finished: false });
 function save() { if (!G) return; try { localStorage.setItem(SAVE_KEY, JSON.stringify(G)); } catch (e) { /* salvataggio non disponibile */ } }
 function load() { try { const s = localStorage.getItem(SAVE_KEY); return s ? Object.assign(newGame(), JSON.parse(s)) : null; } catch (e) { return null; } }
-const tappaCorrente = () => { for (let i = 0; i < TAPPE.length; i++) if (!G.done.includes(i)) return i; return -1; };
+const tappaCorrente = () => { for (let i = 0; i < NT; i++) if (!G.done.includes(i)) return i; return -1; };
 
 // ---------- Canvas ----------
 const cv = $('#game'), ctx = cv.getContext('2d');
@@ -464,22 +500,33 @@ function ell(c, x, y, rx, ry, fill, st = true, rot = 0) { c.beginPath(); c.ellip
 function star(c, x, y, r, col = '#fff7b0') { c.beginPath(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, q = i % 2 ? r * 0.35 : r; c.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } c.closePath(); c.fillStyle = col; c.fill(); }
 
 // Ritratto grande (sfide): origine ai piedi del busto, 100 unità di altezza circa.
+function torsoPath(c) { c.beginPath(); c.moveTo(-46, 0); c.lineTo(-42, -44); c.quadraticCurveTo(-38, -58, -18, -61); c.lineTo(18, -61); c.quadraticCurveTo(38, -58, 42, -44); c.lineTo(46, 0); c.closePath(); }
 function drawBust(c, L, x, y, size, back = false) {
   const s = size / 100;
   c.save(); c.translate(x, y); c.scale(s, s);
   c.lineWidth = 2.6; c.strokeStyle = OUT; c.lineJoin = 'round'; c.lineCap = 'round';
   const sk = L.skin;
   if (L.backpack && !back) { c.fillStyle = '#c0563a'; rr(c, -42, -70, 84, 60, 14); c.fill(); c.stroke(); }
-  // busto
-  c.beginPath(); c.moveTo(-46, 0); c.lineTo(-42, -44); c.quadraticCurveTo(-38, -58, -18, -61); c.lineTo(18, -61); c.quadraticCurveTo(38, -58, 42, -44); c.lineTo(46, 0); c.closePath();
-  c.fillStyle = (L.top && L.topKind === 'tee') ? L.top : sk; c.fill(); c.stroke();
+  torsoPath(c); c.fillStyle = (L.top && L.topKind === 'tee') ? L.top : sk; c.fill();
+  if (L.top && L.topKind === 'tee') {
+    c.save(); torsoPath(c); c.clip();
+    if (L.stripes2) { c.strokeStyle = 'rgba(70,80,110,.45)'; c.lineWidth = 1.4; for (let i = -44; i <= 44; i += 6) { c.beginPath(); c.moveTo(i, -62); c.lineTo(i, 0); c.stroke(); } }
+    if (L.pattern2) {
+      c.fillStyle = '#efe0c0'; for (let i = -40; i <= 40; i += 26) c.fillRect(i - 3, -62, 6, 62);
+      for (const [px, py, col] of [[-28, -40, '#3d5a9a'], [24, -26, '#3d5a9a'], [-6, -14, '#4a7a4a'], [30, -50, '#4a7a4a'], [-34, -12, '#e8a040']]) { c.fillStyle = col; c.beginPath(); c.arc(px, py, 7, 0, 7); c.fill(); c.fillStyle = '#efe0c0'; c.beginPath(); c.arc(px, py, 2.5, 0, 7); c.fill(); }
+    }
+    if (L.print && !back) { c.fillStyle = '#f1efe8'; c.fillRect(-16, -44, 32, 24); c.fillStyle = '#2a2a2a'; c.beginPath(); c.ellipse(0, -32, 8, 9, 0.4, 0, 7); c.fill(); }
+    c.restore();
+    c.strokeStyle = OUT; c.lineWidth = 2.6;
+  }
+  torsoPath(c); c.stroke();
   if (L.top && L.topKind === 'tank') {
     c.beginPath(); c.moveTo(-31, 0); c.lineTo(-29, -40); c.quadraticCurveTo(-26, -56, -20, -61); c.lineTo(-11, -61);
     if (back) c.quadraticCurveTo(0, -54, 11, -61); else c.quadraticCurveTo(0, -42, 11, -61);
     c.lineTo(20, -61); c.quadraticCurveTo(26, -56, 29, -40); c.lineTo(31, 0); c.closePath(); c.fillStyle = L.top; c.fill(); c.stroke();
   } else if (L.top && L.topKind === 'tee' && !back) {
-    c.beginPath(); c.arc(0, -61, 11, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
-    c.fillStyle = '#7d2c3a'; c.font = '700 9px sans-serif'; c.textAlign = 'center'; c.fillText('EXAM', 14, -36);
+    if (L.collar) { c.fillStyle = sk; c.beginPath(); c.moveTo(-10, -61); c.lineTo(0, -44); c.lineTo(10, -61); c.closePath(); c.fill(); c.stroke(); c.beginPath(); c.moveTo(-10, -61); c.lineTo(-16, -50); c.moveTo(10, -61); c.lineTo(16, -50); c.stroke(); }
+    else { c.beginPath(); c.arc(0, -61, 11, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke(); }
   } else if (!L.top && !back) {
     c.strokeStyle = 'rgba(31,42,68,.45)'; c.beginPath(); c.arc(-14, -44, 14, 0.15 * Math.PI, 0.75 * Math.PI); c.stroke(); c.beginPath(); c.arc(14, -44, 14, 0.25 * Math.PI, 0.85 * Math.PI); c.stroke(); c.strokeStyle = OUT;
   }
@@ -487,32 +534,43 @@ function drawBust(c, L, x, y, size, back = false) {
     if (back) {
       c.fillStyle = '#c0563a'; rr(c, -36, -66, 72, 66, 14); c.fill(); c.stroke();
       c.fillStyle = '#a3462e'; rr(c, -24, -36, 48, 26, 8); c.fill(); c.stroke();
-      c.fillStyle = '#ffd23f'; c.beginPath(); c.arc(0, -52, 6, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = '#f5f0e6'; c.beginPath(); c.moveTo(0, -60); c.lineTo(-8, -48); c.quadraticCurveTo(0, -42, 8, -48); c.closePath(); c.fill(); c.stroke();
       c.fillStyle = '#fff'; c.font = '800 10px sans-serif'; c.textAlign = 'center'; c.fillText('10 kg', 0, -18);
     } else { c.lineWidth = 5; c.strokeStyle = '#8a3a26'; c.beginPath(); c.moveTo(-24, -60); c.lineTo(-28, -14); c.moveTo(24, -60); c.lineTo(28, -14); c.stroke(); c.lineWidth = 2.6; c.strokeStyle = OUT; }
   }
   if (L.necklace && !back) { c.strokeStyle = '#3a2a1a'; c.lineWidth = 1.5; c.beginPath(); c.arc(0, -64, 14, 0.2 * Math.PI, 0.8 * Math.PI); c.stroke(); c.fillStyle = '#f5f0e6'; c.beginPath(); c.arc(0, -50, 2.6, 0, 7); c.fill(); c.lineWidth = 2.6; c.strokeStyle = OUT; }
   // collo e testa
-  c.fillStyle = sk; c.fillRect(-9, -72, 18, 14); c.strokeRect(-9, -72, 18, 0.01);
+  c.fillStyle = sk; c.fillRect(-9, -72, 18, 14);
   ell(c, -19, -84, 4, 6, sk); ell(c, 19, -84, 4, 6, sk);
   ell(c, 0, -85, 19, 23, sk);
+  if (L.earrings) { ell(c, -20, -77, 2.2, 2.2, '#f4f4f4'); ell(c, 20, -77, 2.2, 2.2, '#f4f4f4'); }
   c.fillStyle = L.hair;
-  if (back) { ell(c, 0, -88, 20, 21, L.hair); }
+  if (back) ell(c, 0, -88, 20, 21, L.hair);
   if (L.hairStyle === 'curly') {
     for (let a = 0; a <= 12; a++) { const ang = Math.PI * (1.05 + a * 0.075); ell(c, Math.cos(ang) * 18, -90 + Math.sin(ang) * 18, 8, 8, L.hair, false); }
     ell(c, 0, -102, 18, 9, L.hair, false);
-  } else { c.beginPath(); c.ellipse(0, -92, 20, 17, 0, Math.PI * 1.02, Math.PI * 1.98); c.quadraticCurveTo(10, -102, -20, -92); c.closePath(); c.fill(); }
+  } else {
+    c.beginPath(); c.ellipse(0, -92, 20, 17, 0, Math.PI * 1.02, Math.PI * 1.98); c.quadraticCurveTo(10, -102, -20, -92); c.closePath(); c.fill();
+    if (L.hairStyle === 'quiff') { ell(c, -2, -108, 16, 8, L.hair, false); ell(c, 6, -112, 9, 6, L.hair, false); }
+    if (L.hairStyle === 'fringe' && !back) { c.beginPath(); c.moveTo(-20, -92); c.quadraticCurveTo(-8, -100, 0, -96); c.quadraticCurveTo(10, -102, 20, -92); c.lineTo(18, -104); c.lineTo(-18, -104); c.closePath(); c.fill(); }
+  }
   if (!back) {
-    if (L.beard) { c.fillStyle = 'rgba(28,20,16,.55)'; c.beginPath(); c.moveTo(-18, -86); c.quadraticCurveTo(-17, -63, 0, -61); c.quadraticCurveTo(17, -63, 18, -86); c.quadraticCurveTo(10, -72, 0, -73); c.quadraticCurveTo(-10, -72, -18, -86); c.fill(); }
-    c.fillStyle = OUT; ell(c, -7, -88, 2.3, 2.8, OUT, false); ell(c, 7, -88, 2.3, 2.8, OUT, false);
+    if (L.beard) { c.fillStyle = L.beardFull ? 'rgba(28,20,16,.82)' : 'rgba(28,20,16,.55)'; c.beginPath(); c.moveTo(-18, -88); c.quadraticCurveTo(-17, L.beardFull ? -57 : -63, 0, L.beardFull ? -55 : -61); c.quadraticCurveTo(17, L.beardFull ? -57 : -63, 18, -88); c.quadraticCurveTo(10, -72, 0, -73); c.quadraticCurveTo(-10, -72, -18, -88); c.fill(); }
+    if (L.goatee) { c.fillStyle = L.hair; c.beginPath(); c.ellipse(0, -66, 4, 4, 0, 0, 7); c.fill(); }
+    ell(c, -7, -88, 2.3, 2.8, OUT, false); ell(c, 7, -88, 2.3, 2.8, OUT, false);
     c.strokeStyle = L.hair; c.lineWidth = 2.2; c.beginPath(); c.moveTo(-11, -94); c.lineTo(-4, -95); c.moveTo(4, -95); c.lineTo(11, -94); c.stroke();
     c.strokeStyle = OUT; c.lineWidth = 2;
+    if (L.glasses) { c.strokeStyle = '#c9a24a'; c.lineWidth = 1.8; c.beginPath(); c.arc(-7, -88, 6.5, 0, 7); c.stroke(); c.beginPath(); c.arc(7, -88, 6.5, 0, 7); c.stroke(); c.beginPath(); c.moveTo(-1, -89); c.lineTo(1, -89); c.stroke(); c.strokeStyle = OUT; c.lineWidth = 2; }
     if (L.mustache) { c.fillStyle = L.hair; c.beginPath(); c.moveTo(-9, -76); c.quadraticCurveTo(0, -81, 9, -76); c.quadraticCurveTo(0, -78, -9, -76); c.fill(); }
     if (L.smile) { c.fillStyle = '#fff'; c.beginPath(); c.moveTo(-8, -75); c.quadraticCurveTo(0, -66, 8, -75); c.closePath(); c.fill(); c.stroke(); }
     else { c.beginPath(); c.arc(0, -78, 6, 0.2 * Math.PI, 0.8 * Math.PI); c.stroke(); }
     c.lineWidth = 2.6;
   }
-  if (L.shades) { c.fillStyle = '#e8b53a'; ell(c, -9, -101, 7, 4.5, '#e8b53a'); ell(c, 9, -101, 7, 4.5, '#e8b53a'); c.beginPath(); c.moveTo(-2, -101); c.lineTo(2, -101); c.stroke(); }
+  if (L.shades) { ell(c, -9, -101, 7, 4.5, '#e8b53a'); ell(c, 9, -101, 7, 4.5, '#e8b53a'); }
+  if (L.cap) {
+    c.fillStyle = L.cap; c.beginPath(); c.ellipse(0, -97, 21, 15, 0, Math.PI, Math.PI * 2); c.closePath(); c.fill(); c.stroke();
+    if (!back) { c.beginPath(); c.ellipse(0, -97, 23, 5, 0, 0, Math.PI); c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#e8d07a'; c.font = '700 9px serif'; c.textAlign = 'center'; c.fillText('A', 0, -101); }
+  }
   if (L.hat) {
     ell(c, 0, -100, 36, 7, '#d9c39a');
     c.beginPath(); c.moveTo(-20, -100); c.lineTo(-17, -121); c.quadraticCurveTo(0, -127, 17, -121); c.lineTo(20, -100); c.closePath(); c.fillStyle = '#d9c39a'; c.fill(); c.stroke();
@@ -537,10 +595,14 @@ function drawChar(c, px, py, T, dir, phase, L, moving) {
   rr(c, cx + T * 0.04, base - T * 0.2 * tall - Math.max(0, -sw), T * 0.1, T * 0.2 * tall, T * 0.04); c.fill(); c.stroke();
   const by = base - T * 0.16 * tall - bob;
   c.fillStyle = L.shorts; rr(c, cx - T * 0.19, by - T * 0.1, T * 0.38, T * 0.14, T * 0.04); c.fill(); c.stroke();
-  if (L.stripes) { c.strokeStyle = '#fff'; c.lineWidth = lw * 0.8; c.beginPath(); c.moveTo(cx - T * 0.17, by + T * 0.0); c.lineTo(cx - T * 0.02, by); c.stroke(); c.strokeStyle = OUT; c.lineWidth = lw; }
-  if (L.pattern) { c.fillStyle = '#e8d07a'; for (let i = 0; i < 3; i++) c.fillRect(cx - T * 0.14 + i * T * 0.1, by - T * 0.06, T * 0.03, T * 0.03); }
+  if (L.stripes) { c.strokeStyle = '#fff'; c.lineWidth = lw * 0.8; c.beginPath(); c.moveTo(cx - T * 0.17, by); c.lineTo(cx - T * 0.02, by); c.stroke(); c.strokeStyle = OUT; c.lineWidth = lw; }
   const topH = T * 0.24 * tall, topY = by - T * 0.1 - topH;
   c.fillStyle = L.top && L.topKind === 'tee' ? L.top : L.skin; rr(c, cx - T * 0.2, topY, T * 0.4, topH + T * 0.02, T * 0.09); c.fill(); c.stroke();
+  if (L.top && L.topKind === 'tee') {
+    if (L.stripes2) { c.strokeStyle = 'rgba(70,80,110,.45)'; c.lineWidth = Math.max(1, T / 40); for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(cx + i * T * 0.07, topY + T * 0.03); c.lineTo(cx + i * T * 0.07, topY + topH); c.stroke(); } c.strokeStyle = OUT; c.lineWidth = lw; }
+    if (L.pattern2) { for (const [dx, dy, col] of [[-0.1, 0.3, '#3d5a9a'], [0.08, 0.55, '#4a7a4a'], [0.1, 0.22, '#efe0c0'], [-0.08, 0.7, '#efe0c0']]) { c.fillStyle = col; c.beginPath(); c.arc(cx + dx * T, topY + dy * topH, T * 0.035, 0, 7); c.fill(); } }
+    if (L.print && dir === 'down') { c.fillStyle = '#f1efe8'; c.fillRect(cx - T * 0.08, topY + topH * 0.3, T * 0.16, topH * 0.4); }
+  }
   if (L.top && L.topKind === 'tank') { c.fillStyle = L.top; rr(c, cx - T * 0.13, topY + T * 0.01, T * 0.26, topH, T * 0.05); c.fill(); c.stroke(); }
   const armY = topY + T * 0.04;
   c.fillStyle = L.skin;
@@ -556,21 +618,27 @@ function drawChar(c, px, py, T, dir, phase, L, moving) {
   c.fillStyle = L.skin; c.beginPath(); c.arc(cx, hy, hr, 0, 7); c.fill(); c.stroke();
   c.fillStyle = L.hair;
   if (dir === 'up') { c.beginPath(); c.arc(cx, hy, hr, 0, 7); c.fill(); c.stroke(); }
-  else { c.beginPath(); c.arc(cx, hy, hr, Math.PI, Math.PI * 2); c.quadraticCurveTo(cx, hy - hr * 0.3, cx - hr, hy); c.closePath(); c.fill(); }
+  else { c.beginPath(); c.arc(cx, hy, hr, Math.PI, Math.PI * 2); c.quadraticCurveTo(cx, hy - hr * (L.hairStyle === 'fringe' ? -0.1 : 0.3), cx - hr, hy); c.closePath(); c.fill(); }
   if (L.hairStyle === 'curly') for (let i = 0; i < 5; i++) { const a = Math.PI * (1.05 + i * 0.22); c.beginPath(); c.arc(cx + Math.cos(a) * hr * 0.95, hy + Math.sin(a) * hr * 0.95, hr * 0.32, 0, 7); c.fill(); }
-  if (L.shades && dir !== 'up') { c.fillStyle = '#e8b53a'; c.fillRect(cx - hr * 0.7, hy - hr * 0.95, hr * 1.4, hr * 0.3); }
+  if (L.hairStyle === 'quiff') { c.beginPath(); c.ellipse(cx, hy - hr * 1.0, hr * 0.7, hr * 0.38, 0, 0, 7); c.fill(); }
+  if (L.cap) {
+    c.fillStyle = L.cap; c.beginPath(); c.arc(cx, hy - hr * 0.15, hr * 1.02, Math.PI, Math.PI * 2); c.closePath(); c.fill(); c.stroke();
+    if (dir !== 'up') { c.beginPath(); if (dir === 'down') c.ellipse(cx, hy - hr * 0.15, hr * 0.95, hr * 0.25, 0, 0, Math.PI); else c.ellipse(cx + (dir === 'left' ? -1 : 1) * hr * 0.9, hy - hr * 0.15, hr * 0.55, hr * 0.18, 0, 0, 7); c.fill(); c.stroke(); }
+  }
   if (L.hat) {
     c.fillStyle = '#d9c39a'; c.beginPath(); c.ellipse(cx, hy - hr * 0.55, hr * 1.45, hr * 0.32, 0, 0, 7); c.fill(); c.stroke();
     rr(c, cx - hr * 0.8, hy - hr * 1.35, hr * 1.6, hr * 0.85, hr * 0.3); c.fill(); c.stroke();
     c.fillStyle = '#1b1b22'; c.fillRect(cx - hr * 0.8, hy - hr * 0.78, hr * 1.6, hr * 0.2);
   }
   if (dir !== 'up') {
-    const ey = hy + hr * 0.12;
-    if (L.beard) { c.fillStyle = 'rgba(28,20,16,.5)'; c.beginPath(); c.arc(cx + (dir === 'left' ? -hr * 0.2 : dir === 'right' ? hr * 0.2 : 0), hy + hr * 0.35, hr * 0.68, 0.05 * Math.PI, 0.95 * Math.PI); c.fill(); }
+    const ey = hy + hr * 0.12, off = dir === 'left' ? -hr * 0.25 : dir === 'right' ? hr * 0.25 : 0;
+    if (L.beard) { c.fillStyle = L.beardFull ? 'rgba(28,20,16,.8)' : 'rgba(28,20,16,.5)'; c.beginPath(); c.arc(cx + off * 0.8, hy + hr * 0.35, hr * 0.68, 0.05 * Math.PI, 0.95 * Math.PI); c.fill(); }
     c.fillStyle = OUT;
     if (dir === 'down') { c.beginPath(); c.arc(cx - hr * 0.38, ey, T * 0.026, 0, 7); c.arc(cx + hr * 0.38, ey, T * 0.026, 0, 7); c.fill(); }
-    else { const s = dir === 'left' ? -1 : 1; c.beginPath(); c.arc(cx + s * hr * 0.5, ey, T * 0.026, 0, 7); c.fill(); }
-    if (L.mustache) { c.fillStyle = L.hair; c.fillRect(cx - hr * 0.35 + (dir === 'left' ? -hr * .3 : dir === 'right' ? hr * .3 : 0), hy + hr * 0.42, hr * 0.7, hr * 0.14); }
+    else { c.beginPath(); c.arc(cx + off * 2, ey, T * 0.026, 0, 7); c.fill(); }
+    if (L.glasses) { c.strokeStyle = '#c9a24a'; c.lineWidth = Math.max(1, T / 40); if (dir === 'down') { c.beginPath(); c.arc(cx - hr * 0.38, ey, hr * 0.26, 0, 7); c.stroke(); c.beginPath(); c.arc(cx + hr * 0.38, ey, hr * 0.26, 0, 7); c.stroke(); } else { c.beginPath(); c.arc(cx + off * 2, ey, hr * 0.26, 0, 7); c.stroke(); } c.strokeStyle = OUT; c.lineWidth = lw; }
+    if (L.mustache) { c.fillStyle = L.hair; c.fillRect(cx - hr * 0.35 + off, hy + hr * 0.42, hr * 0.7, hr * 0.14); }
+    if (L.earrings && dir === 'down') { c.fillStyle = '#f4f4f4'; c.beginPath(); c.arc(cx - hr * 0.98, hy + hr * 0.35, T * 0.02, 0, 7); c.arc(cx + hr * 0.98, hy + hr * 0.35, T * 0.02, 0, 7); c.fill(); }
   }
 }
 function drawSheep(c, px, py, T, dir, t) {
@@ -686,6 +754,12 @@ function drawTile(c, x, y, ch, px, py, T, t) {
       c.fillStyle = '#ffffff'; rr(c, px + T * 0.1, py + T * 0.62, T * 0.32, T * 0.16, T * 0.04); c.fill(); c.stroke();
       break;
     }
+    case 'B': {
+      c.fillStyle = '#46acd9'; c.fillRect(px, py, T + 1, T + 1);
+      c.fillStyle = '#b8864f'; for (let i = 0; i < 4; i++) { c.fillRect(px, py + i * T / 4 + 1, T + 1, T / 4 - 2); }
+      c.fillStyle = '#7a5230'; c.fillRect(px, py, T * 0.08, T + 1); c.fillRect(px + T * 0.92, py, T * 0.08, T + 1);
+      break;
+    }
     default: grassBase(c, x, y, px, py, T);
   }
 }
@@ -750,7 +824,7 @@ function drawWorld(t) {
   const x0 = Math.floor(cam.x / T) - 1, y0 = Math.floor(cam.y / T) - 1, x1 = x0 + Math.ceil(W / T) + 2, y1 = y0 + Math.ceil(H / T) + 3;
   for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) drawTile(c, x, y, tileAt(x, y), x * T - cam.x, y * T - cam.y, T, t);
   for (const h of HOUSES) { const ox = h.x * T - cam.x, oy = h.y * T - cam.y; if (ox > W + T || oy > H + T * 2 || ox + h.w * T < -T || oy + h.h * T < -T * 2) continue; drawHouse(c, h, ox, oy, T, t); }
-  drawTower(c, 45 * T - cam.x, 41 * T - cam.y, T);
+  drawTower(c, TOWER[0] * T - cam.x, TOWER[1] * T - cam.y, T);
   const ents = NPCS.filter(n => n.visible()).map(n => ({ n, fy: n.fy })); if (mode !== 'title') ents.push({ p: true, fy: P.fy });
   ents.sort((a, b) => a.fy - b.fy);
   for (const e of ents) {
@@ -902,8 +976,7 @@ function onStep() {
 async function gateEvent(z) {
   const t = TAPPE[z];
   await say(`Bruno si ferma. «Senza un latte e menta al ${t.bar} non vado da nessuna parte.»`);
-  const who = t.who === 'banda' ? 'la banda' : amico(t.who).nome;
-  await say(`Davanti al bar lo aspetta ${who}. Prima la sfida, poi il latte e menta!`);
+  await say(`Davanti al bar lo aspetta ${amico(t.who).nome}. Prima la sfida, poi il latte e menta!`);
 }
 function resetNpc(n) { n.x = n.x0; n.y = n.y0; n.fx = n.x; n.fy = n.y; n.dir = n.dir0; n.moving = false; n.alert = false; }
 async function talk(n) {
@@ -925,57 +998,31 @@ async function tileEvent(x, y, ch) {
 }
 
 // Personaggi
+const pendingOf = id => TAPPE.map((t, i) => i).filter(i => TAPPE[i].who === id);
 function buildNpcs() {
   const list = [];
-  AMICI.forEach((a, i) => {
-    const t = TAPPE[i], fx = t.door[0], fy = t.door[1] + 1;
-    list.push({ id: a.id, name: a.nome, look: a.look, x: fx, y: fy, dir: 'down', tappa: i, visible: () => !G || !G.beaten.includes(i) });
-    const [bx, by] = BANDA_POS[i];
-    list.push({ id: a.id + '-meta', name: a.nome, look: a.look, x: bx, y: by, dir: 'down', tappa: 6, visible: () => !!G && G.beaten.includes(i) });
+  TAPPE.forEach((t, i) => {
+    const a = amico(t.who);
+    list.push({ id: 't' + i, name: a.nome, look: a.look, x: t.door[0], y: t.door[1] + 1, dir: 'down', tappa: i, visible: () => !G || !G.beaten.includes(i) });
+  });
+  const others = [...new Set(TAPPE.slice(0, -1).map(t => t.who))];
+  others.forEach((id, k) => {
+    const a = amico(id), [gx, gy] = GROUP_POS[k % GROUP_POS.length];
+    list.push({ id: id + '-meta', name: a.nome, look: a.look, x: gx, y: gy, dir: 'down', fan: true, visible: () => !!G && pendingOf(id).every(i => G.beaten.includes(i)) });
   });
   list.push({ id: 'pastore', name: 'Pastore', look: { skin: '#c98d68', hair: '#cfcfcf', hairStyle: 'short', top: '#5a4a3a', topKind: 'tee', shorts: '#3a3a3a', beard: true }, x: 7, y: 20, dir: 'right', lines: ['Dove vai con quello zaino, a Santiago? Ajò, è lontano!', 'Le mie pecore camminano tutto il giorno e non si lamentano mai.'], visible: () => true });
   for (const [x, y, d] of [[9, 21, 'left'], [8, 23, 'right'], [10, 24, 'left']]) list.push({ id: 'pecora' + x, name: 'Pecora', sheep: true, x, y, dir: d, lines: ['Beeeeh!'], visible: () => true });
-  list.push({ id: 'mamma', name: 'Mamma', look: { skin: '#e2b08c', hair: '#5a3a22', hairStyle: 'short', top: '#d96a8a', topKind: 'tee', shorts: '#3a3a5a' }, x: 6, y: 6, dir: 'left', lines: ['Mi raccomando: bevi tanto e non esagerare col latte e menta.', '…ok, uno per bar va bene. Sette in tutto.'], visible: () => true });
-  list.push({ id: 'turista', name: 'Turista', look: { skin: '#f2c9a8', hair: '#e8c36a', hairStyle: 'short', top: '#ff8a4a', topKind: 'tee', shorts: '#3a6ad0' }, x: 33, y: 37, dir: 'up', lines: ['Excuse me… Villasimius? Ah, sempre dritto sulla litoranea!', 'Che caldo! Voi sardi come fate?'], visible: () => true });
-  list.push({ id: 'bagnino', name: 'Bagnino', look: { skin: '#b5795a', hair: '#1c1410', hairStyle: 'short', top: '#e0533a', topKind: 'tank', shorts: '#e0533a' }, x: 55, y: 37, dir: 'down', lines: ['Bandiera verde, mare calmo. Porto Sa Ruxi è a due passi!', 'In estate a Porto Sa Ruxi l’accesso è a numero chiuso: meglio prenotare.'], visible: () => true });
+  list.push({ id: 'mamma', name: 'Mamma', look: { skin: '#e2b08c', hair: '#5a3a22', hairStyle: 'short', top: '#d96a8a', topKind: 'tee', shorts: '#3a3a5a' }, x: 6, y: 6, dir: 'left', lines: ['Mi raccomando: bevi tanto e non esagerare col latte e menta.', '…va bene, uno per bar. Nove in tutto.'], visible: () => true });
+  list.push({ id: 'turista', name: 'Turista', look: { skin: '#f2c9a8', hair: '#e8c36a', hairStyle: 'short', top: '#ff8a4a', topKind: 'tee', shorts: '#3a6ad0' }, x: 40, y: 37, dir: 'up', lines: ['Excuse me… Villasimius? Ah, sempre dritto sulla litoranea!', 'Che caldo! Voi sardi come fate?'], visible: () => true });
+  list.push({ id: 'bagnino', name: 'Bagnino', look: { skin: '#b5795a', hair: '#1c1410', hairStyle: 'short', top: '#e0533a', topKind: 'tank', shorts: '#e0533a' }, x: 78, y: 37, dir: 'down', lines: ['Bandiera verde, mare calmo. Porto Sa Ruxi è a due passi!', 'In estate a Porto Sa Ruxi l’accesso è a numero chiuso: meglio prenotare.'], visible: () => true });
   NPCS = list.map(d => ({ ...d, x0: d.x, y0: d.y, dir0: d.dir, fx: d.x, fy: d.y, walk: 0 }));
 }
 
 // ---------- Sfide ----------
-const INTRO = {
-  riccio: ['Bruno! Dove credi di andare con quello zaino?', 'Prima di bere il latte e menta devi battermi a scacchi. Tre matti in una mossa: ne devi trovare almeno due.'],
-  canotta: ['Ehi, pellegrino! Questo è il Bar del Bivio e qui si passa solo in un modo.', 'Braccio di ferro. Se vinci, il latte e menta te lo offro io.'],
-  baffo: ['Fermo lì! Al chiosco si mangia, mica si beve e basta.', 'Sfida di cucina: malloreddus alla campidanese. Vediamo chi fa il piatto migliore!'],
-  spilungone: ['Bruno, a Santiago ci sono salite. Allenati con me!', 'Gara di arrampicata sul muretto di granito: chi arriva prima in cima vince.'],
-  barbuto: ['Ossu! Hai lo zaino, io ho il kimono… immaginario.', 'Incontro di brazilian jiu-jitsu: cinque scambi, vince chi fa più punti.'],
-  verde: ['Ho la Play collegata al maxischermo del chiosco.', 'FIFA, rigori. Cinque a testa. Pronto?'],
-  banda: ['Pensavi di arrivare alla meta da solo? Siamo tutti qui!', 'Ultima sfida: poker all’italiana. Si vince al meglio delle tre mani.'],
-};
-const WIN_LINES = {
-  riccio: 'Scacco matto… a me. Va bene, il latte e menta te lo sei meritato. Ci vediamo alla meta!',
-  canotta: 'Hai un braccio d’acciaio! Dev’essere lo zaino. Ci vediamo a Porto Sa Ruxi!',
-  baffo: 'Mi inchino, chef Bruno. Ci vediamo alla meta, porto il pecorino.',
-  spilungone: 'Sei salito come uno stambecco! Ci vediamo a Porto Sa Ruxi.',
-  barbuto: 'Tap, tap! Mi arrendo. Ci vediamo alla meta, ossu!',
-  verde: 'Rigori da campione. Ti aspetto a Porto Sa Ruxi!',
-  banda: 'Va bene, va bene: hai vinto tu. Offriamo noi l’ultimo latte e menta!',
-};
-const LOSE_LINES = {
-  riccio: 'Ah ah! Torna quando avrai studiato un po’ di aperture.',
-  canotta: 'Troppo morbido! Mangia un altro panino e riprova.',
-  baffo: 'Il mio sugo è imbattibile. Riprova, chef!',
-  spilungone: 'Sei rimasto a metà muro! Riprova.',
-  barbuto: 'Ossu. Respira e riprova.',
-  verde: 'Ho vinto io! Rivincita?',
-  banda: 'La banda vince sempre! …a meno che tu non riprovi.',
-};
 async function challengerTalk(n) {
+  if (n.fan) return say(pick(['Forza Bruno, manca poco!', 'Buen Camino, pellegrino!', 'Santiago ti aspetta!', 'Alex al poker è tosto, occhio!']), { who: n.name });
   const i = n.tappa;
-  if (i === 6) {
-    if (G.beaten.includes(6)) return say(pick(['Grande Bruno! Ora entra e prenditi il latte e menta.', 'Buen Camino, pellegrino!', 'Santiago ti aspetta!']), { who: n.name });
-    return duel(6);
-  }
-  if (G.beaten.includes(i)) return say(WIN_LINES[AMICI[i].id], { who: n.name });
+  if (G.beaten.includes(i)) return say(TAPPE[i].win, { who: n.name });
   return duel(i);
 }
 const BG_COL = {
@@ -996,35 +1043,33 @@ function drawDuel(t) {
   c.fillStyle = 'rgba(31,42,68,.18)';
   c.beginPath(); c.ellipse(W * 0.7, hs * 0.6, sz * 0.5, sz * 0.1, 0, 0, 7); c.fill();
   c.beginPath(); c.ellipse(W * 0.27, hs * 1.0, sz * 0.62, sz * 0.12, 0, 0, 7); c.fill();
-  if (DUEL.banda) { AMICI.forEach((a, i) => drawBust(c, a.look, W * 0.7 + (i - 2.5) * sz * 0.22 + DUEL.foeX, hs * 0.6 - (i % 2) * sz * 0.08, sz * 0.62)); }
-  else drawBust(c, DUEL.look, W * 0.7 + DUEL.foeX, hs * 0.6, sz);
+  drawBust(c, DUEL.look, W * 0.7 + DUEL.foeX, hs * 0.6, sz);
   drawBust(c, BRUNO.look, W * 0.27 + DUEL.meX, hs * 1.0 + 4, sz * 1.25, true);
 }
 async function duel(i) {
-  const t = TAPPE[i], a = amico(t.who), banda = t.who === 'banda';
-  const sfida = banda ? 'poker' : a.sfida, nome = banda ? 'La banda' : a.nome;
+  const t = TAPPE[i], a = amico(t.who), sfida = t.sfida, nome = a.nome;
   const n = NPCS.find(x => x.tappa === i && x.visible());
-  if (n && !banda) { n.alert = true; sfx('alert'); await wait(650); n.alert = false; }
-  for (const l of INTRO[t.who]) await say(l, { who: nome });
+  if (n) { n.alert = true; sfx('alert'); await wait(650); n.alert = false; }
+  for (const l of t.intro) await say(l, { who: nome });
   const ok = await choose(`Accetti la sfida a ${SFIDE[sfida]}?`, [{ label: 'Sì, ajò!' }, { label: 'Non ancora' }], { cancel: false });
   if (ok !== 0) { await say('«Ti aspetto qui. Senza sfida, niente latte e menta!»', { who: nome }); return; }
-  DUEL = { bg: t.bg, look: a ? a.look : null, banda, foeX: W, meX: -W };
+  DUEL = { bg: t.bg, look: a.look, foeX: W, meX: -W };
   music('duel'); await flashIn(); setMode('duel'); $('#flash').classList.remove('go');
   await Promise.all([tween(DUEL, { foeX: 0 }, 600), tween(DUEL, { meX: 0 }, 600)]);
   await say(`${nome} sfida Bruno a ${SFIDE[sfida].toUpperCase()}!`);
   let won = false;
   while (true) {
     G.tries++;
-    won = await MINIGAMES[sfida](banda ? { nome: 'La banda', look: AMICI[5].look } : a);
+    won = await MINIGAMES[sfida](a);
     if (won) break;
-    sfx('bad'); await say(LOSE_LINES[t.who], { who: nome });
+    sfx('bad'); await say(t.lose, { who: nome });
     const r = await choose('Rivincita?', [{ label: 'Sì, subito!' }, { label: 'Più tardi' }], { cancel: false });
     if (r !== 0) break;
   }
   if (won) {
     music('win'); sfx('win');
     await say(`Bruno vince la sfida a ${SFIDE[sfida]}!`);
-    await say(WIN_LINES[t.who], { who: nome });
+    await say(t.win, { who: nome });
     G.beaten.push(i); save();
   }
   await fade(1); DUEL = null; setMode('world'); music('world');
@@ -1034,17 +1079,14 @@ async function duel(i) {
 }
 async function barEvent(i) {
   const t = TAPPE[i];
-  if (!G.beaten.includes(i)) {
-    const who = t.who === 'banda' ? 'la banda' : amico(t.who).nome;
-    return say(`Prima di entrare al ${t.bar} devi battere ${who}!`);
-  }
+  if (!G.beaten.includes(i)) return say(`Prima di entrare al ${t.bar} devi battere ${amico(t.who).nome}!`);
   if (G.done.includes(i)) return say(`Al ${t.bar} il barista saluta: «Un altro? No, no: il Cammino ti aspetta!»`, { who: 'Barista' });
   await say(`Bruno entra al ${t.bar} e appoggia lo zaino da 10 kg.`);
   await say('Buongiorno! Cosa ti preparo?', { who: 'Barista' });
   await say('Un latte e menta bello fresco, grazie!', { who: 'Bruno' });
   await latteMenta();
   G.done.push(i); G.energy = 100; save(); updateHud();
-  if (i < 6) await say(`Energia al massimo! Prossima tappa: ${TAPPE[i + 1].zona}.`);
+  if (i < NT - 1) await say(`Energia al massimo! Prossima tappa: ${TAPPE[i + 1].zona}.`);
   else await finale();
 }
 function latteMenta() {
@@ -1078,13 +1120,13 @@ function latteMenta() {
 async function finale() {
   music('win');
   await say('Bruno guarda il mare di Porto Sa Ruxi: tre calette, acqua trasparente, granito rosa.');
-  await say('Ce l’ho fatta! Con lo zaino da 10 kg, da Maracalagonis fino a qui.', { who: 'Bruno' });
+  await say('Ce l’ho fatta! Con lo zaino da 10 kg, da Maracalagonis fino alla meta.', { who: 'Bruno' });
   await say('Allenamento completato: Bruno è pronto per il Cammino di Santiago!');
   G.finished = true; save();
   await panel(inner => {
     inner.append(el('h2', null, '¡Buen Camino, Bruno!'));
-    inner.append(el('p', null, 'Da Maracalagonis a Porto Sa Ruxi, sette tappe e sette latte e menta. Le gambe sono pronte per Santiago.'));
-    inner.append(el('p', 'muted', `Passi fatti: ${G.steps} · Sfide vinte: 7 su 7 · Tentativi totali: ${G.tries}`));
+    inner.append(el('p', null, `Da Maracalagonis a Porto Sa Ruxi: ${NT} tappe, ${NT} sfide e ${NT} latte e menta. Le gambe sono pronte per Santiago.`));
+    inner.append(el('p', 'muted', `Passi fatti: ${G.steps} · Sfide vinte: ${NT} su ${NT} · Tentativi totali: ${G.tries}`));
     const row = el('div'); row.style.cssText = 'display:flex;gap:4px;flex-wrap:wrap;justify-content:center';
     row.append(bustCanvas(BRUNO.look, 72)); for (const a of AMICI) row.append(bustCanvas(a.look, 56)); inner.append(row);
   });
@@ -1104,54 +1146,72 @@ function mgOpen(title, foe) {
 }
 function mgClose() { const r = $('#mg'); r.hidden = true; r.innerHTML = ''; document.body.classList.remove('mg'); MG = null; }
 function mgHandler(h) { HANDLERS.push(h); return () => { const k = HANDLERS.indexOf(h); if (k >= 0) HANDLERS.splice(k, 1); }; }
-function mkCanvas(stage, ratio) {
+function mkCanvas(stage, ratio, maxVh = 0.46) {
   const cvs = document.createElement('canvas'); stage.append(cvs);
-  const fit = () => { const w = Math.min(stage.clientWidth || 360, 720); const h = Math.min(w * ratio, window.innerHeight * 0.46); cvs.style.height = h + 'px'; cvs.width = Math.round(w * DPR); cvs.height = Math.round(h * DPR); return { w, h }; };
+  const fit = () => { const w = Math.min(stage.clientWidth || 360, 720); const h = Math.min(w * ratio, window.innerHeight * maxVh); cvs.style.height = h + 'px'; cvs.width = Math.round(w * DPR); cvs.height = Math.round(h * DPR); return { w, h }; };
   const size = fit(); const c = cvs.getContext('2d');
   return { cvs, c, get w() { return cvs.width / DPR; }, get h() { return cvs.height / DPR; }, fit };
 }
 function mgButton(row, label, fn, cls = '') { const b = el('button', 'mgbtn ' + cls, label); b.tabIndex = -1; b.addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); fn(); }); row.append(b); return b; }
 async function countdown(ui) { for (const s of ['3', '2', '1', 'Via!']) { ui.msg.textContent = s; sfx('tick'); await wait(600); } }
 
-// 1. Scacchi: matto in una mossa
+// 1. Scacchi: matto in una mossa, muovendo i pezzi sulla scacchiera
 const PUZZLES = [
-  { fen: '6k1/5ppp/8/8/8/8/5PPP/R5K1', side: 'Bianco', ans: 'Ta8#', opts: ['Ta8#', 'Ta7', 'Rf1', 'h3'], from: 'a1', to: 'a8', tip: 'Il re nero è chiuso dai suoi pedoni: la torre sull’ottava traversa è matto (matto del corridoio).' },
-  { fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR', side: 'Bianco', ans: 'Dxf7#', opts: ['Dxf7#', 'Dxe5+', 'Axf7+', 'Dxh7'], from: 'h5', to: 'f7', tip: 'Donna e alfiere attaccano f7: è il matto del barbiere.' },
-  { fen: 'rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR', side: 'Nero', ans: 'Dh4#', opts: ['Dh4#', 'Dg5', 'Ac5', 'd5'], from: 'd8', to: 'h4', tip: 'Il re bianco è scoperto sulla diagonale e1-h4: è il matto dell’imbecille, il più veloce possibile.' },
-  { fen: '6k1/5ppp/8/8/8/8/8/3Q2K1', side: 'Bianco', ans: 'Dd8#', opts: ['Dd8#', 'Dd7', 'Dg4', 'Db3'], from: 'd1', to: 'd8', tip: 'Anche la donna può dare il matto del corridoio sull’ottava traversa.' },
+  { fen: '6k1/5ppp/8/8/8/8/5PPP/R5K1', side: 'Bianco', ans: 'Ta8#', from: 'a1', to: 'a8', tip: 'Il re nero è chiuso dai suoi pedoni: la torre sull’ottava traversa è matto (matto del corridoio).' },
+  { fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR', side: 'Bianco', ans: 'Dxf7#', from: 'h5', to: 'f7', tip: 'Donna e alfiere attaccano f7: è il matto del barbiere.' },
+  { fen: 'rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR', side: 'Nero', ans: 'Dh4#', from: 'd8', to: 'h4', tip: 'Il re bianco è scoperto sulla diagonale e1-h4: è il matto dell’imbecille, il più veloce possibile.' },
+  { fen: '6k1/5ppp/8/8/8/8/8/3Q2K1', side: 'Bianco', ans: 'Dd8#', from: 'd1', to: 'd8', tip: 'Anche la donna può dare il matto del corridoio sull’ottava traversa.' },
 ];
 const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
-function boardEl(fen, hi = []) {
-  const b = el('div', 'board'); const rows = fen.split('/');
-  rows.forEach((row, r) => {
-    let f = 0;
-    for (const ch of row) {
-      if (/\d/.test(ch)) { for (let k = 0; k < +ch; k++) { b.append(sq(r, f, null)); f++; } }
-      else { b.append(sq(r, f, ch)); f++; }
-    }
-  });
-  function sq(r, f, p) {
-    const name = 'abcdefgh'[f] + (8 - r);
-    const s = el('div', 'sq ' + ((r + f) % 2 ? 'd' : 'l') + (hi.includes(name) ? ' hi' : ''));
-    if (p) { const sp = el('span', 'pc ' + (p === p.toUpperCase() ? 'w' : 'b'), GLYPH[p.toLowerCase()] + '︎'); s.append(sp); }
+function fenMap(fen) {
+  const m = {}; fen.split('/').forEach((row, r) => { let f = 0; for (const ch of row) { if (/\d/.test(ch)) f += +ch; else { m['abcdefgh'[f] + (8 - r)] = ch; f++; } } }); return m;
+}
+function boardEl(fen, o = {}) {
+  const b = el('div', 'board'), map = fenMap(fen);
+  for (let r = 0; r < 8; r++) for (let f = 0; f < 8; f++) {
+    const name = 'abcdefgh'[f] + (8 - r), p = map[name];
+    let cls = 'sq ' + ((r + f) % 2 ? 'd' : 'l');
+    if (o.hi && o.hi.includes(name)) cls += ' hi';
+    if (o.sel === name) cls += ' sel';
+    if (o.cur === name) cls += ' cur';
+    const s = el('div', cls);
+    if (p) s.append(el('span', 'pc ' + (p === p.toUpperCase() ? 'w' : 'b'), GLYPH[p.toLowerCase()] + '︎'));
     if (f === 0) s.append(el('span', 'coord', String(8 - r)));
-    return s;
+    if (r === 7) { const cf = el('span', 'coord f', 'abcdefgh'[f]); s.append(cf); }
+    if (o.onTap) s.addEventListener('pointerdown', e => { e.preventDefault(); o.onTap(name); });
+    b.append(s);
   }
   return b;
 }
 async function mgScacchi(foe) {
-  const ui = mgOpen('Matto in una mossa: trovane almeno 2 su 3', foe);
+  const ui = mgOpen('Matto in una mossa: tocca il pezzo e poi la casa dove muoverlo', foe);
   const set = shuffle(PUZZLES.slice()).slice(0, 3); let pts = 0, n = 0;
   ui.score.textContent = '0 – 0';
   for (const pz of set) {
-    ui.stage.innerHTML = ''; ui.stage.append(boardEl(pz.fen)); ui.msg.textContent = `Muove il ${pz.side}. Trova lo scacco matto!`;
-    const opts = shuffle(pz.opts.slice());
-    const k = await choose(`Puzzle ${n + 1} di 3 · muove il ${pz.side}`, opts.map(o => ({ label: o.replace('#', '') })), { cancel: false, cols: 2 });
+    const map = fenMap(pz.fen), own = p => p && (pz.side === 'Bianco' ? p === p.toUpperCase() : p === p.toLowerCase());
+    ui.msg.textContent = `Puzzle ${n + 1} di 3 · muove il ${pz.side}. Trova lo scacco matto!`;
+    const mv = await new Promise(resolve => {
+      let sel = null, cur = null, kc = [6, 4];
+      const render = () => { ui.stage.innerHTML = ''; ui.stage.append(boardEl(pz.fen, { sel, cur, onTap: tap })); };
+      function tap(name) {
+        if (!sel) { if (own(map[name])) { sel = name; sfx('select'); } else sfx('bump'); }
+        else if (name === sel) sel = null;
+        else if (own(map[name])) { sel = name; sfx('select'); }
+        else { off(); resolve({ from: sel, to: name }); return; }
+        render();
+      }
+      const off = mgHandler({
+        a() { cur = 'abcdefgh'[kc[1]] + (8 - kc[0]); tap(cur); },
+        b() { sel = null; render(); },
+        dir(d) { if (d === 'up') kc[0] = Math.max(0, kc[0] - 1); if (d === 'down') kc[0] = Math.min(7, kc[0] + 1); if (d === 'left') kc[1] = Math.max(0, kc[1] - 1); if (d === 'right') kc[1] = Math.min(7, kc[1] + 1); cur = 'abcdefgh'[kc[1]] + (8 - kc[0]); sfx('blip'); render(); },
+      });
+      render();
+    });
     n++;
-    const right = opts[k] === pz.ans;
-    ui.stage.innerHTML = ''; ui.stage.append(boardEl(pz.fen, [pz.from, pz.to]));
+    const right = mv.from === pz.from && mv.to === pz.to;
+    ui.stage.innerHTML = ''; ui.stage.append(boardEl(pz.fen, { hi: [pz.from, pz.to] }));
     if (right) { pts++; sfx('good'); await say(`Esatto: ${pz.ans}, scacco matto! ${pz.tip}`); }
-    else { sfx('bad'); await say(`No: la mossa giusta era ${pz.ans}. ${pz.tip}`); }
+    else { sfx('bad'); await say(`Non è matto. La mossa giusta era ${pz.ans} (da ${pz.from} a ${pz.to}). ${pz.tip}`); }
     ui.score.textContent = `${pts} – ${n - pts}`;
     if (pts >= 2 || n - pts >= 2) break;
   }
@@ -1319,65 +1379,269 @@ async function mgBjj(foe) {
   await wait(1100); mgClose(); return win;
 }
 
-// 6. FIFA: rigori
+// 6. FIFA: rigori con mirino e potenza
 async function mgFifa(foe) {
-  const ui = mgOpen('Rigori: cinque a testa. Scegli dove tirare e dove tuffarti', foe);
-  const cv2 = mkCanvas(ui.stage, 0.56), row = el('div', 'mg-row'); ui.stage.append(row);
-  const anim = { ball: 0, tx: 0, kx: 0, shooter: 'me', show: false, text: '' };
+  const ui = mgOpen('Rigori: ferma il mirino, poi la potenza. In porta: tuffati dal lato giusto', foe);
+  const cv2 = mkCanvas(ui.stage, 0.56), row = el('div', 'mg-row'), dirRow = el('div', 'mg-row'); ui.stage.append(row, dirRow);
+  const A = { phase: 'idle', aim: 0, pow: 0, t: 0, ball: 0, tx: 0, ty: 0, kx: 0, keeper: 'op', text: '' };
+  let sMe = 0, sOp = 0, kMe = 0, kOp = 0, waiter = null;
+  const press = v => { if (waiter && waiter.test(v)) { const w = waiter; waiter = null; w.res(v); } };
+  const waitFor = test => new Promise(res => { waiter = { test, res }; });
+  const shootBtn = mgButton(row, 'TIRA!', () => press('a'), 'big');
+  for (const [lbl, v] of [['◀ Sinistra', -1], ['Centro', 0], ['Destra ▶', 1]]) mgButton(dirRow, lbl, () => press(v));
+  const off = mgHandler({ a() { press('a'); }, b() {}, dir(d) { press(d === 'left' ? -1 : d === 'right' ? 1 : 0); } });
   MG = {
-    update() {},
+    update(dt) {
+      if (A.phase === 'aim') { A.t += dt; A.aim = Math.sin(A.t * 2.3) * 1.15; }
+      if (A.phase === 'power') { A.t += dt; A.pow = (Math.sin(A.t * 3.3 - Math.PI / 2) + 1) / 2; }
+    },
     draw() {
       const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
       c.fillStyle = '#111'; c.fillRect(0, 0, w, h);
-      const m = 10; c.fillStyle = '#3f9a45'; c.fillRect(m, m, w - 2 * m, h - 2 * m);
-      for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? '#47a84d' : '#3f9a45'; c.fillRect(m, m + i * (h - 2 * m) / 6, w - 2 * m, (h - 2 * m) / 6); }
+      const m = 10; for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? '#47a84d' : '#3f9a45'; c.fillRect(m, m + i * (h - 2 * m) / 6, w - 2 * m, (h - 2 * m) / 6); }
       const gx = w * 0.2, gw = w * 0.6, gy = h * 0.14, gh = h * 0.34;
       c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 1; for (let i = 1; i < 12; i++) { c.beginPath(); c.moveTo(gx + i * gw / 12, gy); c.lineTo(gx + i * gw / 12, gy + gh); c.stroke(); }
       c.strokeStyle = '#fff'; c.lineWidth = 5; c.beginPath(); c.moveTo(gx, gy + gh); c.lineTo(gx, gy); c.lineTo(gx + gw, gy); c.lineTo(gx + gw, gy + gh); c.stroke();
       c.lineWidth = 2; c.beginPath(); c.moveTo(m, gy + gh); c.lineTo(w - m, gy + gh); c.stroke();
-      const keeperL = anim.shooter === 'me' ? foe.look : BRUNO.look;
-      const kx = w / 2 + anim.kx * gw * 0.33, ky = gy + gh;
-      c.save(); c.translate(kx, ky); c.rotate(anim.kx * 0.9 * Math.min(1, anim.ball * 1.4)); drawBust(c, keeperL, 0, 0, gh * 0.95, false); c.restore();
-      const sx = w / 2, sy = h * 0.82, ex = w / 2 + anim.tx * gw * 0.36, ey = gy + gh * 0.5;
-      const bx = sx + (ex - sx) * anim.ball, by = sy + (ey - sy) * anim.ball - Math.sin(anim.ball * Math.PI) * h * 0.05;
-      c.fillStyle = '#fff'; c.strokeStyle = '#111'; c.lineWidth = 2; c.beginPath(); c.arc(bx, by, h * 0.035 * (1 - anim.ball * 0.4), 0, 7); c.fill(); c.stroke();
+      const keeperL = A.keeper === 'op' ? foe.look : BRUNO.look;
+      const kx = w / 2 + A.kx * gw * 0.5;
+      c.save(); c.translate(kx, gy + gh); c.rotate(A.kx * 0.8 * Math.min(1, A.ball * 1.5)); drawBust(c, keeperL, 0, 0, gh * 0.95, false); c.restore();
+      const sx = w / 2, sy = h * 0.82, ex = w / 2 + A.tx * gw * 0.5, ey = gy + gh * (1 - A.ty);
+      const bx = sx + (ex - sx) * A.ball, by = sy + (ey - sy) * A.ball - Math.sin(A.ball * Math.PI) * h * 0.05;
+      c.fillStyle = '#fff'; c.strokeStyle = '#111'; c.lineWidth = 2; c.beginPath(); c.arc(bx, by, h * 0.035 * (1 - A.ball * 0.4), 0, 7); c.fill(); c.stroke();
+      if (A.phase === 'aim' || A.phase === 'power') {
+        const rx = w / 2 + A.aim * gw * 0.5, ry = gy + gh * 0.5;
+        c.strokeStyle = Math.abs(A.aim) > 1 ? '#e0533a' : '#ffd23f'; c.lineWidth = 3;
+        c.beginPath(); c.arc(rx, ry, 14, 0, 7); c.moveTo(rx - 20, ry); c.lineTo(rx + 20, ry); c.moveTo(rx, ry - 20); c.lineTo(rx, ry + 20); c.stroke();
+      }
+      if (A.phase === 'power') {
+        const px = w - m - 34, ph = h * 0.6, py = h * 0.15;
+        c.fillStyle = '#222'; c.fillRect(px, py, 20, ph); c.fillStyle = '#e0533a'; c.fillRect(px, py, 20, ph * 0.08);
+        c.fillStyle = A.pow > 0.92 ? '#e0533a' : '#3fbf8f'; c.fillRect(px, py + ph * (1 - A.pow), 20, ph * A.pow);
+        c.strokeStyle = '#fff'; c.lineWidth = 2; c.strokeRect(px, py, 20, ph);
+      }
       c.fillStyle = 'rgba(0,0,0,.55)'; c.fillRect(m, h - m - 26, w - 2 * m, 26);
       c.fillStyle = '#fff'; c.font = '700 14px Fredoka, sans-serif'; c.textAlign = 'left'; c.fillText(`BRUNO ${sMe}  -  ${sOp} ${foe.nome.toUpperCase()}`, m + 10, h - m - 8);
-      if (anim.text) { c.textAlign = 'center'; c.font = `700 ${Math.round(h * 0.12)}px Fredoka, sans-serif`; c.lineWidth = 6; c.strokeStyle = '#111'; c.strokeText(anim.text, w / 2, h * 0.68); c.fillStyle = '#ffd23f'; c.fillText(anim.text, w / 2, h * 0.68); }
+      if (A.text) { c.textAlign = 'center'; c.font = `700 ${Math.round(h * 0.12)}px Fredoka, sans-serif`; c.lineWidth = 6; c.strokeStyle = '#111'; c.strokeText(A.text, w / 2, h * 0.68); c.fillStyle = '#ffd23f'; c.fillText(A.text, w / 2, h * 0.68); }
     },
   };
-  let sMe = 0, sOp = 0, kMe = 0, kOp = 0;
-  const DIRS = [['Sinistra', -1], ['Centro', 0], ['Destra', 1]];
-  const askDir = prompt => choose(prompt, DIRS.map(d => ({ label: d[0] })), { cancel: false, cols: 3 });
+  function decided() {
+    if (kMe <= 5 && kOp <= 5) { const lm = 5 - kMe, lo = 5 - kOp; if (sMe > sOp + lo || sOp > sMe + lm) return true; if (kMe === 5 && kOp === 5) return sMe !== sOp; return false; }
+    return kMe === kOp && sMe !== sOp;
+  }
   for (let r = 0; r < 20; r++) {
     // Bruno tira
-    anim.shooter = 'me'; anim.ball = 0; anim.kx = 0; anim.text = '';
-    const k = await askDir(`Rigore ${kMe + 1}: dove tira Bruno?`);
-    const shot = DIRS[k][1], dive = pick([-1, 0, 1, -1, 1]);
-    anim.tx = shot; sfx('kick');
-    await Promise.all([tween(anim, { ball: 1 }, 550), tween(anim, { kx: dive }, 450)]);
-    const miss = shot !== 0 && rnd() < 0.08;
+    Object.assign(A, { keeper: 'op', ball: 0, kx: 0, text: '', phase: 'aim', t: Math.random() * 3 });
+    row.hidden = false; dirRow.hidden = true; shootBtn.textContent = 'MIRA!';
+    ui.msg.textContent = `Rigore ${kMe + 1}: ferma il mirino dove vuoi tirare.`;
+    await waitFor(v => v === 'a'); sfx('tick');
+    A.phase = 'power'; A.t = 0; shootBtn.textContent = 'TIRA!'; ui.msg.textContent = 'Ora la potenza: non esagerare o va alta!';
+    await waitFor(v => v === 'a');
+    A.phase = 'kick'; row.hidden = true;
+    const aim = A.aim, pow = A.pow, dive = pick([-0.65, 0, 0.65, -0.65, 0.65]);
+    A.tx = aim; A.ty = pow > 0.92 ? 1.25 : 0.15 + pow * 0.75; sfx('kick');
+    await Promise.all([tween(A, { ball: 1 }, 550), tween(A, { kx: dive }, 450)]);
     kMe++;
-    if (miss) { anim.text = 'FUORI!'; sfx('bad'); } else if (shot !== dive) { sMe++; anim.text = 'GOL!'; sfx('good'); } else { anim.text = 'PARATA!'; sfx('bad'); }
+    const reach = pow < 0.35 ? 0.55 : 0.4;
+    if (pow > 0.92) { A.text = 'ALTA!'; sfx('bad'); }
+    else if (Math.abs(aim) > 1) { A.text = 'FUORI!'; sfx('bad'); }
+    else if (Math.abs(aim - dive) < reach) { A.text = 'PARATA!'; sfx('bad'); }
+    else { sMe++; A.text = 'GOL!'; sfx('good'); }
     ui.score.textContent = `${sMe} – ${sOp}`; await wait(1000);
     if (decided()) break;
     // Bruno para
-    anim.shooter = 'op'; anim.ball = 0; anim.kx = 0; anim.text = '';
-    const j = await askDir(`Rigore di ${foe.nome}: dove si tuffa Bruno?`);
-    const oshot = pick([-1, 0, 1, -1, 1]); anim.tx = oshot; sfx('kick');
-    await Promise.all([tween(anim, { ball: 1 }, 550), tween(anim, { kx: DIRS[j][1] }, 450)]);
+    Object.assign(A, { keeper: 'me', ball: 0, kx: 0, text: 'Tuffati!', phase: 'defend' });
+    row.hidden = true; dirRow.hidden = false;
+    ui.msg.textContent = `${foe.nome} prende la rincorsa… scegli dove tuffarti, presto!`;
+    const ch = await Promise.race([waitFor(v => typeof v === 'number'), wait(1300).then(() => null)]);
+    waiter = null; dirRow.hidden = true; A.text = '';
+    const myDive = ch == null ? 0 : ch * 0.65, oAim = (rnd() * 2 - 1) * 0.95;
+    A.tx = oAim; A.ty = 0.2 + rnd() * 0.6; sfx('kick');
+    await Promise.all([tween(A, { ball: 1 }, 550), tween(A, { kx: myDive }, 450)]);
     kOp++;
-    if (oshot !== DIRS[j][1]) { sOp++; anim.text = 'GOL!'; sfx('bad'); } else { anim.text = 'PARATA!'; sfx('good'); }
+    if (Math.abs(oAim - myDive) < 0.42) { A.text = 'PARATA!'; sfx('good'); } else { sOp++; A.text = 'GOL!'; sfx('bad'); }
     ui.score.textContent = `${sMe} – ${sOp}`; await wait(1000);
     if (decided()) break;
   }
-  function decided() {
-    if (kMe <= 5 && kOp <= 5) { const leftMe = 5 - kMe, leftOp = 5 - kOp; if (sMe > sOp + leftOp || sOp > sMe + leftMe) return true; if (kMe === 5 && kOp === 5) return sMe !== sOp; return false; }
-    return kMe === kOp && sMe !== sOp;
-  }
   const win = sMe > sOp;
   ui.msg.textContent = win ? `Bruno vince ai rigori ${sMe}–${sOp}!` : `${foe.nome} vince ${sOp}–${sMe}.`;
-  await wait(1200); mgClose(); return win;
+  await wait(1200); off(); mgClose(); return win;
+}
+
+// 8. Padel: un set corto, vince chi fa due giochi (punto d'oro sul 40 pari)
+async function mgPadel(foe) {
+  const ui = mgOpen('Padel: muoviti con ◀ ▶ o trascinando il dito sul campo. Rimbalzo sul vetro? Hai una seconda occasione!', foe);
+  const cv2 = mkCanvas(ui.stage, 1.15, 0.56), row = el('div', 'mg-row'); ui.stage.append(row);
+  const PL = 0.86, OL = 0.14, REACH = 0.12;
+  const st = { px: 0.5, ox: 0.5, b: { x: 0.5, y: 0.5, vx: 0, vy: 0 }, speed: 0.6, glass: false, last: 'me', run: false, server: 'me', pts: [0, 0], games: [0, 0], wait: 0, over: false, target: null, hold: 0, err: 0, end: null, flash: '' };
+  const L = mgButton(row, '◀', () => {}), R = mgButton(row, '▶', () => {});
+  for (const [b, v] of [[L, -1], [R, 1]]) {
+    b.addEventListener('pointerdown', e => { e.preventDefault(); st.hold = v; st.target = null; });
+    const up = () => { if (st.hold === v) st.hold = 0; }; b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
+  }
+  const court = () => { const w = cv2.w, h = cv2.h, cw = Math.min(w * 0.94, h * 0.62), ch = h * 0.94; return { ox: (w - cw) / 2, oy: (h - ch) / 2, cw, ch }; };
+  const toCourtX = e => { const r = cv2.cvs.getBoundingClientRect(), k = court(); return ((e.clientX - r.left) * (cv2.w / r.width) - k.ox) / k.cw; };
+  cv2.cvs.addEventListener('pointerdown', e => { e.preventDefault(); try { cv2.cvs.setPointerCapture(e.pointerId); } catch (err) { /* ignora */ } st.target = toCourtX(e); });
+  cv2.cvs.addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') st.target = toCourtX(e); });
+  const off = mgHandler({ a() {}, b() {}, dir() {} });
+  const LBL = ['0', '15', '30', '40'];
+  const scoreTxt = () => { const [a, b] = st.pts; const p = (a === 3 && b === 3) ? 'Punto d’oro' : `${LBL[Math.min(a, 3)]}–${LBL[Math.min(b, 3)]}`; ui.score.textContent = `${st.games[0]}–${st.games[1]} · ${p}`; };
+  function serve() {
+    const me = st.server === 'me';
+    st.b.x = me ? st.px : st.ox; st.b.y = me ? PL - 0.02 : OL + 0.02;
+    const ang = (rnd() - 0.5) * 0.6; st.speed = 0.6;
+    st.b.vx = Math.sin(ang) * st.speed; st.b.vy = (me ? -1 : 1) * Math.cos(ang) * st.speed;
+    st.glass = false; st.last = st.server; st.run = true; st.flash = '';
+    st.err = (rnd() - 0.5) * 0.16; sfx('tap');
+  }
+  function hit(side) {
+    const p = side === 'me' ? st.px : st.ox, off2 = clamp((st.b.x - p) / REACH, -1, 1);
+    st.speed = Math.min(1.15, st.speed * 1.06);
+    const ang = off2 * 0.6 + (rnd() - 0.5) * 0.3;
+    st.b.vx = Math.sin(ang) * st.speed; st.b.vy = (side === 'me' ? -1 : 1) * Math.cos(ang) * st.speed;
+    st.b.y = side === 'me' ? PL - 0.005 : OL + 0.005;
+    st.glass = false; st.last = side; sfx('tap');
+    if (side === 'me') st.err = (rnd() - 0.5) * (0.12 + st.speed * 0.12);
+  }
+  function point(w) {
+    st.run = false; const k = w === 'me' ? 0 : 1; st.pts[k]++;
+    st.flash = w === 'me' ? 'Punto Bruno!' : `Punto ${foe.nome}!`; sfx(w === 'me' ? 'good' : 'bad');
+    if (st.pts[k] >= 4) {
+      st.games[k]++; st.pts = [0, 0]; st.server = st.server === 'me' ? 'op' : 'me';
+      st.flash = w === 'me' ? 'Gioco Bruno!' : `Gioco ${foe.nome}!`;
+      if (st.games[k] >= 2) { st.over = true; scoreTxt(); setTimeout(() => st.end(w === 'me'), 1300); return; }
+    }
+    scoreTxt(); st.wait = 1.2;
+  }
+  MG = {
+    update(dt) {
+      if (st.over) return;
+      if (st.wait > 0) { st.wait -= dt; if (st.wait <= 0) serve(); }
+      let dir = st.hold || (held.left ? -1 : held.right ? 1 : 0);
+      if (!dir && st.target != null) { const d = st.target - st.px; dir = Math.abs(d) < 0.01 ? 0 : Math.sign(d); }
+      st.px = clamp(st.px + dir * 0.95 * dt, 0.06, 0.94);
+      const aiT = st.b.vy < 0 ? st.b.x + st.err : 0.5;
+      const dd = aiT - st.ox; st.ox = clamp(st.ox + Math.sign(dd) * Math.min(Math.abs(dd), 0.58 * dt), 0.06, 0.94);
+      if (!st.run) return;
+      const steps = 4;
+      for (let i = 0; i < steps && st.run; i++) {
+        const py = st.b.y; st.b.x += st.b.vx * dt / steps; st.b.y += st.b.vy * dt / steps;
+        if (st.b.x < 0.03) { st.b.x = 0.03; st.b.vx = Math.abs(st.b.vx); }
+        if (st.b.x > 0.97) { st.b.x = 0.97; st.b.vx = -Math.abs(st.b.vx); }
+        const y = st.b.y;
+        // lato di Bruno
+        if ((py < PL && y >= PL) || (py > PL && y <= PL)) {
+          if (Math.abs(st.b.x - st.px) < REACH) { hit('me'); continue; }
+          if (py > PL) { point('op'); break; }
+        }
+        if (y >= 0.99) { if (!st.glass && st.last === 'op') { st.glass = true; st.b.y = 0.99; st.b.vy = -Math.abs(st.b.vy) * 0.5; st.flash = 'Vetro!'; } else { point('op'); break; } }
+        // lato avversario
+        if ((py > OL && y <= OL) || (py < OL && y >= OL)) {
+          if (Math.abs(st.b.x - st.ox) < REACH * 0.92) { hit('op'); continue; }
+          if (py < OL) { point('me'); break; }
+        }
+        if (y <= 0.01) { if (!st.glass && st.last === 'me') { st.glass = true; st.b.y = 0.01; st.b.vy = Math.abs(st.b.vy) * 0.5; } else { point('me'); break; } }
+      }
+    },
+    draw() {
+      const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
+      c.fillStyle = '#e9e2cf'; c.fillRect(0, 0, w, h);
+      const k = court(), X = v => k.ox + v * k.cw, Y = v => k.oy + v * k.ch;
+      c.fillStyle = '#2f6fb8'; c.fillRect(k.ox, k.oy, k.cw, k.ch);
+      c.strokeStyle = 'rgba(200,230,255,.9)'; c.lineWidth = 6; c.strokeRect(k.ox, k.oy, k.cw, k.ch);
+      c.strokeStyle = '#fff'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(X(0), Y(0.27)); c.lineTo(X(1), Y(0.27)); c.moveTo(X(0), Y(0.73)); c.lineTo(X(1), Y(0.73)); c.moveTo(X(0.5), Y(0.27)); c.lineTo(X(0.5), Y(0.73)); c.stroke();
+      c.fillStyle = '#ddd'; c.fillRect(k.ox - 4, Y(0.5) - 3, k.cw + 8, 6); c.strokeStyle = OUT; c.lineWidth = 1.5; c.strokeRect(k.ox - 4, Y(0.5) - 3, k.cw + 8, 6);
+      const T = k.cw * 0.2;
+      drawChar(c, X(st.ox) - T / 2, Y(OL) - T * 0.85, T, 'down', NOW * 4, foe.look, true);
+      drawChar(c, X(st.px) - T / 2, Y(PL) - T * 0.6, T, 'up', NOW * 4, BRUNO.look, true);
+      c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 1;
+      c.beginPath(); c.arc(X(st.px), Y(PL), REACH * k.cw, 0, 7); c.stroke();
+      if (st.run || st.wait > 0) {
+        c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(X(st.b.x) + 3, Y(st.b.y) + 5, 6, 3, 0, 0, 7); c.fill();
+        c.fillStyle = '#e8ff4a'; c.strokeStyle = OUT; c.lineWidth = 1.5; c.beginPath(); c.arc(X(st.b.x), Y(st.b.y), Math.max(5, k.cw * 0.022), 0, 7); c.fill(); c.stroke();
+      }
+      if (st.flash) { c.font = `700 ${Math.round(k.cw * 0.09)}px Fredoka, sans-serif`; c.textAlign = 'center'; c.lineWidth = 5; c.strokeStyle = OUT; c.strokeText(st.flash, w / 2, Y(0.5) - 12); c.fillStyle = '#ffd23f'; c.fillText(st.flash, w / 2, Y(0.5) - 12); }
+    },
+  };
+  scoreTxt();
+  await countdown(ui); ui.msg.textContent = 'Si gioca! Batte Bruno.';
+  serve();
+  const res = await new Promise(r => { st.end = r; });
+  ui.msg.textContent = res ? 'Set Bruno! Che partita.' : `Set ${foe.nome}.`;
+  await wait(800); off(); mgClose(); return res;
+}
+
+// 9. Chirurgia: estrai le spine di riccio senza toccare i bordi
+const SURG = [
+  { w: 0.13, p: [[0.08, 0.55], [0.25, 0.3], [0.42, 0.62], [0.6, 0.35], [0.78, 0.6], [0.9, 0.45]] },
+  { w: 0.105, p: [[0.08, 0.3], [0.2, 0.7], [0.36, 0.3], [0.5, 0.72], [0.66, 0.28], [0.8, 0.7], [0.92, 0.4]] },
+  { w: 0.085, p: [[0.08, 0.7], [0.18, 0.25], [0.3, 0.62], [0.42, 0.22], [0.56, 0.66], [0.68, 0.25], [0.8, 0.66], [0.92, 0.32]] },
+];
+async function mgChirurgia(foe) {
+  const ui = mgOpen('Trascina il dito (o usa le frecce) per guidare la pinzetta lungo il canale fino alla spina', foe);
+  const cv2 = mkCanvas(ui.stage, window.innerWidth < 600 ? 0.95 : 0.62, 0.52);
+  const st = { lvl: 0, lives: 3, tip: { x: 0, y: 0 }, drag: false, last: null, flash: 0, done: null, active: false };
+  const geo = () => { const w = cv2.w, h = cv2.h, S = SURG[st.lvl]; return { pts: S.p.map(([x, y]) => [x * w, y * h]), wpx: S.w * Math.min(w, h) * 1.25 }; };
+  function distSeg(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy; let t = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0; t = clamp(t, 0, 1); return Math.hypot(px - (ax + t * dx), py - (ay + t * dy)); }
+  function dist(x, y) { const { pts } = geo(); let m = 1e9; for (let i = 0; i < pts.length - 1; i++) m = Math.min(m, distSeg(x, y, ...pts[i], ...pts[i + 1])); return m; }
+  function reset() { const { pts } = geo(); st.tip.x = pts[0][0]; st.tip.y = pts[0][1]; }
+  function buzz() {
+    st.lives--; st.flash = 0.5; st.drag = false; sfx('bad'); reset(); hud();
+    if (st.lives <= 0) { st.active = false; st.done(false); }
+  }
+  function moveBy(dx, dy) {
+    if (!st.active) return;
+    const n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 2)), { pts, wpx } = geo(), end = pts[pts.length - 1];
+    for (let i = 0; i < n; i++) {
+      st.tip.x += dx / n; st.tip.y += dy / n;
+      if (dist(st.tip.x, st.tip.y) > wpx / 2) { buzz(); return; }
+      if (Math.hypot(st.tip.x - end[0], st.tip.y - end[1]) < wpx * 0.35) { st.active = false; sfx('good'); st.done(true); return; }
+    }
+  }
+  const hud = () => { ui.score.textContent = `Spina ${st.lvl + 1}/3 · Vite ${'●'.repeat(Math.max(0, st.lives))}${'○'.repeat(3 - Math.max(0, st.lives))}`; };
+  const pos = e => { const r = cv2.cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) * (cv2.w / r.width), y: (e.clientY - r.top) * (cv2.h / r.height) }; };
+  cv2.cvs.addEventListener('pointerdown', e => { e.preventDefault(); try { cv2.cvs.setPointerCapture(e.pointerId); } catch (err) { /* ignora */ } st.drag = true; st.last = pos(e); });
+  cv2.cvs.addEventListener('pointermove', e => { if (!st.drag) return; const p = pos(e); moveBy(p.x - st.last.x, p.y - st.last.y); st.last = p; });
+  const up = () => { st.drag = false; }; cv2.cvs.addEventListener('pointerup', up); cv2.cvs.addEventListener('pointercancel', up);
+  const off = mgHandler({ a() {}, b() {}, dir() {} });
+  MG = {
+    update(dt) {
+      st.flash = Math.max(0, st.flash - dt);
+      const sp = 110 * dt; let dx = 0, dy = 0;
+      if (held.left) dx -= sp; if (held.right) dx += sp; if (held.up) dy -= sp; if (held.down) dy += sp;
+      if (dx || dy) moveBy(dx, dy);
+    },
+    draw() {
+      const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
+      for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? '#ffffff' : '#3fbf8f'; c.fillRect(i * w / 8, 0, w / 8 + 1, h); }
+      c.fillStyle = BRUNO.look.skin; c.strokeStyle = OUT; c.lineWidth = 3;
+      c.beginPath(); c.ellipse(w * 0.5, h * 0.52, w * 0.47, h * 0.42, 0, 0, 7); c.fill(); c.stroke();
+      for (let i = 0; i < 5; i++) { c.beginPath(); c.ellipse(w * 0.96, h * (0.22 + i * 0.15), w * 0.04, h * 0.06, 0, 0, 7); c.fill(); c.stroke(); }
+      const { pts, wpx } = geo();
+      c.lineCap = 'round'; c.lineJoin = 'round';
+      c.strokeStyle = OUT; c.lineWidth = wpx + 5; c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke();
+      c.strokeStyle = '#f7c2b5'; c.lineWidth = wpx; c.stroke();
+      const [ex, ey] = pts[pts.length - 1];
+      c.strokeStyle = '#1b1b22'; c.lineWidth = 2; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; c.beginPath(); c.moveTo(ex, ey); c.lineTo(ex + Math.cos(a) * wpx * 0.35, ey + Math.sin(a) * wpx * 0.35); c.stroke(); }
+      const [sx, sy] = pts[0]; c.fillStyle = 'rgba(63,191,143,.6)'; c.beginPath(); c.arc(sx, sy, wpx * 0.3, 0, 7); c.fill();
+      const tx = st.tip.x, ty = st.tip.y;
+      c.strokeStyle = '#8d939c'; c.lineWidth = 4; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(tx - 2, ty); c.lineTo(tx + 26, ty - 34); c.moveTo(tx + 2, ty); c.lineTo(tx + 32, ty - 28); c.stroke();
+      c.fillStyle = '#e0533a'; c.beginPath(); c.arc(tx, ty, 3.5, 0, 7); c.fill();
+      if (st.flash > 0) { c.fillStyle = `rgba(224,83,58,${st.flash})`; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = '700 34px Fredoka, sans-serif'; c.textAlign = 'center'; c.fillText('BZZZ!', w / 2, h / 2); }
+    },
+  };
+  let win = true;
+  for (st.lvl = 0; st.lvl < SURG.length; st.lvl++) {
+    reset(); hud(); ui.msg.textContent = `Spina ${st.lvl + 1} di 3: parti dal cerchio verde e arriva alla spina nera.`;
+    st.active = true;
+    const ok = await new Promise(r => { st.done = r; });
+    if (!ok) { win = false; break; }
+    ui.msg.textContent = 'Spina estratta!'; await wait(700);
+  }
+  ui.msg.textContent = win ? 'Operazione riuscita! Il piede di Bruno è salvo.' : 'Hai finito le vite…';
+  await wait(1000); off(); mgClose(); return win;
 }
 
 // 7. Poker (5 carte, un cambio)
@@ -1447,13 +1711,13 @@ async function mgPoker(foe) {
   const win = me > op;
   await wait(300); mgClose(); return win;
 }
-const MINIGAMES = { scacchi: mgScacchi, braccio: mgBraccio, cucina: mgCucina, arrampicata: mgArrampicata, bjj: mgBjj, fifa: mgFifa, poker: mgPoker };
+const MINIGAMES = { scacchi: mgScacchi, braccio: mgBraccio, cucina: mgCucina, chirurgia: mgChirurgia, padel: mgPadel, arrampicata: mgArrampicata, bjj: mgBjj, fifa: mgFifa, poker: mgPoker };
 
 // ---------- Menu ----------
 async function openMenu() {
   while (true) {
     const i = await choose('Menu', [
-      { label: 'Tappe', sub: `${G.done.length} latte e menta su 7` },
+      { label: 'Tappe', sub: `${G.done.length} latte e menta su ${NT}` },
       { label: 'Zaino (10 kg)', sub: 'Cosa porta Bruno' },
       { label: AU.on ? 'Suono: acceso' : 'Suono: spento', sub: 'Tocca per cambiare' },
     ], { cancelLabel: 'Chiudi' });
@@ -1470,12 +1734,12 @@ async function openMenu() {
 }
 function tappePanel() {
   return panel(inner => {
-    inner.append(el('h2', null, 'Le sette tappe'));
+    inner.append(el('h2', null, `Le ${NT} tappe`));
     inner.append(el('p', 'muted', 'Da Maracalagonis a Porto Sa Ruxi lungo la litoranea SP17. In ogni bar: una sfida e un latte e menta.'));
     TAPPE.forEach((t, i) => {
       const a = amico(t.who), r = el('div', 'tappa');
-      r.append(el('span', 'n', String(i + 1)));
-      const tx = el('div', 't', t.bar); tx.append(el('small', null, `${t.zona} · ${a ? a.nome : 'La banda'} · ${SFIDE[a ? a.sfida : 'poker']}`)); r.append(tx);
+      r.append(el('span', 'n', String(i + 1)), bustCanvas(a.look, 34));
+      const tx = el('div', 't', t.bar); tx.append(el('small', null, `${t.zona} · ${a.nome} · ${SFIDE[t.sfida]}`)); r.append(tx);
       const done = G.done.includes(i), beat = G.beaten.includes(i);
       r.append(el('span', 'badge' + (done ? ' ok' : ''), done ? 'Bevuto' : beat ? 'Sfida vinta' : 'Da fare'));
       inner.append(r);
@@ -1487,12 +1751,12 @@ function updateHud() {
   const i = tappaCorrente();
   let tag, txt;
   if (i < 0) { tag = 'Completato'; txt = 'Bruno è pronto per Santiago!'; }
-  else { const t = TAPPE[i], a = amico(t.who); tag = `Tappa ${i + 1} di 7 · ${t.zona}`; txt = G.beaten.includes(i) ? `Entra al ${t.bar} per il latte e menta` : `${t.bar}: sfida ${a ? a.nome : 'la banda'} a ${SFIDE[a ? a.sfida : 'poker'].toLowerCase()}`; }
+  else { const t = TAPPE[i], a = amico(t.who); tag = `Tappa ${i + 1} di ${NT} · ${t.zona}`; txt = G.beaten.includes(i) ? `Entra al ${t.bar} per il latte e menta` : `${t.bar}: sfida ${a.nome} a ${SFIDE[t.sfida].toLowerCase()}`; }
   if ($('#goalTag').textContent !== tag) $('#goalTag').textContent = tag;
   if ($('#goalText').textContent !== txt) $('#goalText').textContent = txt;
   $('#ebar').style.width = Math.round(G.energy) + '%';
   $('#ebar').style.background = G.energy > 40 ? 'var(--mint)' : G.energy > 15 ? '#f2b631' : '#e0533a';
-  $('#cups').textContent = `${G.done.length}/7 latte e menta`;
+  $('#cups').textContent = `${G.done.length}/${NT} latte e menta`;
 }
 
 // ---------- Avvio ----------
@@ -1506,7 +1770,7 @@ function startGame(isNew) {
     await say('Maracalagonis, mattina presto. Bruno si mette in spalla lo zaino: 10 kg precisi.');
     await say('Tra poco partirà per il Cammino di Santiago, e deve allenarsi.', { who: 'Bruno' });
     await say('Il piano: arrivare a piedi fino a Porto Sa Ruxi, a Villasimius, fermandosi in ogni bar per un latte e menta.', { who: 'Bruno' });
-    await say('Ma davanti a ogni bar c’è un amico pronto a sfidarlo…');
+    await say('Ma davanti a ognuno dei nove bar c’è un amico pronto a sfidarlo…');
     await say(document.body.classList.contains('touch') ? 'Cammina con la croce, parla con A, apri il menù con B.' : 'Cammina con le frecce o WASD, parla con Invio o Z, apri il menù con Esc o X.');
     save();
   });
@@ -1549,7 +1813,7 @@ function frame(ts) {
 }
 showTitle();
 requestAnimationFrame(frame);
-window.__bruno = { get G() { return G; }, get mode() { return mode; }, get busy() { return busy; }, P, M, NPCS: () => NPCS, duel, run, MINIGAMES, zoneOf };
+window.__bruno = { get G() { return G; }, get mode() { return mode; }, get busy() { return busy; }, P, M, NPCS: () => NPCS, duel, run, MINIGAMES, zoneOf, TAPPE, PUZZLES, SURG, fenMap };
 </script>
 </body>
 </html>
