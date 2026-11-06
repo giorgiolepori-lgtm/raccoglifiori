@@ -36,9 +36,9 @@ Si apre con un doppio clic e funziona anche offline.
 - Le 9 sfide: Giorgio a scacchi (matto in una mossa, muovendo i pezzi), Davidino a braccio di ferro, Edoardo in cucina,
   Pet in chirurgia (estrarre le spine di riccio senza toccare i bordi), JOSTO a padel (con il punto d'oro),
   Edoardo in arrampicata, Pet a brazilian jiu-jitsu, Zonco a FIFA (rigori con mirino e potenza) e, alla meta, Alex a poker.
+- Prima di ogni sfida l'amico lancia la sua frase di battaglia.
+- Lungo la strada: pietre miliari del Cammino con frecce gialle e conchiglia, cartelli sui luoghi,
+  e personaggi che parlano di Maracalagonis, Porto Sa Ruxi, Cammino di Santiago e latte e menta.
+- Ogni latte e menta vale un timbro sulla credenziale del pellegrino.
 - Camminare consuma energia (lo zaino pesa!): fontanelle e latte e menta la ricaricano.
 - Nomi, aspetto e abbinamenti sfida-persona si cambiano nelle liste `AMICI` e `TAPPE` all'inizio dello script.
-
-# Petalini
-
-`petalini.html`: piccolo gioco di cattura e lotta a turni con creature originali nate dai fiori.

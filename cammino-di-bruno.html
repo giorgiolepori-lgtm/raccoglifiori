@@ -230,31 +230,31 @@ const SFIDE = { scacchi: 'Scacchi', braccio: 'Braccio di ferro', cucina: 'Cucina
 // Per cambiare chi fa cosa, modifica "who" (id in AMICI) e "sfida" (chiave in SFIDE).
 const TAPPE = [
   { zona: 'Maracalagonis', bar: 'Bar della Piazza', who: 'giorgio', sfida: 'scacchi', bg: 'paese',
-    intro: ['Bruno! Prima di partire, una partita veloce?', 'Tre posizioni, matto in una mossa: ne devi trovare almeno due. Tocca il pezzo e poi la casa dove muoverlo.'],
-    win: 'Bell’occhio! Il latte e menta te lo sei meritato. Ci vediamo alla meta!', lose: 'Torna quando avrai studiato un po’ di finali!' },
+    intro: ['Se perdi ascoltiamo Stereo Love 365 volte.', 'Bruno! Prima di partire, una partita veloce?', 'Tre posizioni, matto in una mossa: ne devi trovare almeno due. Tocca il pezzo e poi la casa dove muoverlo.'],
+    win: 'Bell’occhio! Il latte e menta te lo sei meritato. Ci vediamo alla meta!', lose: 'Hai perso! Si parte: Stereo Love, ascolto 1 di 365…' },
   { zona: 'Colline di Maracalagonis', bar: 'Bar del Bivio', who: 'davidino', sfida: 'braccio', bg: 'colline',
-    intro: ['Ehi, pellegrino! Qui al Bivio si passa solo in un modo.', 'Braccio di ferro. Se vinci, il latte e menta lo offro io.'],
+    intro: ['Pronto Frari?', 'Qui al Bivio si passa solo in un modo.', 'Braccio di ferro. Se vinci, il latte e menta lo offro io.'],
     win: 'Hai un braccio d’acciaio! Dev’essere lo zaino. Ci vediamo alla meta!', lose: 'Troppo morbido! Mangia un panino e riprova.' },
   { zona: 'Kal’e Moru', bar: 'Chiosco Kal’e Moru', who: 'edoardo', sfida: 'cucina', bg: 'mare',
-    intro: ['Fermo lì! Al chiosco di Kal’e Moru si cucina, mica si beve e basta.', 'Sfida di cucina: malloreddus alla campidanese. Vediamo chi fa il piatto migliore!'],
+    intro: ['Fra, sei il più strano. Sfidami!', 'Al chiosco di Kal’e Moru si cucina, mica si beve e basta.', 'Sfida di cucina: malloreddus alla campidanese. Vediamo chi fa il piatto migliore!'],
     win: 'Mi inchino, chef Bruno. Ci rivediamo più avanti: ho un’altra sfida per te!', lose: 'Il mio sugo è imbattibile. Riprova, chef!' },
   { zona: 'Mari Pintau', bar: 'Chiosco Mari Pintau', who: 'pet', sfida: 'chirurgia', bg: 'mare',
-    intro: ['Bruno, cammini storto: hai pestato un riccio di mare!', 'Sfida di chirurgia: togli le tre spine dal piede senza toccare i bordi. Io ce l’ho fatta. Tu hai tre vite.'],
+    intro: ['Ho dovuto sfidarti telepaticamente, purtroppo.', 'E comunque cammini storto: hai pestato un riccio di mare!', 'Sfida di chirurgia: togli le tre spine dal piede senza toccare i bordi. Io ce l’ho fatta. Tu hai tre vite.'],
     win: 'Mani da chirurgo! Ci rivediamo a Torre delle Stelle per un incontro di jiu-jitsu.', lose: 'Bzzz! Il paziente si lamenta. Riprova, dottore!' },
   { zona: 'Geremeas · Marongiu', bar: 'Padel Bar Marongiu', who: 'josto', sfida: 'padel', bg: 'mare',
-    intro: ['Ho prenotato il campo di padel dietro il bar.', 'Set corto: vince chi fa due giochi. Sul 40 pari si gioca il punto d’oro!'],
+    intro: ['Sei Bruno.', 'Ho prenotato il campo di padel dietro il bar.', 'Set corto: vince chi fa due giochi. Sul 40 pari si gioca il punto d’oro!'],
     win: 'Che bandeja! Ci vediamo alla meta.', lose: 'Ti ho chiuso a rete! Rivincita?' },
   { zona: 'Baccu Mandara', bar: 'Bar Baccu Mandara', who: 'edoardo', sfida: 'arrampicata', bg: 'mare',
-    intro: ['Eccomi di nuovo! Stavolta niente fornelli.', 'Gara di arrampicata sul granito: chi arriva prima in cima vince.'],
+    intro: ['Fra, sei il più strano. Sfidami!', 'Sì, sono ancora io. Stavolta niente fornelli.', 'Gara di arrampicata sul granito: chi arriva prima in cima vince.'],
     win: 'Sei salito come uno stambecco! Ci vediamo a Porto Sa Ruxi.', lose: 'Sei rimasto a metà parete! Riprova.' },
   { zona: 'Torre delle Stelle', bar: 'Bar della Torre', who: 'pet', sfida: 'bjj', bg: 'mare',
-    intro: ['Ossu! Il piede è guarito? Bene, perché adesso si lotta.', 'Brazilian jiu-jitsu: cinque scambi, vince chi fa più punti. Guarda bene cosa sto per fare!'],
+    intro: ['Ho dovuto sfidarti telepaticamente, purtroppo.', 'Ossu! Il piede è guarito? Bene, perché adesso si lotta.', 'Brazilian jiu-jitsu: cinque scambi, vince chi fa più punti. Guarda bene cosa sto per fare!'],
     win: 'Tap, tap! Mi arrendo. Ci vediamo alla meta, ossu!', lose: 'Ossu. Respira e riprova.' },
   { zona: 'Solanas', bar: 'Chiosco Solanas', who: 'zonco', sfida: 'fifa', bg: 'mare',
-    intro: ['Volevo parlare di… rigori!', 'Ho la Play collegata al maxischermo del chiosco. Cinque rigori a testa.'],
+    intro: ['Mi sento al 90% di poterti sfidare… forse.', 'Ho la Play collegata al maxischermo del chiosco. Cinque rigori a testa.'],
     win: 'Rigori da campione. Ti aspetto a Porto Sa Ruxi!', lose: 'Ho vinto io! Rivincita?' },
   { zona: 'Porto Sa Ruxi', bar: 'Chiosco Porto Sa Ruxi', who: 'alex', sfida: 'poker', bg: 'mare',
-    intro: ['Pensavi di arrivare alla meta senza passare da me?', 'Ultima sfida: poker. Al meglio delle tre mani, e gli altri guardano!'],
+    intro: ['Che cazzo vuoi?!', 'Ah, sei tu. Pensavi di arrivare alla meta senza passare da me?', 'Ultima sfida: poker. Al meglio delle tre mani, e gli altri guardano!'],
     win: 'Va bene, va bene: hai vinto tu. Offro io l’ultimo latte e menta!', lose: 'Il banco vince sempre… a meno che tu non riprovi.' },
 ];
 const NT = TAPPE.length;
@@ -282,8 +282,22 @@ const HOUSES = [];
 function house(x, y, w, h, door, kind, extra = {}) { HOUSES.push({ x, y, w, h, door, kind, ...extra }); }
 const COAST = [];
 const TOWER = [67, 41];
+// Pietre miliari in stile Cammino di Santiago: freccia gialla e conchiglia
+const CAMINO = {
+  '14,6': 'Una freccia gialla dipinta su un muretto di Maracalagonis. Bruno l’ha disegnata ieri sera: «Sul Cammino si seguono le frecce gialle fino a Santiago de Compostela. Tanto vale abituarsi.»',
+  '14,17': 'Pietra miliare con la conchiglia. La conchiglia è il simbolo dei pellegrini del Cammino di Santiago: Bruno ne ha una appesa allo zaino.',
+  '21,22': 'Pietra miliare: «Il Cammino Francese parte da Saint-Jean-Pied-de-Port e attraversa subito i Pirenei. Sono circa 800 km fino a Santiago.» Bruno guarda le colline: «Questi sono i miei Pirenei.»',
+  '18,26': 'Pietra miliare: «Nella credenziale del pellegrino si raccolgono i timbri di ostelli, chiese e bar lungo la strada.» Bruno: «Oggi raccolgo i timbri dei latte e menta.»',
+  '16,31': 'Freccia gialla verso il mare. Da qui in poi si segue la litoranea SP17, sempre verso est.',
+  '28,36': 'Pietra miliare: «Per ricevere la Compostela bisogna percorrere a piedi almeno gli ultimi 100 km.» Bruno fa due conti: oggi sono molti meno, ma con 10 kg sulle spalle valgono doppio.',
+  '40,36': 'Pietra miliare: «Buen Camino!» È il saluto che i pellegrini si scambiano lungo la strada.',
+  '52,36': 'Pietra miliare: «Nella cattedrale di Santiago oscilla il Botafumeiro, un incensiere gigante appeso al soffitto.»',
+  '64,36': 'Pietra miliare: «Dopo Santiago molti proseguono fino a Finisterre, un tempo considerata la fine del mondo.» Bruno: «La mia fine del mondo per oggi è Porto Sa Ruxi.»',
+  '76,36': 'Freccia gialla: Porto Sa Ruxi è vicina. Ultimo sforzo, pellegrino!',
+  '90,36': 'Pietra miliare speciale: «Km 0 dell’allenamento di Bruno». Qualcuno ci ha appoggiato sopra un bicchiere vuoto di latte e menta.',
+};
 const SIGNS = {
-  '11,6': 'Maracalagonis. Bruno parte da qui: obiettivo Porto Sa Ruxi, a piedi, con lo zaino da 10 kg.',
+  '11,6': 'Maracalagonis, ai piedi dei monti dei Sette Fratelli. Il suo territorio arriva fino al mare, a Torre delle Stelle. Bruno parte da qui: obiettivo Porto Sa Ruxi, a piedi, con lo zaino da 10 kg.',
   '14,14': '↓ Sentiero per le colline e per il mare. Bar del Bivio più avanti.',
   '16,33': '← Cagliari · Litoranea SP17 · Villasimius →  Spiaggia di Kal’e Moru.',
   '22,33': 'Mari Pintau: la caletta dietro il promontorio di Bruncu de su Monte Moru.',
@@ -291,7 +305,7 @@ const SIGNS = {
   '47,33': 'Riu Geremeas. Di là dal ponte: spiaggia di Baccu Mandara.',
   '58,33': 'Torre delle Stelle. Sul promontorio, la torre che guarda il mare.',
   '70,33': 'Solanas. Penultima tappa!',
-  '82,33': 'Porto Sa Ruxi: tre calette di granito, la prima baia prima di Capo Boi. La meta!',
+  '82,33': 'Porto Sa Ruxi, Villasimius: tre calette riparate tra scogli di granito, con dune, ginepri e mirto. D’estate l’accesso è a numero chiuso, con prenotazione. La meta!',
 };
 (function buildMap() {
   // Maracalagonis
@@ -360,8 +374,9 @@ const SIGNS = {
   const fountains = [[21, 11], [17, 24], [11, 31], ...CS.slice(1).map(s => [s === 46 ? 48 : s + 1, 31])];
   for (const [x, y] of fountains) { M[y][x] = 'W'; if (M[y + 1][x] !== 'a') M[y + 1][x] = '.'; }
   for (const k of Object.keys(SIGNS)) { const [x, y] = k.split(',').map(Number); M[y][x] = 'S'; }
+  for (const k of Object.keys(CAMINO)) { const [x, y] = k.split(',').map(Number); if (!'=aDHWS~B'.includes(M[y][x])) M[y][x] = 'C'; }
 })();
-const SOLID = new Set(['T', 'b', 'R', 'H', 'D', 'W', 'S', 'u', 'Y', '~']);
+const SOLID = new Set(['T', 'b', 'R', 'H', 'D', 'W', 'S', 'u', 'Y', '~', 'C']);
 const tileAt = (x, y) => (x < 0 || y < 0 || x >= MW || y >= MH) ? (y >= 36 ? '~' : 'T') : M[y][x];
 const solid = ch => SOLID.has(ch);
 function zoneOf(x, y) {
@@ -760,6 +775,16 @@ function drawTile(c, x, y, ch, px, py, T, t) {
       c.fillStyle = '#7a5230'; c.fillRect(px, py, T * 0.08, T + 1); c.fillRect(px + T * 0.92, py, T * 0.08, T + 1);
       break;
     }
+    case 'C': {
+      grassBase(c, x, y, px, py, T);
+      c.strokeStyle = OUT; c.lineWidth = Math.max(1.5, T / 24);
+      c.fillStyle = 'rgba(20,30,20,.22)'; c.beginPath(); c.ellipse(px + T / 2, py + T * 0.86, T * 0.26, T * 0.07, 0, 0, 7); c.fill();
+      c.fillStyle = '#d9d4c8'; rr(c, px + T * 0.28, py + T * 0.12, T * 0.44, T * 0.74, T * 0.12); c.fill(); c.stroke();
+      c.fillStyle = '#2f5fae'; rr(c, px + T * 0.33, py + T * 0.2, T * 0.34, T * 0.3, T * 0.04); c.fill();
+      c.fillStyle = '#ffd23f'; for (let i = 0; i < 5; i++) { const a = Math.PI * (0.15 + i * 0.175); c.beginPath(); c.moveTo(px + T * 0.5, py + T * 0.44); c.lineTo(px + T * 0.5 + Math.cos(a + Math.PI) * T * 0.13, py + T * 0.44 - Math.sin(a) * T * 0.13); c.lineTo(px + T * 0.5 + Math.cos(a + Math.PI + 0.25) * T * 0.13, py + T * 0.44 - Math.sin(a + 0.25) * T * 0.13); c.closePath(); c.fill(); }
+      c.beginPath(); c.moveTo(px + T * 0.36, py + T * 0.66); c.lineTo(px + T * 0.58, py + T * 0.66); c.lineTo(px + T * 0.58, py + T * 0.6); c.lineTo(px + T * 0.68, py + T * 0.7); c.lineTo(px + T * 0.58, py + T * 0.8); c.lineTo(px + T * 0.58, py + T * 0.74); c.lineTo(px + T * 0.36, py + T * 0.74); c.closePath(); c.fill();
+      break;
+    }
     default: grassBase(c, x, y, px, py, T);
   }
 }
@@ -942,7 +967,7 @@ const WORLD_H = { a() { if (canAct()) interact(); }, b() { if (canAct()) run(ope
 function interact() {
   const [dx, dy] = DIRV[P.dir], x = P.x + dx, y = P.y + dy;
   const n = npcAt(x, y); if (n) return run(() => talk(n));
-  const ch = tileAt(x, y); if ('DSW'.includes(ch)) return run(() => tileEvent(x, y, ch));
+  const ch = tileAt(x, y); if ('DSWC'.includes(ch)) return run(() => tileEvent(x, y, ch));
 }
 let bumpT = 0, tiredWarned = false;
 function tryMove(d) {
@@ -952,7 +977,7 @@ function tryMove(d) {
   if (zTo > zFrom && !G.done.includes(zFrom)) return run(() => gateEvent(zFrom));
   const n = npcAt(nx, ny); if (n) return run(() => talk(n));
   const ch = tileAt(nx, ny);
-  if (solid(ch)) { if ('DSW'.includes(ch)) return run(() => tileEvent(nx, ny, ch)); if (NOW - bumpT > 0.3) { sfx('bump'); bumpT = NOW; } return; }
+  if (solid(ch)) { if ('DSWC'.includes(ch)) return run(() => tileEvent(nx, ny, ch)); if (NOW - bumpT > 0.3) { sfx('bump'); bumpT = NOW; } return; }
   P.moving = true; P.mt = 0; P.sx = P.x; P.sy = P.y; P.tx = nx; P.ty = ny;
 }
 function updateWorld(dt) {
@@ -966,8 +991,24 @@ function updateWorld(dt) {
   }
   if (!P.moving && canAct()) { const d = heldDir(); if (d) tryMove(d); }
 }
+const ZONE_TXT = [
+  [],
+  [['Le colline sopra Maracalagonis: cisto, lentischio e mirto. Profumo di Sardegna.'], ['Salita! Allenamento perfetto per i Pirenei.', 'Bruno']],
+  [['Il mare! Ecco Kal’e Moru, la prima spiaggia della litoranea.'], ['Da qui si segue la costa fino alla meta. Mancano sette bar… cioè sette latte e menta.', 'Bruno']],
+  [['Mari Pintau: in sardo vuol dire «mare dipinto». I colori dell’acqua sembrano fatti col pennello.'], ['A Santiago non c’è un mare così. Me lo godo adesso.', 'Bruno']],
+  [['Geremeas, spiaggia di Marongiu. Dietro il bar si sentono colpi di racchetta: padel.'], ['Ho le gambe pesanti, ma la conchiglia sullo zaino mi dà la carica.', 'Bruno']],
+  [['Il ponte sul Riu Geremeas: il fiume segna il confine tra Quartu e Maracalagonis. Di là c’è Baccu Mandara.'], ['Sono uscito da Maracalagonis e ci sono rientrato. Un pellegrino a chilometro zero!', 'Bruno']],
+  [['Torre delle Stelle, un’altra località di Maracalagonis, con la torre sul promontorio.'], ['Al Cammino si dorme negli ostelli. Io stasera dormo sul divano, ma me lo sarò meritato.', 'Bruno']],
+  [['Solanas: ultima spiaggia prima della meta.'], ['Ultimo bar prima di Porto Sa Ruxi. Ce la posso fare.', 'Bruno']],
+  [['Eccola: Porto Sa Ruxi, tre calette di granito, la prima baia prima di Capo Boi.'], ['La meta! Ma prima l’ultima sfida… e l’ultimo latte e menta.', 'Bruno']],
+];
+async function zoneEnter(z) {
+  for (const [t, who] of ZONE_TXT[z]) await say(t, who ? { who } : {});
+}
 function onStep() {
   G.pos = { x: P.x, y: P.y, dir: P.dir }; G.steps++;
+  const zn = zoneOf(P.x, P.y); if (!G.zones) G.zones = [0];
+  if (!G.zones.includes(zn)) { G.zones.push(zn); save(); if (ZONE_TXT[zn] && ZONE_TXT[zn].length) return run(() => zoneEnter(zn)); }
   G.energy = Math.max(0, G.energy - 0.3); updateHud();
   if (G.energy <= 0 && !tiredWarned) { tiredWarned = true; return run(async () => { await say('Uff… lo zaino da 10 kg pesa sempre di più. Bruno rallenta.', { who: 'Bruno' }); await say('Serve un sorso alla fontanella o, meglio ancora, un bel latte e menta!'); }); }
   if (G.energy > 0) tiredWarned = false;
@@ -987,6 +1028,7 @@ async function talk(n) {
 async function tileEvent(x, y, ch) {
   const key = `${x},${y}`;
   if (ch === 'S') return say(SIGNS[key] || 'Il cartello è sbiadito dal sole.');
+  if (ch === 'C') return say(CAMINO[key] || 'Una freccia gialla indica la strada. Buen Camino!');
   if (ch === 'W') { await say('Bruno beve alla fontanella e si rinfresca la faccia.'); G.energy = Math.min(100, G.energy + 35); sfx('heal'); updateHud(); await say('Energia +35. Ma niente batte un latte e menta…'); save(); return; }
   if (ch === 'D') {
     const h = HOUSES.find(h => h.door === x && h.y + h.h - 1 === y);
@@ -1013,6 +1055,12 @@ function buildNpcs() {
   list.push({ id: 'pastore', name: 'Pastore', look: { skin: '#c98d68', hair: '#cfcfcf', hairStyle: 'short', top: '#5a4a3a', topKind: 'tee', shorts: '#3a3a3a', beard: true }, x: 7, y: 20, dir: 'right', lines: ['Dove vai con quello zaino, a Santiago? Ajò, è lontano!', 'Le mie pecore camminano tutto il giorno e non si lamentano mai.'], visible: () => true });
   for (const [x, y, d] of [[9, 21, 'left'], [8, 23, 'right'], [10, 24, 'left']]) list.push({ id: 'pecora' + x, name: 'Pecora', sheep: true, x, y, dir: d, lines: ['Beeeeh!'], visible: () => true });
   list.push({ id: 'mamma', name: 'Mamma', look: { skin: '#e2b08c', hair: '#5a3a22', hairStyle: 'short', top: '#d96a8a', topKind: 'tee', shorts: '#3a3a5a' }, x: 6, y: 6, dir: 'left', lines: ['Mi raccomando: bevi tanto e non esagerare col latte e menta.', '…va bene, uno per bar. Nove in tutto.'], visible: () => true });
+  list.push({ id: 'peppina', name: 'Zia Peppina', look: { skin: '#e2b08c', hair: '#d8d8d8', hairStyle: 'short', top: '#3a3a4a', topKind: 'tee', shorts: '#3a3a4a' }, x: 9, y: 9, dir: 'down', lines: ['Bruno! Ti hanno visto partire tutti, a Maracalagonis non si parla d’altro.', 'Il Cammino di Santiago, eh? Portami una conchiglia. E torna per la festa del paese!'], visible: () => true });
+  list.push({ id: 'pellegrino', name: 'Pellegrino', look: { skin: '#e6b897', hair: '#bdbdbd', hairStyle: 'short', beard: true, top: '#5a7a4a', topKind: 'tee', shorts: '#4a4a3a', backpack: true }, x: 19, y: 23, dir: 'left', lines: ['Buen Camino, ragazzo! Io l’ho fatto tre anni fa.', 'Consiglio da pellegrino: calze di lana, scarpe già rodate e mai più di un decimo del tuo peso nello zaino.', 'Dieci chili? Allora devi pesare almeno cento chili di simpatia.'], visible: () => true });
+  list.push({ id: 'ciclista', name: 'Ciclista', look: { skin: '#d9a07a', hair: '#1c1410', hairStyle: 'short', top: '#ffd23f', topKind: 'tee', shorts: '#1c1c22' }, x: 30, y: 36, dir: 'right', lines: ['Faccio la litoranea in bici tutte le domeniche: Kal’e Moru, Geremeas, Torre delle Stelle…', 'A piedi con lo zaino fino a Porto Sa Ruxi? Rispetto. Io mi fermo al primo latte e menta.'], visible: () => true });
+  list.push({ id: 'barista2', name: 'Barista in pausa', look: { skin: '#e2b08c', hair: '#5a3a22', hairStyle: 'short', top: '#ffffff', topKind: 'tee', shorts: '#2a2a33' }, x: 55, y: 33, dir: 'down', lines: ['Il segreto del latte e menta? Sciroppo di menta in fondo, latte freddissimo e tanto ghiaccio.', 'E non mescolare troppo: deve restare verde sotto e bianco sopra. È tutta scena.'], visible: () => true });
+  list.push({ id: 'pescatore', name: 'Pescatore', look: { skin: '#b5795a', hair: '#cfcfcf', hairStyle: 'short', beard: true, top: '#2f5fae', topKind: 'tee', shorts: '#3a3a3a', hat: false }, x: 63, y: 38, dir: 'down', lines: ['Dalla torre di Torre delle Stelle una volta si sorvegliava il mare.', 'Oggi sorveglio solo il mio galleggiante. Non abbocca niente.'], visible: () => true });
+  list.push({ id: 'bambina', name: 'Bimba col secchiello', look: { skin: '#f2c9a8', hair: '#8a5a2a', hairStyle: 'short', top: '#ff8fb8', topKind: 'tee', shorts: '#ff8fb8' }, x: 84, y: 38, dir: 'up', lines: ['A Porto Sa Ruxi ci sono tre calette! Io le ho contate due volte.', 'D’estate bisogna prenotare per entrare in spiaggia. La mia mamma ha prenotato a gennaio!'], visible: () => true });
   list.push({ id: 'turista', name: 'Turista', look: { skin: '#f2c9a8', hair: '#e8c36a', hairStyle: 'short', top: '#ff8a4a', topKind: 'tee', shorts: '#3a6ad0' }, x: 40, y: 37, dir: 'up', lines: ['Excuse me… Villasimius? Ah, sempre dritto sulla litoranea!', 'Che caldo! Voi sardi come fate?'], visible: () => true });
   list.push({ id: 'bagnino', name: 'Bagnino', look: { skin: '#b5795a', hair: '#1c1410', hairStyle: 'short', top: '#e0533a', topKind: 'tank', shorts: '#e0533a' }, x: 78, y: 37, dir: 'down', lines: ['Bandiera verde, mare calmo. Porto Sa Ruxi è a due passi!', 'In estate a Porto Sa Ruxi l’accesso è a numero chiuso: meglio prenotare.'], visible: () => true });
   NPCS = list.map(d => ({ ...d, x0: d.x, y0: d.y, dir0: d.dir, fx: d.x, fy: d.y, walk: 0 }));
@@ -1084,7 +1132,9 @@ async function barEvent(i) {
   await say(`Bruno entra al ${t.bar} e appoggia lo zaino da 10 kg.`);
   await say('Buongiorno! Cosa ti preparo?', { who: 'Barista' });
   await say('Un latte e menta bello fresco, grazie!', { who: 'Bruno' });
+  await say(pick(['Ecco qua: sciroppo di menta, latte freddo e ghiaccio. Il drink dell’estate!', 'Latte e menta per il pellegrino! Verde sotto, bianco sopra.', 'Con lo zaino che hai, te ne servirebbero due. Ma uno basta, dai.', 'Santiago, eh? Là ti danno il caffè con leche. Qui il latte e menta è meglio.']), { who: 'Barista' });
   await latteMenta();
+  await say(`Il barista mette un timbro sulla credenziale del pellegrino: ${G.done.length + 1} di ${NT}.`);
   G.done.push(i); G.energy = 100; save(); updateHud();
   if (i < NT - 1) await say(`Energia al massimo! Prossima tappa: ${TAPPE[i + 1].zona}.`);
   else await finale();
@@ -1726,7 +1776,7 @@ async function openMenu() {
     if (i === 1) await panel(inner => {
       inner.append(el('h2', null, 'Lo zaino di Bruno · 10 kg'));
       for (const s of ['2 borracce piene (2 kg)', 'Sacco a pelo leggero', 'K-way e pile', 'Tre magliette tecniche', 'Crema solare (sì, mamma)', 'Kit di primo soccorso e cerotti per le vesciche', 'La credenziale del pellegrino', 'Una conchiglia di Santiago appesa fuori']) inner.append(el('p', null, '· ' + s));
-      inner.append(el('p', 'muted', `Energia: ${Math.round(G.energy)}%. Passi fatti: ${G.steps}.`));
+      inner.append(el('p', 'muted', `Timbri sulla credenziale: ${G.done.length} di ${NT}. Energia: ${Math.round(G.energy)}%. Passi fatti: ${G.steps}.`));
     });
     if (i === 2) { audioInit(); setSound(!AU.on); }
     save();
