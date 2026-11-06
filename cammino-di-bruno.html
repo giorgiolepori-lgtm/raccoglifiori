@@ -2406,6 +2406,17 @@ $('#btnMenu').addEventListener('click', () => { audioInit(); if (canAct()) run(o
 $('#btnSound').addEventListener('click', () => { audioInit(); setSound(!AU.on); });
 setSound(AU.on);
 resize();
+// Versione web pubblica (es. GitHub Pages): installabile come app e giocabile offline.
+(function pwa() {
+  if (!/^https?:$/.test(location.protocol) || /claude/.test(location.hostname)) return;
+  const add = (tag, attrs) => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); document.head.append(e); };
+  add('link', { rel: 'manifest', href: 'manifest-bruno.webmanifest' });
+  add('link', { rel: 'apple-touch-icon', href: 'icone/bruno-apple-180.png' });
+  add('meta', { name: 'theme-color', content: '#2f6b3a' });
+  add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' });
+  add('meta', { name: 'apple-mobile-web-app-title', content: 'Cammino di Bruno' });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
 
 let last = performance.now();
 function frame(ts) {

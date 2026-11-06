@@ -50,22 +50,26 @@ jobs:
           name: cammino-di-bruno-apk
           path: cammino-di-bruno.apk
 
-      - name: Pubblica nella release "apk"
+      - name: Pubblica APK e HTML nella release "apk"
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          NOTES="Per installare: apri questa pagina con Chrome sul telefono Android, tocca cammino-di-bruno.apk e conferma il download. Poi apri il file e consenti l'installazione da origini sconosciute. Versione compilata dal commit ${GITHUB_SHA::7}."
-          if gh release view apk >/dev/null 2>&1; then
-            # la release resta sempre online: si carica il file nuovo con un nome temporaneo,
-            # poi si toglie il vecchio e si rinomina il nuovo (buco di una frazione di secondo)
-            cp cammino-di-bruno.apk cammino-di-bruno-nuovo.apk
-            gh release upload apk cammino-di-bruno-nuovo.apk --clobber
-            ids=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/apk" --jq '.assets[] | "\(.name) \(.id)"')
-            old_id=$(echo "$ids" | awk '$1=="cammino-di-bruno.apk"{print $2}')
-            new_id=$(echo "$ids" | awk '$1=="cammino-di-bruno-nuovo.apk"{print $2}')
-            if [ -n "$old_id" ]; then gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${old_id}"; fi
-            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/assets/${new_id}" -f name=cammino-di-bruno.apk >/dev/null
-            gh release edit apk --title "Il Cammino di Bruno · app Android" --notes "$NOTES"
-          else
-            gh release create apk cammino-di-bruno.apk --target "${GITHUB_SHA}" --title "Il Cammino di Bruno · app Android" --notes "$NOTES"
+          NOTES="Il Cammino di Bruno. Android: apri questa pagina con Chrome, tocca cammino-di-bruno.apk, conferma il download, poi apri il file e consenti l'installazione da origini sconosciute. Computer o telefono, anche offline: scarica cammino-di-bruno.html e aprilo con il browser. Versione del commit ${GITHUB_SHA::7}."
+          if ! gh release view apk >/dev/null 2>&1; then
+            gh release create apk cammino-di-bruno.apk cammino-di-bruno.html --target "${GITHUB_SHA}" --title "Il Cammino di Bruno" --notes "$NOTES"
+            exit 0
           fi
+          # La release resta sempre online: ogni file nuovo si carica con un nome temporaneo,
+          # poi si toglie il vecchio e si rinomina il nuovo (buco di una frazione di secondo).
+          swap() {
+            name="$1"; tmp="nuovo-$1"; cp "$name" "$tmp"
+            gh release upload apk "$tmp" --clobber
+            ids=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/apk" --jq '.assets[] | "\(.name) \(.id)"')
+            old_id=$(echo "$ids" | awk -v n="$name" '$1==n{print $2}')
+            new_id=$(echo "$ids" | awk -v n="$tmp" '$1==n{print $2}')
+            if [ -n "$old_id" ]; then gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${old_id}"; fi
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/assets/${new_id}" -f name="$name" >/dev/null
+          }
+          swap cammino-di-bruno.apk
+          swap cammino-di-bruno.html
+          gh release edit apk --title "Il Cammino di Bruno" --notes "$NOTES"

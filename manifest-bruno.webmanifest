@@ -1,0 +1,16 @@
+{
+  "name": "Il Cammino di Bruno",
+  "short_name": "Cammino di Bruno",
+  "description": "Bruno, con lo zaino da 10 kg, va a piedi da Maracalagonis a Porto Sa Ruxi: nove bar, nove sfide e un latte e menta per tappa.",
+  "lang": "it",
+  "start_url": "./cammino-di-bruno.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2f6b3a",
+  "theme_color": "#2f6b3a",
+  "icons": [
+    { "src": "icone/bruno-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icone/bruno-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icone/bruno-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
