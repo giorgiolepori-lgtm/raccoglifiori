@@ -113,6 +113,11 @@ body.mg #dialog { left: 50%; transform: translateX(-50%); width: min(720px, calc
 .sq { display: grid; place-items: center; font-size: min(8.4vw, 4.8vh, 40px); line-height: 1; position: relative; }
 .sq.l { background: #f0dcb4; } .sq.d { background: #b58863; }
 .sq.hi { box-shadow: inset 0 0 0 4px #3fbf8f; }
+.clocks { display: flex; gap: 8px; width: min(92vw, 52vh, 440px); max-width: 100%; }
+.clock { flex: 1; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 18px; padding: 6px 8px; border: 2.5px solid var(--ink); border-radius: 10px; background: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.clock.on { background: var(--mint); color: #fff; }
+.clock.low { color: var(--red); }
+.clock.on.low { background: var(--red); color: #fff; }
 .sq.lm { background-image: linear-gradient(rgba(255,210,63,.28), rgba(255,210,63,.28)); }
 .sq.tg::before { content: ""; position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(31,42,68,.35); }
 .sq.tgc { box-shadow: inset 0 0 0 4px rgba(224,83,58,.75); }
@@ -234,7 +239,7 @@ const SFIDE = { scacchi: 'Scacchi', braccio: 'Braccio di ferro', cucina: 'Cucina
 // Per cambiare chi fa cosa, modifica "who" (id in AMICI) e "sfida" (chiave in SFIDE).
 const TAPPE = [
   { zona: 'Maracalagonis', bar: 'Bar della Piazza', who: 'giorgio', sfida: 'scacchi', bg: 'paese',
-    intro: ['Se perdi ascoltiamo Stereo Love 365 volte.', 'Bruno! Prima di partire, una partita a scacchi. Quella vera.', 'Tu hai il Bianco: se mi dai scacco matto, il latte e menta è tuo.'],
+    intro: ['Se perdi ascoltiamo Stereo Love 365 volte.', 'Bruno! Prima di partire, una partita a scacchi. Quella vera, con l’orologio: 5 minuti a testa.', 'Tu hai il Bianco: se mi dai scacco matto o mi finisce il tempo, il latte e menta è tuo.'],
     win: 'Scacco matto a me… Bella partita! Il latte e menta te lo sei meritato. Ci vediamo alla meta!', lose: 'Hai perso! Si parte: Stereo Love, ascolto 1 di 365…' },
   { zona: 'Colline di Maracalagonis', bar: 'Bar del Bivio', who: 'davidino', sfida: 'braccio', bg: 'colline',
     intro: ['Pronto Frari?', 'Qui al Bivio si passa solo in un modo.', 'Braccio di ferro. Se vinci, il latte e menta lo offro io.'],
@@ -243,8 +248,8 @@ const TAPPE = [
     intro: ['Fra, sei il più strano. Sfidami!', 'Al chiosco di Kal’e Moru si cucina, mica si beve e basta.', 'Sfida di cucina: malloreddus alla campidanese. Vediamo chi fa il piatto migliore!'],
     win: 'Mi inchino, chef Bruno. Ci rivediamo più avanti: ho un’altra sfida per te!', lose: 'Il mio sugo è imbattibile. Riprova, chef!' },
   { zona: 'Mari Pintau', bar: 'Chiosco Mari Pintau', who: 'pet', sfida: 'chirurgia', bg: 'mare',
-    intro: ['Ho dovuto sfidarti telepaticamente, purtroppo.', 'E comunque cammini storto: hai pestato un riccio di mare!', 'Sfida di chirurgia: togli le tre spine dal piede senza toccare i bordi. Io ce l’ho fatta. Tu hai tre vite.'],
-    win: 'Mani da chirurgo! Ci rivediamo a Torre delle Stelle per un incontro di jiu-jitsu.', lose: 'Bzzz! Il paziente si lamenta. Riprova, dottore!' },
+    intro: ['Ho dovuto sfidarti telepaticamente, purtroppo.', 'E comunque hai un bel taglio sul braccio: ti sei graffiato tra i rovi delle colline.', 'Sfida di chirurgia: chiudi i tagli con ago e filo seguendo la traccia, senza uscire. Io ce l’ho fatta. Tu hai tre vite.'],
+    win: 'Punti perfetti, mani da chirurgo! Ci rivediamo a Torre delle Stelle per un incontro di jiu-jitsu.', lose: 'Ahia! Il paziente si lamenta. Riprova, dottore!' },
   { zona: 'Geremeas · Marongiu', bar: 'Padel Bar Marongiu', who: 'josto', sfida: 'padel', bg: 'mare',
     intro: ['Sei Bruno.', 'Ho prenotato il campo di padel dietro il bar.', 'Un solo gioco: 15, 30, 40 e gioco. Sul 40 pari si gioca il punto d’oro!'],
     win: 'Che bandeja! Ci vediamo alla meta.', lose: 'Ti ho chiuso a rete! Rivincita?' },
@@ -1334,9 +1339,12 @@ const CH = (() => {
     return alpha;
   }
   function best(s, level) {
-    const depth = level === 0 ? 1 : 2, qd = level === 0 ? 1 : 3, noise = level === 0 ? 90 : 25;
+    const depth = level === 0 ? 1 : 2, qd = level === 0 ? 1 : 3, noise = level === 0 ? 140 : 25;
+    const all = legal(s);
+    // livello facile: ogni tanto gioca una mossa a caso, ma il matto in una lo vede sempre
+    if (level === 0 && Math.random() < 0.22) { const mate = all.find(m => { const n = make(s, m); return !legal(n).length && inCheck(n); }); return mate || all[Math.floor(Math.random() * all.length)]; }
     let bestM = null, bs = -Infinity;
-    for (const m of order(legal(s))) {
+    for (const m of order(all)) {
       const sc = -negamax(make(s, m), depth - 1, -Infinity, Infinity, 1, qd) + (Math.random() - 0.5) * noise * 2;
       if (sc > bs) { bs = sc; bestM = m; }
     }
@@ -1366,11 +1374,36 @@ function boardEl(b, o = {}) {
   return el0;
 }
 async function mgScacchi(foe) {
-  const lvl = await choose(`${foe.nome}: come vuoi giocare?`, [{ label: 'Facile', sub: `${foe.nome} gioca rilassato` }, { label: 'Normale', sub: `${foe.nome} fa sul serio` }], { cancel: false });
-  const ui = mgOpen('Partita a scacchi: tu hai il Bianco. Tocca un pezzo, poi una casa evidenziata', foe);
+  const lvl = 0;
+  const ui = mgOpen('Partita a scacchi con l’orologio: 5 minuti a testa, chi finisce il tempo perde. Tu hai il Bianco', foe);
   let s = CH.parse('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq'), sel = null, last = null, cur = null, kc = [6, 4], thinking = false, over = false, moves = 0, legal = CH.legal(s), done;
+  const clock = { w: 300, b: 300 };
+  const clocks = el('div', 'clocks'), cW = el('div', 'clock'), cB = el('div', 'clock');
+  clocks.append(cW, cB);
   const boardWrap = el('div'), row = el('div', 'mg-row');
-  ui.stage.append(boardWrap, row);
+  ui.stage.append(clocks, boardWrap, row);
+  const fmt = t => { const sec = Math.max(0, Math.ceil(t)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
+  function drawClocks() {
+    for (const [elc, side, name] of [[cW, 'w', 'Bruno'], [cB, 'b', foe.nome]]) {
+      const txt = `${name} ${fmt(clock[side])}`; if (elc.textContent !== txt) elc.textContent = txt;
+      elc.classList.toggle('on', !over && s.turn === side); elc.classList.toggle('low', clock[side] < 30);
+    }
+    const mv = `Mossa ${Math.floor(moves / 2) + 1}`; if (ui.score.textContent !== mv) ui.score.textContent = mv;
+  }
+  const hasMating = side => s.b.some(p => p && CH.col(p) === side && p.toLowerCase() !== 'k') && !(s.b.filter(p => p && CH.col(p) === side && p.toLowerCase() !== 'k').length === 1 && 'nb'.includes(s.b.find(p => p && CH.col(p) === side && p.toLowerCase() !== 'k').toLowerCase()));
+  MG = {
+    update(dt) {
+      if (over) return;
+      clock[s.turn] -= dt;
+      if (clock[s.turn] <= 0) {
+        clock[s.turn] = 0; sfx('alert');
+        const loser = s.turn, other = loser === 'w' ? 'b' : 'w';
+        finish(hasMating(other) ? (loser === 'w' ? 'flagW' : 'flagB') : 'draw', 'tempo');
+      }
+      drawClocks();
+    },
+    draw() {},
+  };
   mgButton(row, 'Abbandona', async () => {
     if (over || thinking) return;
     const c = await choose('Vuoi abbandonare la partita?', [{ label: 'Sì, abbandono' }, { label: 'No, continuo' }], { cancel: false });
@@ -1380,7 +1413,6 @@ async function mgScacchi(foe) {
     const targets = sel != null ? legal.filter(m => m.from === sel).map(m => m.to) : [];
     const check = CH.inCheck(s) ? s.b.indexOf(s.turn === 'w' ? 'K' : 'k') : null;
     boardWrap.innerHTML = ''; boardWrap.append(boardEl(s.b, { sel, last, cur, targets, check, onTap: tap }));
-    ui.score.textContent = `Mossa ${Math.floor(moves / 2) + 1}`;
   }
   function tap(sq) {
     if (over || thinking || s.turn !== 'w') return;
@@ -1416,7 +1448,9 @@ async function mgScacchi(foe) {
   render();
   const res = await new Promise(r => { done = r; });
   off();
-  const WHY = { stalemate: 'stallo', insufficient: 'materiale insufficiente', fifty: 'regola delle 50 mosse' };
+  const WHY = { stalemate: 'stallo', insufficient: 'materiale insufficiente', fifty: 'regola delle 50 mosse', tempo: 'tempo scaduto, ma senza materiale per dare matto' };
+  if (res.r === 'flagW') { sfx('bad'); await say(`Bandierina! Il tempo di Bruno è finito: vince ${foe.nome}.`); return (mgClose(), false); }
+  if (res.r === 'flagB') { sfx('good'); await say(`Bandierina! Il tempo di ${foe.nome} è finito: vince Bruno!`); mgClose(); return true; }
   if (res.r === 'win') { sfx('good'); await say(`Scacco matto! Bruno batte ${foe.nome}.`); }
   else if (res.r === 'lose') { sfx('bad'); await say(`Scacco matto… ${foe.nome} vince la partita.`); }
   else if (res.r === 'resign') await say('Bruno abbandona la partita.');
@@ -1424,11 +1458,22 @@ async function mgScacchi(foe) {
   mgClose(); return res.r === 'win';
 }
 
-// 2. Braccio di ferro
+// 2. Braccio di ferro: due braccia vere sul tavolo
+function limb(c, x1, y1, x2, y2, w1, w2, fill, shade) {
+  const a = Math.atan2(y2 - y1, x2 - x1), nx = -Math.sin(a), ny = Math.cos(a);
+  c.beginPath();
+  c.moveTo(x1 + nx * w1, y1 + ny * w1);
+  c.quadraticCurveTo((x1 + x2) / 2 + nx * (w1 + w2) * 0.62, (y1 + y2) / 2 + ny * (w1 + w2) * 0.62, x2 + nx * w2, y2 + ny * w2);
+  c.lineTo(x2 - nx * w2, y2 - ny * w2);
+  c.quadraticCurveTo((x1 + x2) / 2 - nx * (w1 + w2) * 0.55, (y1 + y2) / 2 - ny * (w1 + w2) * 0.55, x1 - nx * w1, y1 - ny * w1);
+  c.closePath(); c.fillStyle = fill; c.fill(); c.stroke();
+  if (shade) { c.save(); c.clip(); c.strokeStyle = shade; c.lineWidth = Math.max(w1, w2) * 0.5; c.beginPath(); c.moveTo(x1 - nx * w1 * 0.8, y1 - ny * w1 * 0.8); c.lineTo(x2 - nx * w2 * 0.8, y2 - ny * w2 * 0.8); c.stroke(); c.restore(); }
+}
+function shadeHex(hex, k) { const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(v * k))); return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`; }
 async function mgBraccio(foe) {
-  const ui = mgOpen('Premi A (o il pulsante) più veloce che puoi!', foe);
-  const cv2 = mkCanvas(ui.stage, 0.6), row = el('div', 'mg-row'); ui.stage.append(row);
-  const st = { pos: 0, t: 0, run: false, end: null, push: 0 };
+  const ui = mgOpen('Premi A (o il pulsante) più veloce che puoi per piegare il braccio avversario sul tavolo!', foe);
+  const cv2 = mkCanvas(ui.stage, 0.62, 0.5), row = el('div', 'mg-row'); ui.stage.append(row);
+  const st = { pos: 0, t: 0, run: false, end: null, push: 0, shake: 0 };
   const tapBtn = mgButton(row, 'SPINGI!', () => tap(), 'big');
   function tap() { if (!st.run) return; st.pos += 0.07; st.push = 1; sfx('tap'); tapBtn.classList.add('on'); setTimeout(() => tapBtn.classList.remove('on'), 60); }
   const off = mgHandler({ a: tap, b() {}, dir() {} });
@@ -1436,70 +1481,163 @@ async function mgBraccio(foe) {
   MG = {
     update(dt) {
       if (!st.run) return; st.t += dt;
-      const force = 0.17 + st.t * 0.012 + (Math.sin(st.t * 2.3) > 0.85 ? 0.35 : 0) + Math.sin(st.t * 5) * 0.05;
+      const surge = Math.sin(st.t * 2.3) > 0.85 ? 0.35 : 0;
+      const force = 0.17 + st.t * 0.012 + surge + Math.sin(st.t * 5) * 0.05;
+      st.shake = surge ? 1 : Math.max(0, st.shake - dt * 3);
       st.pos -= force * dt; st.push = Math.max(0, st.push - dt * 6);
       if (st.pos >= 1) { st.run = false; st.end(true); } else if (st.pos <= -1) { st.run = false; st.end(false); }
       else if (st.t > 20) { st.run = false; st.end(st.pos > 0); }
     },
     draw() {
-      const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, w, h);
-      c.fillStyle = '#fff6e4'; c.fillRect(0, 0, w, h);
-      c.fillStyle = '#9a6a3a'; c.fillRect(0, h * 0.78, w, h * 0.22); c.strokeStyle = OUT; c.lineWidth = 3; c.strokeRect(-2, h * 0.78, w + 4, h * 0.3);
-      const cx = w / 2, ty = h * 0.78, L = h * 0.55, ang = -st.pos * 1.05;
-      const hx = cx + Math.sin(ang) * L, hy = ty - Math.cos(ang) * L;
-      c.lineCap = 'round';
-      for (const [ex, col, skin] of [[cx - w * 0.12, '#1f3554', BRUNO.look.skin], [cx + w * 0.12, foe.look.top || foe.look.skin, foe.look.skin]]) {
-        c.strokeStyle = OUT; c.lineWidth = h * 0.11; c.beginPath(); c.moveTo(ex, ty); c.lineTo(hx, hy); c.stroke();
-        c.strokeStyle = skin; c.lineWidth = h * 0.09; c.beginPath(); c.moveTo(ex, ty); c.lineTo(hx, hy); c.stroke();
+      const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
+      // parete del bar e luce
+      let g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#f6e7c8'); g.addColorStop(1, '#e9d2a6'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+      for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? '#3fbf8f' : '#ffffff'; c.globalAlpha = 0.35; c.fillRect(i * w / 6, 0, w / 6 + 1, h * 0.08); } c.globalAlpha = 1;
+      const ty = h * 0.66, cx = w / 2;
+      // giocatori dietro al tavolo
+      const bs = h * 0.56, by0 = ty + bs * 0.12;
+      drawBust(c, BRUNO.look, w * 0.16, by0, bs);
+      drawBust(c, foe.look, w * 0.84, by0, bs);
+      // tavolo
+      c.strokeStyle = OUT; c.lineWidth = 3;
+      c.fillStyle = '#a8703f'; c.beginPath(); c.moveTo(w * 0.04, ty); c.lineTo(w * 0.96, ty); c.lineTo(w, ty + h * 0.08); c.lineTo(0, ty + h * 0.08); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = '#7a4a26'; c.fillRect(0, ty + h * 0.08, w, h); c.strokeRect(-2, ty + h * 0.08, w + 4, h);
+      c.strokeStyle = 'rgba(60,30,10,.35)'; c.lineWidth = 1.5; for (let i = 1; i < 5; i++) { c.beginPath(); c.moveTo(w * 0.04 + i * w * 0.18, ty + 2); c.lineTo(i * w * 0.2, ty + h * 0.08 - 2); c.stroke(); }
+      c.strokeStyle = OUT; c.lineWidth = 3;
+      // cuscinetti per i gomiti
+      const ex = h * 0.2, ey = ty + h * 0.035;
+      for (const s of [-1, 1]) { c.fillStyle = '#c8302e'; c.beginPath(); c.ellipse(cx + s * ex, ey + 3, h * 0.07, h * 0.022, 0, 0, 7); c.fill(); c.stroke(); }
+      // mani unite: ruotano attorno al centro del tavolo
+      const L = h * 0.42, ang = -st.pos * 1.2 + (st.shake ? Math.sin(NOW * 60) * 0.015 : 0) + (st.push ? Math.sin(NOW * 80) * 0.01 : 0);
+      const hx = cx + Math.sin(ang) * L * 0.75, hy = ey - Math.cos(ang) * L;
+      const sides = [
+        { s: -1, L: BRUNO.look, sleeve: null, sh: [w * 0.16 + bs * 0.33, by0 - bs * 0.5] },
+        { s: 1, L: foe.look, sleeve: foe.look.top && foe.look.topKind === 'tee' ? foe.look.top : null, sh: [w * 0.84 - bs * 0.33, by0 - bs * 0.5] },
+      ];
+      for (const S of sides) {
+        const elx = cx + S.s * ex, ely = ey;
+        const skin = S.L.skin, dark = shadeHex(skin, 0.82);
+        // braccio (spalla → gomito)
+        limb(c, S.sh[0], S.sh[1], elx, ely - h * 0.02, h * 0.07, h * 0.055, skin, dark);
+        if (S.sleeve) { const mx = S.sh[0] + (elx - S.sh[0]) * 0.32, my = S.sh[1] + (ely - S.sh[1]) * 0.32; limb(c, S.sh[0], S.sh[1], mx, my, h * 0.078, h * 0.074, S.sleeve, 'rgba(0,0,0,.15)'); }
+        // avambraccio (gomito → polso), più spesso vicino al gomito
+        const wx = hx + S.s * h * 0.035, wy = hy + h * 0.045;
+        limb(c, elx, ely, wx, wy, h * 0.058, h * 0.038, skin, dark);
+        // vene quando spinge
+        if ((S.s < 0 && st.push > 0.2) || (S.s > 0 && st.shake > 0.2)) { c.strokeStyle = 'rgba(80,50,120,.35)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(elx + (wx - elx) * 0.3, ely + (wy - ely) * 0.3); c.quadraticCurveTo(elx + (wx - elx) * 0.55 + 4, ely + (wy - ely) * 0.55, elx + (wx - elx) * 0.8, ely + (wy - ely) * 0.8); c.stroke(); c.strokeStyle = OUT; c.lineWidth = 3; }
       }
-      c.fillStyle = BRUNO.look.skin; c.strokeStyle = OUT; c.lineWidth = 3; c.beginPath(); c.arc(hx, hy, h * 0.075, 0, 7); c.fill(); c.stroke();
-      c.font = `700 ${Math.round(h * 0.08)}px Fredoka, sans-serif`; c.fillStyle = OUT; c.textAlign = 'center';
-      c.fillText('Bruno', w * 0.15, h * 0.92); c.fillText(foe.nome, w * 0.85, h * 0.92);
-      const bw = w * 0.8, bx = w * 0.1; c.fillStyle = '#e9e0d0'; rr(c, bx, 12, bw, 16, 8); c.fill(); c.stroke();
-      c.fillStyle = st.pos >= 0 ? '#3fbf8f' : '#e0533a'; const mid = bx + bw / 2; c.fillRect(Math.min(mid, mid + st.pos * bw / 2), 14, Math.abs(st.pos * bw / 2), 12);
-      if (st.push > 0) { c.globalAlpha = st.push; star(c, hx, hy - h * 0.12, h * 0.05, '#ffd23f'); c.globalAlpha = 1; }
+      // pugni stretti
+      c.fillStyle = shadeHex(foe.look.skin, 0.95); c.beginPath(); c.ellipse(hx + h * 0.02, hy, h * 0.055, h * 0.065, ang, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = BRUNO.look.skin; c.beginPath(); c.ellipse(hx - h * 0.02, hy + h * 0.005, h * 0.055, h * 0.062, ang, 0, 7); c.fill(); c.stroke();
+      c.strokeStyle = 'rgba(31,42,68,.6)'; c.lineWidth = 1.5;
+      for (let i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(hx - h * 0.055, hy + i * h * 0.022); c.lineTo(hx - h * 0.005, hy + i * h * 0.022 + h * 0.004); c.stroke(); }
+      c.fillStyle = BRUNO.look.skin; c.strokeStyle = OUT; c.lineWidth = 2; c.beginPath(); c.ellipse(hx - h * 0.005, hy - h * 0.06, h * 0.016, h * 0.03, 0.3 + ang, 0, 7); c.fill(); c.stroke();
+      c.lineWidth = 3;
+      // barra di forza
+      const bw = w * 0.56, bx = w * 0.22, byb = h - 30; c.fillStyle = '#e9e0d0'; rr(c, bx, byb, bw, 16, 8); c.fill(); c.stroke();
+      c.fillStyle = st.pos >= 0 ? '#3fbf8f' : '#e0533a'; const mid = bx + bw / 2; c.fillRect(Math.min(mid, mid + st.pos * bw / 2), byb + 2, Math.abs(st.pos * bw / 2), 12);
+      c.fillStyle = '#fff3d6'; c.font = `700 ${Math.round(h * 0.055)}px Fredoka, sans-serif`; c.textBaseline = 'middle'; c.textAlign = 'right'; c.fillText('Bruno', bx - 10, byb + 8); c.textAlign = 'left'; c.fillText(foe.nome, bx + bw + 10, byb + 8); c.textBaseline = 'alphabetic';
     },
   };
   await countdown(ui); ui.msg.textContent = 'SPINGI!';
   const res = await new Promise(r => { st.end = r; st.run = true; });
-  ui.msg.textContent = res ? 'Bruno piega il braccio!' : `${foe.nome} vince il braccio di ferro…`;
-  await wait(900); off(); mgClose(); return res;
+  ui.msg.textContent = res ? 'Bruno schiaccia il braccio sul tavolo!' : `${foe.nome} vince il braccio di ferro…`;
+  await wait(1100); off(); mgClose(); return res;
 }
 
-// 3. Cucina
+// 3. Cucina: pentola e padella sul fuoco
 async function mgCucina(foe) {
-  const ui = mgOpen('Malloreddus alla campidanese: ferma la lancetta nella zona verde', foe);
+  const ui = mgOpen('Malloreddus alla campidanese: ferma la lancetta nella zona verde a ogni passaggio', foe);
   const target = 70 + Math.floor(rnd() * 8);
-  const steps = ['Metti l’acqua sul fuoco', 'Sala l’acqua', 'Rosola la salsiccia', 'Aggiungi il pomodoro e lo zafferano', 'Butta i malloreddus', 'Pecorino grattugiato!'];
+  const steps = ['Metti l’acqua sul fuoco', 'Sala l’acqua', 'Rosola la salsiccia', 'Aggiungi pomodoro e zafferano', 'Butta i malloreddus', 'Pecorino grattugiato!'];
   ui.score.textContent = `0 / ${target}`;
-  ui.msg.textContent = `${foe.nome} ha fatto ${target} punti. Superalo!`;
+  const cv2 = mkCanvas(ui.stage, 0.5, 0.42);
   const bar = el('div', 'timer'), zone = el('div', 'zone'), perf = el('div', 'zone perf'), needle = el('div', 'needle');
   bar.append(zone, perf, needle);
   const stepLbl = el('div', 'mg-title', ''); const row = el('div', 'mg-row');
   ui.stage.append(stepLbl, bar, row);
-  let total = 0, pressed = null;
+  const K = { water: 0, salt: 0, sausage: 0, tomato: 0, pasta: 0, cheese: 0, smoke: 0, drop: null, fire: 0.4 };
+  let total = 0, pressed = null, x = 0, dirn = 1, speed = 70;
   const stopBtn = mgButton(row, 'FERMA!', () => { if (pressed) pressed(); }, 'big');
   const off = mgHandler({ a() { if (pressed) pressed(); }, b() {}, dir() {} });
+  function pot(c, px, py, R) {
+    c.fillStyle = '#8d939c'; c.beginPath(); c.moveTo(px - R, py - R * 0.9); c.lineTo(px - R * 0.95, py); c.quadraticCurveTo(px, py + R * 0.18, px + R * 0.95, py); c.lineTo(px + R, py - R * 0.9); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#6f757e'; c.fillRect(px - R * 1.25, py - R * 0.75, R * 0.25, R * 0.1); c.fillRect(px + R, py - R * 0.75, R * 0.25, R * 0.1);
+    c.fillStyle = K.water ? '#9fd6f0' : '#55595f'; c.beginPath(); c.ellipse(px, py - R * 0.9, R, R * 0.22, 0, 0, 7); c.fill(); c.stroke();
+    if (K.water) { for (let i = 0; i < 6; i++) { const bx = px + Math.sin(NOW * 3 + i * 2) * R * 0.6, by = py - R * 0.9 + Math.cos(NOW * 4 + i) * R * 0.08; c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(bx, by, R * 0.05, 0, 7); c.fill(); } }
+    if (K.salt) { c.fillStyle = '#fff'; for (let i = 0; i < 10; i++) c.fillRect(px - R * 0.5 + hash(i, 1) * R, py - R * 0.95 + hash(1, i) * R * 0.12, 2, 2); }
+    if (K.water) for (let i = 0; i < 4; i++) { const t = (NOW * 0.5 + i / 4) % 1; c.fillStyle = `rgba(255,255,255,${0.5 * (1 - t)})`; c.beginPath(); c.arc(px + Math.sin(i * 3 + NOW) * R * 0.4, py - R * 1.1 - t * R * 1.2, R * (0.15 + t * 0.2), 0, 7); c.fill(); }
+  }
+  function pan(c, px, py, R) {
+    c.fillStyle = '#2b2b30'; c.fillRect(px + R * 0.9, py - R * 0.32, R * 1.0, R * 0.14); c.strokeRect(px + R * 0.9, py - R * 0.32, R * 1.0, R * 0.14);
+    c.fillStyle = '#3a3a40'; c.beginPath(); c.ellipse(px, py - R * 0.25, R, R * 0.3, 0, 0, 7); c.fill(); c.stroke();
+    c.fillStyle = '#1f1f24'; c.beginPath(); c.ellipse(px, py - R * 0.27, R * 0.86, R * 0.23, 0, 0, 7); c.fill();
+    const cy = py - R * 0.27;
+    if (K.tomato) { c.fillStyle = '#c7361f'; c.beginPath(); c.ellipse(px, cy, R * 0.82, R * 0.21, 0, 0, 7); c.fill(); c.fillStyle = 'rgba(255,190,40,.35)'; c.beginPath(); c.ellipse(px - R * 0.2, cy - 2, R * 0.4, R * 0.08, 0, 0, 7); c.fill(); }
+    if (K.sausage) for (let i = 0; i < 7; i++) { c.fillStyle = K.tomato ? '#8a3a22' : '#b5654a'; c.beginPath(); c.arc(px - R * 0.6 + hash(i, 3) * R * 1.2, cy - R * 0.1 + hash(3, i) * R * 0.2, R * 0.07, 0, 7); c.fill(); }
+    if (K.pasta) for (let i = 0; i < 16; i++) { c.fillStyle = '#f2cf6b'; c.beginPath(); c.ellipse(px - R * 0.65 + hash(i, 7) * R * 1.3, cy - R * 0.12 + hash(7, i) * R * 0.22, R * 0.07, R * 0.035, hash(i, i) * 3, 0, 7); c.fill(); }
+    if (K.cheese) for (let i = 0; i < 30; i++) { c.fillStyle = '#fffbe8'; c.fillRect(px - R * 0.7 + hash(i, 11) * R * 1.4, cy - R * 0.14 + hash(11, i) * R * 0.25, 3, 2); }
+    if (K.sausage && !K.pasta) for (let i = 0; i < 3; i++) { const t = (NOW * 0.8 + i / 3) % 1; c.fillStyle = `rgba(255,255,255,${0.4 * (1 - t)})`; c.beginPath(); c.arc(px + (i - 1) * R * 0.4, cy - R * 0.2 - t * R * 0.7, R * (0.08 + t * 0.12), 0, 7); c.fill(); }
+  }
+  function burner(c, bx, by, R) {
+    c.fillStyle = '#1b1b20'; c.beginPath(); c.ellipse(bx, by, R * 1.1, R * 0.28, 0, 0, 7); c.fill();
+    const n = 14, fh = R * (0.12 + K.fire * 0.22);
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2, fx = bx + Math.cos(a) * R * 0.8, fy = by + Math.sin(a) * R * 0.2, hh = fh * (0.8 + Math.sin(NOW * 20 + i) * 0.2);
+      const gr = c.createLinearGradient(fx, fy, fx, fy - hh); gr.addColorStop(0, '#3a6cff'); gr.addColorStop(1, 'rgba(120,200,255,0)');
+      c.fillStyle = gr; c.beginPath(); c.moveTo(fx - R * 0.06, fy); c.quadraticCurveTo(fx, fy - hh * 1.4, fx + R * 0.06, fy); c.fill();
+    }
+  }
+  MG = {
+    update(dt) {
+      if (pressed) { x += dirn * speed * dt; if (x > 100) { x = 100; dirn = -1; } if (x < 0) { x = 0; dirn = 1; } needle.style.left = x + '%'; }
+      if (K.drop) { K.drop.t += dt * 1.8; if (K.drop.t >= 1) K.drop = null; }
+      K.smoke = Math.max(0, K.smoke - dt * 0.6);
+    },
+    draw() {
+      const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0); c.strokeStyle = OUT; c.lineWidth = 2.5;
+      for (let yy = 0; yy < h; yy += 22) for (let xx = 0; xx < w; xx += 22) { c.fillStyle = ((xx + yy) / 22) % 2 ? '#e9f3ef' : '#f7fbf9'; c.fillRect(xx, yy, 22, 22); }
+      c.fillStyle = '#c9ced6'; c.fillRect(0, h * 0.62, w, h * 0.38); c.strokeRect(-2, h * 0.62, w + 4, h);
+      c.fillStyle = '#2d2f36'; c.fillRect(w * 0.08, h * 0.6, w * 0.84, h * 0.1); c.strokeRect(w * 0.08, h * 0.6, w * 0.84, h * 0.1);
+      const R = Math.min(w * 0.17, h * 0.28), p1 = w * 0.3, p2 = w * 0.66, by = h * 0.66;
+      burner(c, p1, by, R); burner(c, p2, by, R);
+      pot(c, p1, by - R * 0.15, R); pan(c, p2, by - R * 0.02, R);
+      if (K.drop) {
+        const d = K.drop, tx = d.where === 'pot' ? p1 : p2, yy = h * 0.05 + (by - R * 0.9 - h * 0.05) * d.t;
+        c.fillStyle = d.col; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(tx + (i - 2.5) * 6, yy - (i % 2) * 6, d.size, 0, 7); c.fill(); }
+      }
+      if (K.smoke > 0) { c.fillStyle = `rgba(40,40,40,${K.smoke * 0.6})`; for (let i = 0; i < 5; i++) { c.beginPath(); c.arc(p2 + (i - 2) * R * 0.3, by - R - (1 - K.smoke) * R - i * 6, R * 0.25, 0, 7); c.fill(); } }
+    },
+  };
+  ui.msg.textContent = `${foe.nome} ha fatto ${target} punti. Superalo!`;
   await wait(900);
+  const EFFECT = [
+    () => { K.water = 1; K.fire = 1; K.drop = { t: 0, where: 'pot', col: '#9fd6f0', size: 4 }; },
+    () => { K.salt = 1; K.drop = { t: 0, where: 'pot', col: '#ffffff', size: 2 }; },
+    () => { K.sausage = 1; K.drop = { t: 0, where: 'pan', col: '#b5654a', size: 5 }; },
+    () => { K.tomato = 1; K.drop = { t: 0, where: 'pan', col: '#c7361f', size: 6 }; },
+    () => { K.pasta = 1; K.drop = { t: 0, where: 'pan', col: '#f2cf6b', size: 4 }; },
+    () => { K.cheese = 1; K.drop = { t: 0, where: 'pan', col: '#fffbe8', size: 3 }; },
+  ];
   for (let i = 0; i < steps.length; i++) {
     stepLbl.textContent = `${i + 1}. ${steps[i]}`;
     const zw = 22 - i * 2.2, zc = 20 + rnd() * 60, pw = zw * 0.35;
     zone.style.left = (zc - zw / 2) + '%'; zone.style.width = zw + '%'; perf.style.left = (zc - pw / 2) + '%'; perf.style.width = pw + '%';
-    const speed = 70 + i * 16; let x = 0, dirn = 1;
-    MG = { update(dt) { x += dirn * speed * dt; if (x > 100) { x = 100; dirn = -1; } if (x < 0) { x = 0; dirn = 1; } needle.style.left = x + '%'; }, draw() {} };
+    speed = 70 + i * 16; x = 0; dirn = 1;
     await new Promise(r => { pressed = r; });
-    pressed = null; MG = null;
+    pressed = null;
     const dist = Math.abs(x - zc);
     const p = dist <= pw / 2 ? 20 : dist <= zw / 2 ? 14 : dist <= zw ? 6 : 0;
+    EFFECT[i](); if (p === 0) K.smoke = 1;
     total += p; sfx(p >= 14 ? 'good' : p > 0 ? 'sizzle' : 'bad');
     ui.msg.textContent = p === 20 ? 'Perfetto! +20' : p === 14 ? 'Buono! +14' : p === 6 ? 'Così così… +6' : 'Bruciato! +0';
     ui.score.textContent = `${total} / ${target}`;
-    await wait(750);
+    await wait(850);
   }
   stopBtn.disabled = true;
   const win = total > target;
   ui.msg.textContent = win ? `Piatto da chef: ${total} punti contro ${target}!` : `${total} punti contro ${target}. Il piatto di ${foe.nome} è più buono.`;
-  await wait(1300); off(); mgClose(); return win;
+  await wait(1400); off(); mgClose(); return win;
 }
 
 // 4. Arrampicata
@@ -1778,34 +1916,37 @@ async function mgPadel(foe) {
   await wait(800); off(); mgClose(); return res;
 }
 
-// 9. Chirurgia: estrai le spine di riccio senza toccare i bordi
+// 9. Chirurgia: punti di sutura con ago e filo su un taglio al braccio
+function suturePath(n, amp) {
+  const p = [[0.1, 0.5]];
+  for (let i = 0; i <= 2 * n; i++) p.push([0.18 + i * (0.64 / (2 * n)), 0.5 + (i % 2 ? amp : -amp)]);
+  p.push([0.9, 0.5]); return p;
+}
 const SURG = [
-  { w: 0.13, p: [[0.08, 0.55], [0.25, 0.3], [0.42, 0.62], [0.6, 0.35], [0.78, 0.6], [0.9, 0.45]] },
-  { w: 0.105, p: [[0.08, 0.3], [0.2, 0.7], [0.36, 0.3], [0.5, 0.72], [0.66, 0.28], [0.8, 0.7], [0.92, 0.4]] },
-  { w: 0.085, p: [[0.08, 0.7], [0.18, 0.25], [0.3, 0.62], [0.42, 0.22], [0.56, 0.66], [0.68, 0.25], [0.8, 0.66], [0.92, 0.32]] },
+  { w: 0.12, p: suturePath(3, 0.17) },
+  { w: 0.1, p: suturePath(4, 0.17) },
+  { w: 0.085, p: suturePath(5, 0.16) },
 ];
 async function mgChirurgia(foe) {
-  const ui = mgOpen('Trascina il dito (o usa le frecce) per guidare la pinzetta lungo il canale fino alla spina', foe);
+  const ui = mgOpen('Dai i punti: trascina il dito (o usa le frecce) e guida l’ago lungo la traccia, senza uscire', foe);
   const cv2 = mkCanvas(ui.stage, window.innerWidth < 600 ? 0.95 : 0.62, 0.52);
-  const st = { lvl: 0, lives: 3, tip: { x: 0, y: 0 }, drag: false, last: null, flash: 0, done: null, active: false };
+  const st = { lvl: 0, lives: 3, tip: { x: 0, y: 0 }, drag: false, last: null, flash: 0, done: null, active: false, trail: [], closed: [] };
   const geo = () => { const w = cv2.w, h = cv2.h, S = SURG[st.lvl]; return { pts: S.p.map(([x, y]) => [x * w, y * h]), wpx: S.w * Math.min(w, h) * 1.25 }; };
   function distSeg(px, py, ax, ay, bx, by) { const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy; let t = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0; t = clamp(t, 0, 1); return Math.hypot(px - (ax + t * dx), py - (ay + t * dy)); }
   function dist(x, y) { const { pts } = geo(); let m = 1e9; for (let i = 0; i < pts.length - 1; i++) m = Math.min(m, distSeg(x, y, ...pts[i], ...pts[i + 1])); return m; }
-  function reset() { const { pts } = geo(); st.tip.x = pts[0][0]; st.tip.y = pts[0][1]; }
-  function buzz() {
-    st.lives--; st.flash = 0.5; st.drag = false; sfx('bad'); reset(); hud();
-    if (st.lives <= 0) { st.active = false; st.done(false); }
-  }
+  function reset() { const { pts } = geo(); st.tip.x = pts[0][0]; st.tip.y = pts[0][1]; st.trail = [[st.tip.x, st.tip.y]]; }
+  function buzz() { st.lives--; st.flash = 0.5; st.drag = false; sfx('bad'); reset(); hud(); if (st.lives <= 0) { st.active = false; st.done(false); } }
   function moveBy(dx, dy) {
     if (!st.active) return;
     const n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 2)), { pts, wpx } = geo(), end = pts[pts.length - 1];
     for (let i = 0; i < n; i++) {
       st.tip.x += dx / n; st.tip.y += dy / n;
       if (dist(st.tip.x, st.tip.y) > wpx / 2) { buzz(); return; }
+      const lt = st.trail[st.trail.length - 1]; if (Math.hypot(st.tip.x - lt[0], st.tip.y - lt[1]) > 4) st.trail.push([st.tip.x, st.tip.y]);
       if (Math.hypot(st.tip.x - end[0], st.tip.y - end[1]) < wpx * 0.35) { st.active = false; sfx('good'); st.done(true); return; }
     }
   }
-  const hud = () => { ui.score.textContent = `Spina ${st.lvl + 1}/3 · Vite ${'●'.repeat(Math.max(0, st.lives))}${'○'.repeat(3 - Math.max(0, st.lives))}`; };
+  const hud = () => { ui.score.textContent = `Taglio ${st.lvl + 1}/3 · Vite ${'●'.repeat(Math.max(0, st.lives))}${'○'.repeat(3 - Math.max(0, st.lives))}`; };
   const pos = e => { const r = cv2.cvs.getBoundingClientRect(); return { x: (e.clientX - r.left) * (cv2.w / r.width), y: (e.clientY - r.top) * (cv2.h / r.height) }; };
   cv2.cvs.addEventListener('pointerdown', e => { e.preventDefault(); try { cv2.cvs.setPointerCapture(e.pointerId); } catch (err) { /* ignora */ } st.drag = true; st.last = pos(e); });
   cv2.cvs.addEventListener('pointermove', e => { if (!st.drag) return; const p = pos(e); moveBy(p.x - st.last.x, p.y - st.last.y); st.last = p; });
@@ -1820,33 +1961,45 @@ async function mgChirurgia(foe) {
     },
     draw() {
       const c = cv2.c, w = cv2.w, h = cv2.h; c.setTransform(DPR, 0, 0, DPR, 0, 0);
-      for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? '#ffffff' : '#3fbf8f'; c.fillRect(i * w / 8, 0, w / 8 + 1, h); }
-      c.fillStyle = BRUNO.look.skin; c.strokeStyle = OUT; c.lineWidth = 3;
-      c.beginPath(); c.ellipse(w * 0.5, h * 0.52, w * 0.47, h * 0.42, 0, 0, 7); c.fill(); c.stroke();
-      for (let i = 0; i < 5; i++) { c.beginPath(); c.ellipse(w * 0.96, h * (0.22 + i * 0.15), w * 0.04, h * 0.06, 0, 0, 7); c.fill(); c.stroke(); }
-      const { pts, wpx } = geo();
-      c.lineCap = 'round'; c.lineJoin = 'round';
-      c.strokeStyle = OUT; c.lineWidth = wpx + 5; c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke();
-      c.strokeStyle = '#f7c2b5'; c.lineWidth = wpx; c.stroke();
-      const [ex, ey] = pts[pts.length - 1];
-      c.strokeStyle = '#1b1b22'; c.lineWidth = 2; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; c.beginPath(); c.moveTo(ex, ey); c.lineTo(ex + Math.cos(a) * wpx * 0.35, ey + Math.sin(a) * wpx * 0.35); c.stroke(); }
-      const [sx, sy] = pts[0]; c.fillStyle = 'rgba(63,191,143,.6)'; c.beginPath(); c.arc(sx, sy, wpx * 0.3, 0, 7); c.fill();
+      // telo chirurgico
+      c.fillStyle = '#5aa7a0'; c.fillRect(0, 0, w, h);
+      c.strokeStyle = 'rgba(255,255,255,.12)'; c.lineWidth = 1; for (let i = -h; i < w; i += 14) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i + h, h); c.stroke(); }
+      // braccio: avambraccio orizzontale con mano a destra
+      const sk = BRUNO.look.skin, ay = h * 0.5, aw = h * 0.34;
+      const g = c.createLinearGradient(0, ay - aw, 0, ay + aw); g.addColorStop(0, shadeHex(sk, 0.8)); g.addColorStop(0.35, sk); g.addColorStop(0.7, shadeHex(sk, 1.06)); g.addColorStop(1, shadeHex(sk, 0.78));
+      c.fillStyle = g; c.strokeStyle = OUT; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(-10, ay - aw * 1.05); c.quadraticCurveTo(w * 0.45, ay - aw * 1.0, w * 0.86, ay - aw * 0.78); c.lineTo(w * 0.86, ay + aw * 0.78); c.quadraticCurveTo(w * 0.45, ay + aw * 1.0, -10, ay + aw * 1.05); c.closePath(); c.fill(); c.stroke();
+      c.beginPath(); c.ellipse(w * 0.93, ay, w * 0.09, aw * 0.85, 0, 0, 7); c.fill(); c.stroke();
+      c.strokeStyle = 'rgba(80,40,30,.25)'; c.lineWidth = 1; for (let i = 0; i < 40; i++) { const hx = hash(i, 5) * w * 0.8, hy = ay - aw * 0.8 + hash(5, i) * aw * 1.6; c.beginPath(); c.moveTo(hx, hy); c.lineTo(hx + 4, hy - 2); c.stroke(); }
+      // taglio
+      const { pts, wpx } = geo(), x0 = w * 0.16, x1 = w * 0.84;
+      c.strokeStyle = '#7a1414'; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(x0, ay); for (let x = x0; x <= x1; x += 8) c.lineTo(x, ay + Math.sin(x * 0.08) * 2); c.stroke();
+      c.strokeStyle = '#d63a3a'; c.lineWidth = 3; c.stroke();
+      // traccia del chirurgo (pennarello tratteggiato) = zona sicura
+      c.lineJoin = 'round'; c.lineCap = 'round';
+      c.strokeStyle = 'rgba(70,40,140,.16)'; c.lineWidth = wpx; c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke();
+      c.setLineDash([6, 6]); c.strokeStyle = 'rgba(70,40,140,.55)'; c.lineWidth = 2; c.stroke(); c.setLineDash([]);
+      // filo già cucito
+      if (st.trail.length > 1) { c.strokeStyle = '#1f3fae'; c.lineWidth = 3; c.beginPath(); st.trail.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.stroke(); }
+      const [ex, ey] = pts[pts.length - 1]; c.fillStyle = 'rgba(63,191,143,.85)'; c.beginPath(); c.arc(ex, ey, wpx * 0.3, 0, 7); c.fill(); c.strokeStyle = OUT; c.lineWidth = 2; c.stroke();
+      // ago curvo
       const tx = st.tip.x, ty = st.tip.y;
-      c.strokeStyle = '#8d939c'; c.lineWidth = 4; c.lineCap = 'round';
-      c.beginPath(); c.moveTo(tx - 2, ty); c.lineTo(tx + 26, ty - 34); c.moveTo(tx + 2, ty); c.lineTo(tx + 32, ty - 28); c.stroke();
-      c.fillStyle = '#e0533a'; c.beginPath(); c.arc(tx, ty, 3.5, 0, 7); c.fill();
-      if (st.flash > 0) { c.fillStyle = `rgba(224,83,58,${st.flash})`; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = '700 34px Fredoka, sans-serif'; c.textAlign = 'center'; c.fillText('BZZZ!', w / 2, h / 2); }
+      c.strokeStyle = '#d7dbe2'; c.lineWidth = 4; c.beginPath(); c.arc(tx + 14, ty, 14, Math.PI * 0.95, Math.PI * 1.9); c.stroke();
+      c.strokeStyle = '#7a808a'; c.lineWidth = 1.5; c.stroke();
+      c.fillStyle = '#7a808a'; c.beginPath(); c.arc(tx, ty, 2.5, 0, 7); c.fill();
+      c.strokeStyle = '#2a48c0'; c.lineWidth = 2; c.beginPath(); c.moveTo(tx + 27, ty - 6); c.quadraticCurveTo(tx + 45, ty - 30, tx + 70, ty - 22); c.stroke();
+      if (st.flash > 0) { c.fillStyle = `rgba(224,83,58,${st.flash})`; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = '700 34px Fredoka, sans-serif'; c.textAlign = 'center'; c.fillText('AHIA!', w / 2, h / 2); }
     },
   };
   let win = true;
   for (st.lvl = 0; st.lvl < SURG.length; st.lvl++) {
-    reset(); hud(); ui.msg.textContent = `Spina ${st.lvl + 1} di 3: parti dal cerchio verde e arriva alla spina nera.`;
+    reset(); hud(); ui.msg.textContent = `Taglio ${st.lvl + 1} di 3: parti da sinistra e arriva al cerchio verde seguendo la traccia.`;
     st.active = true;
     const ok = await new Promise(r => { st.done = r; });
     if (!ok) { win = false; break; }
-    ui.msg.textContent = 'Spina estratta!'; await wait(700);
+    ui.msg.textContent = 'Punti dati! Taglio chiuso.'; await wait(800);
   }
-  ui.msg.textContent = win ? 'Operazione riuscita! Il piede di Bruno è salvo.' : 'Hai finito le vite…';
+  ui.msg.textContent = win ? 'Sutura perfetta! Il braccio di Bruno è come nuovo.' : 'Hai finito le vite…';
   await wait(1000); off(); mgClose(); return win;
 }
 

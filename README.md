@@ -33,8 +33,8 @@ Si apre con un doppio clic e funziona anche offline.
 - Il percorso segue le tappe reali: Maracalagonis → colline → Kal'e Moru → Mari Pintau → Geremeas (Marongiu) →
   Riu Geremeas → Baccu Mandara → Torre delle Stelle → Solanas → Porto Sa Ruxi, lungo la litoranea SP17.
 - In ogni tappa c'è un bar: per proseguire Bruno deve bere un latte e menta, ma davanti al bar un amico lo sfida.
-- Le 9 sfide: Giorgio a scacchi (una partita vera col Bianco, livello Facile o Normale), Davidino a braccio di ferro, Edoardo in cucina,
-  Pet in chirurgia (estrarre le spine di riccio senza toccare i bordi), JOSTO a padel (un solo gioco, con il punto d'oro),
+- Le 9 sfide: Giorgio a scacchi (partita vera col Bianco, orologio da 5 minuti a testa), Davidino a braccio di ferro, Edoardo in cucina,
+  Pet in chirurgia (punti di sutura con ago e filo su un taglio al braccio), JOSTO a padel (un solo gioco, con il punto d'oro),
   Edoardo in arrampicata, Pet a brazilian jiu-jitsu, Zonco a FIFA (rigori con mirino e potenza) e, alla meta, Alex a poker.
 - Prima di ogni sfida l'amico lancia la sua frase di battaglia.
 - Lungo la strada: pietre miliari del Cammino con frecce gialle e conchiglia, cartelli sui luoghi,
