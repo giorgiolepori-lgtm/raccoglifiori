@@ -45,7 +45,7 @@ function OVERRIDE_POSES(name, f, M) {
       lh: [-.2, 1.38 + L * .1, .35], rh: [.2, 1.38 + L * .1, .35], le: [-1, -.5, .2], re: [1, -.5, .2], lho: [0, 1, 0], rho: [0, 1, 0],
       lf: [-.12, .1 + L * .2, .05 + L * .1], rf: [.13, .1 + L * .3, -.05], lk: [-.2, .2, 1], rk: [.2, .3, 1], lfdFree: 1, rfdFree: 1 });
       if (S > 0) { p.lh = [-.55, 1.45, -.05]; p.rh = [.55, 1.45, -.05]; p.le = [-1, 0, 0]; p.re = [1, 0, 0]; }
-      p.brx = -(L * .45 + S * 1.12); p.by = .13 * S; return p; }
+      p.brx = -(L * .08 + S * 1.49); p.by = .13 * S; return p; }
     case 'outro': return clonePose(GUARD);
   }
   return clonePose(GUARD);

@@ -254,8 +254,8 @@ class Match {
     if (t < 44) {
       const grab = smooth(clamp(t / 10, 0, 1)), lift = smooth(clamp((t - 12) / 20, 0, 1)), slam = easeIn(clamp((t - 34) / 10, 0, 1));
       def.yaw = T.yaw + Math.PI; att.yaw = T.yaw;
-      def.pos.copy(att.pos).addScaledVector(F, lerp(T.d0, .56, grab) + lift * .08 + slam * .6);
-      def.y = lift * .8 * (1 - slam); def.throwLift = lift; def.throwSlam = slam; def.override = 'thrown';
+      def.pos.copy(att.pos).addScaledVector(F, lerp(T.d0, .44, grab) - lift * .04 + slam * .8);
+      def.y = lift * .55 * (1 - slam); def.throwLift = lift; def.throwSlam = slam; def.override = 'thrown';
       if (t === 12) { AU.sfx('whoosh'); AU.grunt(att); this.slow = .55; this.slowT = .7; }
       if (t === 34) AU.sfx('whooshK');
     } else if (t === 44) {
@@ -265,6 +265,22 @@ class Match {
       if (def.hp <= 0) this.ko(def);
     }
     if (t >= 70) att.set('idle');
+  }
+  // le mani di chi afferra restano sul corpo di chi viene sollevato: spalle all'inizio, fianchi durante sollevamento e schianto
+  gripHands(att, vic, t) {
+    const w = smooth(clamp((t - 2) / 6, 0, 1)) * (1 - smooth(clamp((t - 39) / 5, 0, 1))); if (w <= 0) return;
+    const B = vic.av.B, vr = vic.av.Ldir([1, 0, 0], new V3()), k = smooth(clamp((t - 10) / 8, 0, 1));
+    att.av.obj.position.set(att.pos.x, att.y, att.pos.z); att.av.obj.rotation.y = att.yaw; att.av.obj.updateMatrixWorld(true); att.av.tilt.updateMatrixWorld(true);
+    const spot = (side) => {
+      const sh = (side > 0 ? B.rUp : B.lUp).getWorldPosition(new V3());
+      const tor = B.spine1.getWorldPosition(new V3()).addScaledVector(vr, side * .17);
+      return sh.lerp(tor, k);
+    };
+    for (const [hand, side] of [['lh', 1], ['rh', -1]]) {   // mano sinistra sul fianco destro dell'avversario e viceversa
+      const loc = att.av.tilt.worldToLocal(spot(side)); const v = [-loc.x, loc.y, loc.z], cur = att.pose[hand];
+      att.pose[hand] = [lerp(cur[0], v[0], w), lerp(cur[1], v[1], w), lerp(cur[2], v[2], w)];
+    }
+    att.pose.fist = lerp(att.pose.fist, .55, w);
   }
   /* --- mossa speciale --- */
   trySpecial(me, op) {
@@ -290,7 +306,9 @@ class Match {
   }
   /* --- rendering --- */
   render(dt) {
-    for (const f of this.f) { this.poseFighter(f, dt); f.av.tickFace(dt); }
+    // chi viene afferrato si mette in posa per primo: le mani di chi afferra lo seguono
+    const order = this.f[1].state === 'thrown' ? [this.f[1], this.f[0]] : this.f;
+    for (const f of order) { this.poseFighter(f, dt); f.av.tickFace(dt); }
     this.updateCamera(dt);
     HUD.update(this);
   }
@@ -328,6 +346,7 @@ class Match {
     }
     if (f.from && f.blendT < 1) { f.blendT = Math.min(1, f.blendT + dt * FPS / f.blendDur); f.pose = mixPose(f.from, target, smooth(f.blendT)); }
     else f.pose = target;
+    if (f.state === 'grabbing' && this.throwData && this.throwData.a === f) this.gripHands(f, this.throwData.d, tt);
     const o = f.av.obj; o.position.set(f.pos.x, f.y, f.pos.z); o.rotation.y = f.yaw;
     f.av.apply(f.pose);
   }
