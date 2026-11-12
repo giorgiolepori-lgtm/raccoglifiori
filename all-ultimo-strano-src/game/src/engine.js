@@ -105,6 +105,15 @@ class Avatar {
       const wq = this.B[up].getWorldQuaternion(new QT());
       this.hinge[up] = h.applyQuaternion(wq.invert());
     }
+    // assi della mano nello spazio locale dell'osso: avanti (polso -> dito medio) e lato (mignolo -> indice)
+    this.handAx = {};
+    for (const sd of ['l', 'r']) {
+      const H = this.B[sd + 'Ha'], f2 = this.fing[sd][2][0], f1 = this.fing[sd][1][0], f4 = this.fing[sd][4][0];
+      if (!H || !f2 || !f1 || !f4) continue;
+      const iq = H.getWorldQuaternion(new QT()).invert(), hp = H.getWorldPosition(new V3());
+      const fw = f2.getWorldPosition(new V3()).sub(hp).normalize(), sdv = f1.getWorldPosition(new V3()).sub(f4.getWorldPosition(new V3())).normalize();
+      this.handAx[sd] = { f: fw.applyQuaternion(iq), s: sdv.applyQuaternion(iq) };
+    }
     this.blink = 0; this.nextBlink = rand(1, 4);
     this.flash = 0;
   }
@@ -162,7 +171,9 @@ class Avatar {
     const fist = P.fist == null ? 1 : P.fist;
     for (const s of ['l', 'r']) {
       const H = B[s + 'Ha']; if (!H) continue;
-      if (P[s + 'hd']) { const tgt = H.getWorldPosition(new V3()).add(this.Ldir(P[s + 'hd'], new V3()).multiplyScalar(.1)); aimBone(H, this.fing[s][2][0] || H.children[0], tgt, 1); }
+      const ho = P[s + 'ho'];
+      if (ho && this.handAx[s]) this.orientHand(s, ho);
+      else if (P[s + 'hd']) { const tgt = H.getWorldPosition(new V3()).add(this.Ldir(P[s + 'hd'], new V3()).multiplyScalar(.1)); aimBone(H, this.fing[s][2][0] || H.children[0], tgt, 1); }
       const ax = this.fing[s][1][0] && this.fing[s][4][0] ? this.fing[s][4][0].getWorldPosition(new V3()).sub(this.fing[s][1][0].getWorldPosition(new V3())).normalize() : Rr;
       const sg = s === 'l' ? -1 : 1;
       for (let f = 1; f < 5; f++) for (const bn of this.fing[s][f]) rotWorld(bn, ax, sg * fist * 1.35);
@@ -180,6 +191,20 @@ class Avatar {
     // mascella e palpebre
     if (B.jaw && P.jaw) rotWorld(B.jaw, Rr, -P.jaw * .35);
     if (this.blink > 0) { const k = Math.sin(this.blink * Math.PI) * .9; for (const b of [B.lBlinkT, B.rBlinkT]) if (b) rotWorld(b, Rr, -k * .5); }
+  }
+  // orienta la mano: ho = [direzione delle dita r,y,f,  lato mignolo->indice r,y,f]
+  orientHand(sd, ho) {
+    const H = this.B[sd + 'Ha'], ax = this.handAx[sd], q = H.getWorldQuaternion(new QT());
+    let df, ds;
+    if (ho.length === 3) { df = H.getWorldPosition(new V3()).sub(this.B[sd + 'Fo'].getWorldPosition(new V3())).normalize(); ds = this.Ldir(ho, new V3()); }
+    else { df = this.Ldir([ho[0], ho[1], ho[2]], new V3()).normalize(); ds = this.Ldir([ho[3], ho[4], ho[5]], new V3()); }
+    ds.addScaledVector(df, -ds.dot(df)); if (ds.lengthSq() < 1e-6) return; ds.normalize();
+    const cf = ax.f.clone().applyQuaternion(q), q1 = new QT().setFromUnitVectors(cf, df);
+    const cs = ax.s.clone().applyQuaternion(q).applyQuaternion(q1); cs.addScaledVector(df, -cs.dot(df)).normalize();
+    const ang = Math.atan2(new V3().crossVectors(cs, ds).dot(df), cs.dot(ds));
+    const q2 = new QT().setFromAxisAngle(df, ang).multiply(q1);
+    // limita la piega del polso rispetto all'avambraccio per evitare pose innaturali
+    applyWorldRot(H, q2);
   }
   tickFace(dt) { this.nextBlink -= dt; if (this.nextBlink < 0) { this.blink = .001; this.nextBlink = rand(2, 5); } if (this.blink > 0) { this.blink += dt / .16; if (this.blink >= 1) this.blink = 0; } }
 }

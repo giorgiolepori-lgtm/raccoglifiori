@@ -1,0 +1,12 @@
+<!doctype html><html><body style="margin:0">
+<script src="../lib/three.js"></script><script src="../lib/fflate.js"></script><script src="src/assets.js"></script>
+<script src="src/engine.js"></script><script src="src/fight.js"></script><script src="src/fx.js"></script><script src="src/chars.js"></script>
+<script>
+scene.background=new THREE.Color(0x8a96a3); scene.add(new THREE.HemisphereLight(0xffffff,0x445566,.9)); const sun=new THREE.DirectionalLight(0xffffff,1.4); sun.position.set(3,6,4); scene.add(sun);
+const fl=new THREE.Mesh(new THREE.PlaneGeometry(30,30),std(0x666666)); fl.rotation.x=-Math.PI/2; scene.add(fl);
+R.setSize(1200,500); camera.aspect=2.4; camera.updateProjectionMatrix();
+window.AVS={}; window.av=(id)=>AVS[id]||(AVS[id]=new Avatar(id,id+'_1'));
+// mostra la stessa posa da 3 angolazioni: fronte, lato, 3/4 da dietro
+window.show=(id,pose)=>{ const out=[]; for(const [i,ry] of [[0,0],[1,Math.PI/2],[2,-2.4]]){ const a=new Avatar(id,id+'_1'); a.obj.position.x=(i-1)*1.6; a.obj.rotation.y=ry; scene.add(a.obj); a.obj.updateMatrixWorld(true); a.apply(pose); } camera.position.set(0,1.25,5.2); camera.lookAt(0,1.0,0); };
+window.render=()=>R.render(scene,camera);
+</script></body></html>
