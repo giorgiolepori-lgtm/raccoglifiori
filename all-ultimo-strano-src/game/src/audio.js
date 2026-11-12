@@ -50,6 +50,23 @@ const AU = {
       kickBall: () => { this.osc('sine', 200, t, .12, 1, null, 80); this.nz(t, .05, .9, 'bandpass', 2000, 1.5); },
       ballFace: () => { this.osc('sine', 150, t, .2, 1.2, null, 50); this.nz(t, .08, 1, 'bandpass', 1500, 1); this.nz(t, .05, .6, 'highpass', 3000); },
       table: () => { this.osc('sine', 110, t, .18, 1.2, null, 60); this.nz(t, .08, .8, 'bandpass', 700, 1.5); this.osc('square', 200, t, .05, .15, null, 120); },
+      blade: () => {   // spada sfoderata: strisciata metallica che sale e poi risuona
+        const x = this.ctx;
+        this.osc('triangle', 3200, t, .05, .18, null, 2600);
+        const src = x.createBufferSource(), bp = x.createBiquadFilter(), hp = x.createBiquadFilter(), g = x.createGain();
+        src.buffer = this.noise; src.loop = true; bp.type = 'bandpass'; bp.Q.value = 9; bp.frequency.setValueAtTime(2200, t + .02); bp.frequency.exponentialRampToValueAtTime(7500, t + .5);
+        hp.type = 'highpass'; hp.frequency.value = 1500;
+        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.55, t + .12); g.gain.setValueAtTime(.55, t + .38); g.gain.exponentialRampToValueAtTime(.0001, t + .56);
+        src.connect(bp); bp.connect(hp); hp.connect(g); g.connect(this.sfxG); g.connect(this.rev); src.start(t, Math.random()); src.stop(t + .6);
+        const r = t + .46;
+        for (const [f, a, d] of [[1870, .16, 1.6], [2990, .12, 1.3], [4230, .09, 1.0], [5560, .06, .8], [7310, .04, .6]]) {
+          const o = x.createOscillator(), og = x.createGain(), lfo = x.createOscillator(), lg = x.createGain();
+          o.type = 'sine'; o.frequency.value = f; lfo.frequency.value = 5.5; lg.gain.value = f * .003; lfo.connect(lg); lg.connect(o.frequency);
+          og.gain.setValueAtTime(.0001, r); og.gain.exponentialRampToValueAtTime(a, r + .008); og.gain.exponentialRampToValueAtTime(.0001, r + d);
+          o.connect(og); og.connect(this.sfxG); og.connect(this.rev); o.start(r); o.stop(r + d + .05); lfo.start(r); lfo.stop(r + d + .05);
+        }
+        this.nz(r, .07, .35, 'highpass', 6000);
+      },
       select: () => { this.osc('square', 660, t, .05, .12); this.osc('square', 990, t + .05, .06, .1); },
       move: () => this.osc('triangle', 520, t, .04, .1),
       back: () => this.osc('triangle', 330, t, .06, .12, null, 220),
