@@ -83,6 +83,7 @@ button { font-family: var(--font); color: inherit; }
 /* --- HUD --- */
 #hud { pointer-events: none; z-index: 8; }
 .bars { position: absolute; top: calc(8px + var(--safe-t)); left: calc(12px + var(--safe-l)); right: calc(12px + var(--safe-r)); display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: start; }
+.touch .bars { right: calc(54px + var(--safe-r)); }
 .pbar { display: flex; flex-direction: column; gap: 3px; }
 .pbar.r { align-items: flex-end; }
 .hp { position: relative; width: 100%; height: clamp(14px, 3.6vh, 22px); background: rgba(0,0,0,.65); border: 2px solid rgba(255,255,255,.75); transform: skewX(-14deg); overflow: hidden; }
@@ -134,7 +135,20 @@ button { font-family: var(--font); color: inherit; }
 .b-lp { left: 18px; top: 0; } .b-rp { right: 0; top: 30px; } .b-lk { left: 0; bottom: 30px; } .b-rk { right: 18px; bottom: 0; }
 .b-gr { position: absolute; right: calc(236px + var(--safe-r)); bottom: calc(18px + var(--safe-b)); width: 64px; height: 64px; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
 .b-sp { position: absolute; right: calc(236px + var(--safe-r)); bottom: calc(96px + var(--safe-b)); width: 96px; height: 96px; font-family: var(--font-title); font-size: 15px; letter-spacing: .04em; background: radial-gradient(circle, #ff7a3a, var(--hot) 55%, var(--hot-deep)); border-color: #fff; box-shadow: 0 0 22px rgba(255,74,28,.9); animation: pulse .5s infinite alternate; }
-.b-pause { position: absolute; top: calc(52px + var(--safe-t)); left: 50%; transform: translateX(-50%); width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,.3); background: rgba(0,0,0,.4); font-size: 16px; font-weight: 800; pointer-events: auto; }
+.b-pause { position: absolute; top: calc(6px + var(--safe-t)); right: calc(8px + var(--safe-r)); width: 38px; height: 38px; border-radius: 50%; border: 2px solid rgba(255,255,255,.3); background: rgba(0,0,0,.4); font-size: 16px; font-weight: 800; pointer-events: auto; }
+#vs { position: fixed; inset: 0; z-index: 30; background: var(--bg); display: grid; grid-template-rows: 1fr auto 1fr; align-items: center; justify-items: center; padding: 16px; overflow: hidden; }
+#vs .names { display: flex; align-items: center; gap: clamp(14px, 4vw, 40px); font-family: var(--font-title); text-transform: uppercase; line-height: .9; }
+#vs .n { font-size: clamp(44px, 15vh, 120px); text-shadow: 0 4px 0 #000; animation: vsL .45s cubic-bezier(.2,1.3,.4,1) both; }
+#vs .n.r { animation-name: vsR; color: var(--hot); }
+#vs .v { font-size: clamp(26px, 8vh, 56px); color: var(--gold); }
+@keyframes vsL { from { transform: translateX(-60vw); } to { transform: none; } }
+@keyframes vsR { from { transform: translateX(60vw); } to { transform: none; } }
+#vs .place { align-self: start; text-align: center; animation: fadeUp .5s .35s both; }
+#vs .place small { display: block; font-size: clamp(12px, 2.8vh, 16px); font-weight: 800; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-dim); }
+#vs .place b { display: inline-block; margin-top: 6px; font-family: var(--font-title); font-weight: 400; font-size: clamp(26px, 7.5vh, 52px); text-transform: uppercase; color: #111; background: #f4f4f0; border: 4px solid #111; outline: 3px solid #f4f4f0; padding: 2px 18px 0; }
+#vs .mode { align-self: end; font-size: clamp(12px, 2.8vh, 16px); font-weight: 800; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { #vs .n, #vs .place { animation: none; } }
 #rotate { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 24px; }
 #rotate .ph { width: 70px; height: 110px; border: 4px solid var(--ink); border-radius: 12px; animation: rot 1.6s ease-in-out infinite; }
 @keyframes rot { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
@@ -465,7 +479,7 @@ const STYLE_STD = {
   poke: M({ name: 'Punta bassa', level: 'l', start: 11, act: 3, dur: 28, dmg: 6, reach: 1.35, hs: 14, bs: 10, kb: .3, limb: 'lf', sfx: 'k', kick: true, low: true,
     keys: [{ f: 0, ...CROUCH }, { f: 11, e: 'o', lf: [-.05, .15, .78], lk: [-.4, .3, 1], lfd: [-.2, -.3, 1], hip: [0, -.4, -.06] }, { f: 15 }, { f: 27, ...CROUCH }] }),
   jab2: null, cross2: null,
-  grab: M({ name: 'Presa', level: 't', start: 10, act: 2, dur: 34, dmg: 14, reach: .95, limb: 'lh', sfx: 'g',
+  grab: M({ name: 'Presa', level: 't', start: 10, act: 3, dur: 34, dmg: 16, reach: 1.1, limb: 'lh', sfx: 'g',
     keys: [{ f: 0 }, { f: 6, lh: [-.18, 1.35, .62], rh: [.18, 1.35, .62], le: [-1, -.3, 0], re: [1, -.3, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], cp: .15, fist: .2 }, { f: 12 }, { f: 33, lh: GUARD.lh, rh: GUARD.rh, le: GUARD.le, re: GUARD.re, lho: GUARD.lho, rho: GUARD.rho, cp: GUARD.cp, fist: 1 }] }),
   jumpkick: M({ name: 'Calcio volante', level: 'm', start: 7, act: 6, dur: 999, dmg: 13, reach: 1.45, hs: 20, bs: 12, kb: 1.6, limb: 'rf', sfx: 'K', kick: true, air: true,
     keys: [{ f: 0, lf: [-.1, .6, .2], rf: [.15, .5, -.1], lk: [-.2, .5, 1], rk: [.2, .5, 1] }, { f: 7, e: 'o', rf: [0, .95, .85], rfd: [0, .2, 1], lf: [-.1, .55, -.05], cp: -.2 }, { f: 16 }] }),
@@ -497,7 +511,14 @@ function reactTrack(kind, dur, side) {
     : kind === 'bh' ? clonePose(BLOCK_H) : kind === 'bl' ? clonePose(BLOCK_L) : {};
   return track(kind === 'bl' ? CROUCH : GUARD, [{ f: 0 }, { f: Math.min(4, dur * .25), e: 'o', ...peak }, { f: Math.max(6, dur * .55) }, { f: dur }]);
 }
-const FALL = track(GUARD, [{ f: 0, hp: -.5, cp: -.3, jaw: .6 }, { f: 10, brx: -.9, hip: [0, -.12, 0], lh: [-.5, 1.5, 0], rh: [.5, 1.5, 0], lf: [-.15, .2, .3], e: 'i' }, { f: 20, ...LYING, e: 'i' }, { f: 26, ...LYING, by: .15 }, { f: 30, ...LYING }]);
+const FALL = track(GUARD, [{ f: 0, hp: -.55, cp: -.3, jaw: .6, fist: .4, hip: [0, -.05, -.1], lh: [-.35, 1.45, .15], rh: [.3, 1.4, .1], lho: [0, 1, 0], rho: [0, 1, 0] },
+  { f: 10, hip: [0, -.2, -.22], cp: -.1, hp: -.3, lf: [-.12, .1, .08], rf: [.16, .16, -.38], lh: [-.55, 1.4, -.05], rh: [.5, 1.45, -.1], le: [-1, 0, 0], re: [1, 0, 0] },
+  { f: 22, e: 'i', brx: -.85, hip: [0, -.2, -.05], cp: .1, hp: .2, lf: [-.15, .3, .3], rf: [.15, .2, .1], lh: [-.55, 1.5, 0], rh: [.55, 1.5, 0] },
+  { f: 30, e: 'i', ...LYING }, { f: 34, ...LYING, by: .21, cp: .15 }, { f: 40, ...LYING }]);
+const GRAB_ATT = track(GUARD, [{ f: 0 }, { f: 10, e: 'o', lh: [-.17, 1.42, .5], rh: [.17, 1.42, .5], le: [-1, -.3, 0], re: [1, -.3, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], fist: .5, cp: .15, yaw: 0, cy: 0 },
+  { f: 14, hip: [0, -.26, .05], cp: .2 }, { f: 32, hip: [0, -.04, 0], cp: -.25, hp: -.15, lh: [-.2, 1.8, .38], rh: [.2, 1.8, .38], le: [-1, -.6, .2], re: [1, -.6, .2], lho: [0, 1, .2, 1, 0, 0], rho: [0, 1, .2, -1, 0, 0] },
+  { f: 44, e: 'i', hip: [0, -.3, .1], cp: .55, hp: .2, lh: [-.2, .95, .75], rh: [.2, .95, .75], lho: [0, -.3, 1, 1, 0, 0], rho: [0, -.3, 1, -1, 0, 0], lf: [-.14, .1, .3], rf: [.18, .1, -.25] },
+  { f: 52 }, { f: 70, ...GUARD }]);
 const GETUP = track(LYING, [{ f: 0 }, { f: 10, brx: -.9, by: .1, hip: [0, -.35, 0], lf: [-.15, .1, .3], rf: [.18, .1, .1], lh: [-.3, .6, -.2], rh: [.3, .6, -.2] }, { f: 18, ...CROUCH, brx: -.15, by: 0 }, { f: 26, ...GUARD }]);
 
 /* ===== Lottatore ===== */
@@ -518,7 +539,7 @@ class Fighter {
   get crouching() { return this.state === 'crouch' || (this.state === 'attack' && this.move && this.move.low) || this.state === 'blockL'; }
   get busy() { return !['idle', 'walk', 'crouch', 'side', 'dash'].includes(this.state); }
   get fwd() { return new V3(Math.sin(this.yaw), 0, Math.cos(this.yaw)); }
-  set(state, keepPose) { if (!keepPose) { this.from = clonePose(this.pose); this.blendT = 0; } this.state = state; this.t = 0; }
+  set(state, keepPose) { if (!keepPose) { this.from = clonePose(this.pose); this.blendT = 0; } this.blendDur = 6; this.state = state; this.t = 0; }
 }
 
 /* ===== IA ===== */
@@ -542,7 +563,7 @@ class CPU {
     if (this.planT-- <= 0) {
       const r = Math.random();
       if (d > 1.65) this.plan = r < .75 ? 'approach' : r < .85 ? 'dash' : 'wait';
-      else if (d < .95) this.plan = r < .25 ? 'retreat' : r < .45 ? 'grab' : 'attack';
+      else if (d < 1.05) this.plan = r < .25 ? 'retreat' : r < .36 ? 'grab' : 'attack';
       else this.plan = r < D.aggr ? 'attack' : r < D.aggr + .15 ? 'side' : r < D.aggr + .25 ? 'retreat' : 'wait';
       this.planT = this.plan === 'attack' || this.plan === 'grab' ? 1 : (10 + Math.random() * 25) | 0;
     }
@@ -769,6 +790,9 @@ function signTown(name) {   // cartello bianco di inizio centro abitato
   const b = new THREE.Mesh(new THREE.BoxGeometry(1.6, .62, .03), [pole, pole, pole, pole, new THREE.MeshStandardMaterial({ map: t, roughness: .6 }), std(0x9da1a5, .5, .5)]); b.position.y = 2.15; g.add(b);
   return g;
 }
+function addSigns(name, z, x) {   // un cartello per lato, così si vede da qualunque parte stia la telecamera
+  for (const sd of [-1, 1]) { const g = signTown(name); g.scale.setScalar(1.45); addA(g, sd * x, 0, sd * z, sd < 0 ? 0 : Math.PI); }
+}
 function stopSign() { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 2.4, 8), std(0x8e9296, .5, .6)); p.position.y = 1.2; g.add(p);
   const t = canvasTex(128, 128, (c, w) => { c.fillStyle = '#c4161c'; c.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + TAU / 16; c.lineTo(64 + Math.cos(a) * 62, 64 + Math.sin(a) * 62); } c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 5; c.stroke(); c.fillStyle = '#fff'; c.font = 'bold 38px Arial'; c.textAlign = 'center'; c.fillText('STOP', 64, 78); });
   const s = new THREE.Mesh(new THREE.CircleGeometry(.36, 8), new THREE.MeshStandardMaterial({ map: t, roughness: .5 })); s.position.set(0, 2.3, .035); s.rotation.z = TAU / 16; g.add(s); return g; }
@@ -848,7 +872,7 @@ const ARENAS = {
       for (let i = 0; i < 4; i++) { const x = -26 + i * 11; if (Math.abs(x - 4) < 7) continue; const wall = facade({ cols: 4, rows: 2, wall: villaCols[(i + 1) % 4], shutter: '#6a5039', frame: '#e9dfca', balcony: (r, c) => c % 2 === 0 }); addA(building(9, 6, 8, wall, 'tile', 0xa64a2a), x, 0, 12.8, Math.PI); const f = ironFence(10, 1.4); addA(f, x, .15, 7.2); }
       addA(lamp(7), -8, .15, -6.4, Math.PI / 2); addA(lamp(7), 14, .15, 6.4, -Math.PI / 2); addA(lamp(7), 30, .15, -6.4, Math.PI / 2);
       addA(stopSign(), 11, .15, -6.3, 0);
-      addA(signTown('Capoterra'), -9.5, .15, 6.4, Math.PI);
+      addSigns('Capoterra', 6.6, 2.4);
       for (const [x, z, s] of [[-14, -15, 1.3], [20, -16, 1.6], [-30, 15, 1.4], [26, 14, 1.2]]) addA(tree({ h: 4.5 * s, r: 1.6 * s }), x, 0, z);
       addA(palm(8), 16, 0, -9.5); addA(palm(7), -24, 0, 9.5);
       addA(parkedCar(0xd9d9d9), 20, 0, -3.3, 0); addA(parkedCar(0x7a1c1c), -24, 0, 3.4, Math.PI);
@@ -894,7 +918,7 @@ const ARENAS = {
       const cars = [0xffffff, 0x1b1b1b, 0xb8b8b8, 0xc21e1e, 0x2f4f8f, 0xe0e0e0];
       for (let i = 0; i < 7; i++) addA(parkedCar(cars[i % cars.length]), -24 + i * 4.6, 0, 26, Math.PI / 2 + rand(-.05, .05));
       for (const x of [-20, 0, 20]) addA(lamp(8), x, 0, 11, -Math.PI / 2);
-      addA(signTown('Quartello'), -16.8, 0, 6.5, Math.PI / 2);
+      addSigns('Quartello', 8.15, 3.2);
       ARENA.group.add(mountains(0x8f9db3, 170, 22, 2.2));
     },
   },
@@ -1085,7 +1109,11 @@ function OVERRIDE_POSES(name, f, M) {
     case 'flying': { const p = clonePose(AIRBORNE); p.brx = -(f.spin || 0) * .6 - .6; p.brz = Math.sin((f.spin || 0)) * .5; return p; }
     case 'lying': return clonePose(LYING);
     case 'ballHit': return FALL(tt * .9);
-    case 'thrown': { const p = clonePose(AIRBORNE); p.brx = -(f.throwK || 0) * 2.4 - .2; return p; }
+    case 'thrown': { const L = f.throwLift || 0, S = f.throwSlam || 0; const p = P({ yaw: 0, cy: 0, cp: .35 - S * .3, hp: -.35 + S * .5, hr: .1, jaw: .5, fist: .4, hip: [0, -.12, 0],
+      lh: [-.2, 1.38 + L * .1, .35], rh: [.2, 1.38 + L * .1, .35], le: [-1, -.5, .2], re: [1, -.5, .2], lho: [0, 1, 0], rho: [0, 1, 0],
+      lf: [-.12, .1 + L * .2, .05 + L * .1], rf: [.13, .1 + L * .3, -.05], lk: [-.2, .2, 1], rk: [.2, .3, 1], lfdFree: 1, rfdFree: 1 });
+      if (S > 0) { p.lh = [-.55, 1.45, -.05]; p.rh = [.55, 1.45, -.05]; p.le = [-1, 0, 0]; p.re = [1, 0, 0]; }
+      p.brx = -(L * .45 + S * 1.12); p.by = .13 * S; return p; }
     case 'outro': return clonePose(GUARD);
   }
   return clonePose(GUARD);
@@ -1161,7 +1189,7 @@ const Controls = {
       <div class="btn b-sp" data-b="SP" style="pointer-events:auto" hidden>SPECIALE</div>
       <button class="b-pause" aria-label="Pausa">II</button>
     </div>`);
-    UI.appendChild(r);
+    UI.appendChild(r); document.body.classList.add('touch');
     r.querySelector('.b-pause').addEventListener('pointerdown', e => { e.stopPropagation(); App.togglePause(); });
     const zone = r.querySelector('.stick-zone');
     let stickEl = null;
@@ -1293,11 +1321,13 @@ class Match {
     if (this.pt > 171 && (this.pt >= this.outroEnd || (skip && this.pt > 200))) { this.phase = 'done'; HUD.subtitle(null); if (this.o.onEnd) this.o.onEnd({ winner: this.f.indexOf(W) }); }
   }
   timeOver() {
+    if (this.phase !== 'fight') return;
     const [a, b] = this.f; HUD.banner('TEMPO!', 'big'); AU.announce('Time');
     const w = a.hp === b.hp ? null : a.hp > b.hp ? a : b;
     this.roundWinner = w; this.phase = 'ko'; this.pt = 40; if (w) w.wins++;
   }
   ko(loser) {
+    if (this.phase !== 'fight') return;
     const w = this.f[1 - this.f.indexOf(loser)]; this.roundWinner = w; w.wins++;
     this.phase = 'ko'; this.pt = 0; this.slow = .3; this.slowT = 1.1;
     HUD.banner('K.O.', 'ko'); AU.announce('K.O.'); AU.sfx('ko'); this.shake = .5;
@@ -1366,10 +1396,10 @@ class Match {
       case 'hit': case 'blockH': case 'blockL': if (me.t >= me.stun) me.set(me.state === 'blockL' ? 'crouch' : 'idle'); break;
       case 'air': {
         me.vy -= G * DT; me.y += me.vy * DT; me.pos.addScaledVector(me.vel, DT);
-        if (me.y <= 0 && me.vy < 0) { me.y = 0; me.vy = 0; me.vel.multiplyScalar(.3); me.set('down', true); me.pose = clonePose(LYING); me.from = null; AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .15); }
+        if (me.y <= 0 && me.vy < 0) { me.y = 0; me.vy = 0; me.vel.multiplyScalar(.3); me.set('down'); me.blendDur = 5; AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .15); }
         break;
       }
-      case 'fall': me.pos.addScaledVector(me.vel, DT); me.vel.multiplyScalar(.9); if (me.t === 18) { AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .15); } if (me.t >= 30) me.set('down', true); break;
+      case 'fall': me.pos.addScaledVector(me.vel, DT); me.vel.multiplyScalar(.92); if (me.t === 30) { AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .25); } if (me.t >= 44) me.set('down', true); break;
       case 'down':
         me.pos.addScaledVector(me.vel, DT); me.vel.multiplyScalar(.85);
         if (me.hp > 0 && this.phase === 'fight' && ((me.t > 25 && (I.p.LP || I.p.RP || I.p.LK || I.p.RK || I.y > .5 || I.x !== 0)) || me.t > 75)) me.set('getup', true);
@@ -1436,7 +1466,7 @@ class Match {
     if (mv.launch || def.state === 'air') {
       def.set('air', def.state === 'air'); def.vy = mv.launch ? mv.launch : Math.max(2.2, def.vy * .3 + 2.4); def.y = Math.max(def.y, .05); def.vel.copy(att.fwd).multiplyScalar(1.2);
     } else if (mv.kd || (mv.kdCounter && counter)) {
-      def.set('fall'); def.vel.copy(att.fwd).multiplyScalar(2.2);
+      def.set('fall'); def.vel.copy(att.fwd).multiplyScalar(2.4); this.slow = .6; this.slowT = .35;
     } else {
       def.set('hit'); def.stun = mv.hs + (counter ? 6 : 0);
       def.react = reactTrack(mv.level, def.stun, Math.random() < .5 ? 1 : -1); def.vel.copy(att.fwd).multiplyScalar(mv.kb);
@@ -1448,20 +1478,26 @@ class Match {
   }
   /* --- prese --- */
   startThrow(att, def) {
-    att.set('grabbing'); def.set('thrown'); def.move = null; this.throwT = 0; this.throwData = { a: att, d: def, start: def.pos.clone(), yaw: att.yaw };
-    AU.sfx('grab'); this.hitstop = 3;
+    att.set('grabbing'); def.set('thrown'); def.move = null; def.override = 'thrown'; def.throwLift = def.throwSlam = 0;
+    this.throwData = { a: att, d: def, yaw: att.yaw, d0: Math.max(.6, att.pos.distanceTo(def.pos)) };
+    AU.sfx('grab'); this.hitstop = 4; this.shake = .08;
   }
   stepThrow(att, def) {
-    const t = att.t, T = this.throwData, F = new V3(Math.sin(T.yaw), 0, Math.cos(T.yaw)), Rt = new V3(-F.z, 0, F.x);
-    if (t <= 46) {
-      const k = clamp((t - 12) / 22, 0, 1), e = smooth(k);
-      // la vittima viene sollevata e proiettata in avanti con una rotazione
-      def.pos.copy(att.pos).addScaledVector(F, lerp(.62, 1.35, e)).addScaledVector(Rt, Math.sin(e * Math.PI) * -.35);
-      def.y = Math.sin(e * Math.PI) * .75; def.yaw = T.yaw + Math.PI;
-      def.override = 'thrown'; def.throwK = e;
+    const t = att.t, T = this.throwData, F = new V3(Math.sin(T.yaw), 0, Math.cos(T.yaw));
+    if (t < 44) {
+      const grab = smooth(clamp(t / 10, 0, 1)), lift = smooth(clamp((t - 12) / 20, 0, 1)), slam = easeIn(clamp((t - 34) / 10, 0, 1));
+      def.yaw = T.yaw + Math.PI; att.yaw = T.yaw;
+      def.pos.copy(att.pos).addScaledVector(F, lerp(T.d0, .56, grab) + lift * .08 + slam * .6);
+      def.y = lift * .8 * (1 - slam); def.throwLift = lift; def.throwSlam = slam; def.override = 'thrown';
+      if (t === 12) { AU.sfx('whoosh'); AU.grunt(att); this.slow = .55; this.slowT = .7; }
+      if (t === 34) AU.sfx('whooshK');
+    } else if (t === 44) {
+      def.override = null; def.y = 0; def.set('down', true); def.pose = clonePose(LYING); def.from = null;
+      def.hp = Math.max(0, def.hp - 16); AU.sfx('slam'); AU.grunt(def, true); this.shake = .45; FX.dust(def.pos); FX.dust(def.pos.clone().addScaledVector(F, 1)); this.hitstop = 8;
+      HUD.flashText(this.f.indexOf(att) ? 1 : 0, 'PRESA!');
+      if (def.hp <= 0) this.ko(def);
     }
-    if (t === 34) { def.hp = Math.max(0, def.hp - 14); AU.sfx('slam'); AU.grunt(def); this.shake = .3; FX.dust(def.pos); this.hitstop = 6; if (def.hp <= 0) this.ko(def); }
-    if (t >= 46) { def.override = null; def.y = 0; def.set('down', true); def.pose = clonePose(LYING); def.from = null; att.set('idle'); }
+    if (t >= 70) att.set('idle');
   }
   /* --- mossa speciale --- */
   trySpecial(me, op) {
@@ -1518,7 +1554,7 @@ class Match {
       case 'fall': target = FALL(tt); break;
       case 'down': target = clonePose(LYING); target.cp = Math.sin(this.frame * .05) * .02; break;
       case 'getup': target = GETUP(tt); break;
-      case 'grabbing': target = P({ lh: [-.2, 1.3, .5], rh: [.2, 1.35, .5], le: [-1, -.2, 0], re: [1, -.2, 0], fist: .3, cy: lerp(0, -1.2, smooth(clamp((f.t - 10) / 24, 0, 1))), yaw: lerp(.3, -.6, smooth(clamp((f.t - 10) / 24, 0, 1))), hip: [0, -.12, 0] }); break;
+      case 'grabbing': target = GRAB_ATT(Math.min(tt, 70)); break;
       case 'spStart': target = P({ hip: [0, -.12, 0], cp: .15, hp: .3, lh: [-.25, 1.25, .2], rh: [.25, 1.25, .2], fist: 1, jaw: .4 }); break;
       case 'spWhiff': target = P({ cp: -.1, hp: -.2, lh: [-.4, 1.3, .3], rh: [.4, 1.3, .3], fist: 0, jaw: .3 }); break;
       default: target = clonePose(GUARD);
@@ -1672,7 +1708,7 @@ const App = {
       <p class="kick">La classifica degli strani</p><h2>${esc(c.name)}</h2>
       <p>Gli strani hanno deciso di sfidarsi per il titolo di <b>più strano</b>. In palio c'è anche un premio in denaro.</p>
       <p style="color:var(--gold)">${esc(c.motive)}</p>
-      <div class="ladder">${opp.map((o, i) => `<span class="${i === 0 ? 'now' : ''}">${esc(CHAR[o].name)}</span>`).join('')}</div>
+      <div class="ladder">${opp.map((o, i) => `<span class="${i === 0 ? 'now' : ''}">${esc(CHAR[o].name)} · ${esc(ARENAS[CHAR[o].arenas[0]].name)}</span>`).join('')}</div>
       <div class="row"><button class="cta ghost" id="no">Indietro</button><button class="cta" id="go">Combatti</button></div></div></div>`);
     s.querySelector('#no').addEventListener('click', () => { AU.sfx('back'); this.select('arcade'); });
     s.querySelector('#go').addEventListener('click', () => { AU.sfx('confirm'); this.arcadeNext(); });
@@ -1680,17 +1716,27 @@ const App = {
   },
   arcadeNext() {
     const A = this.arcade, opp = CHAR[A.ladder[A.idx]];
-    const cfg = { mode: 'arcade', p1: { def: CHAR[A.id], costume: A.cos }, p2: { def: opp, costume: Math.floor(Math.random() * opp.costumes.length) }, arena: pick(opp.arenas), cpu: [null, A.diff] };
+    const ar = opp.arenas[(A.arenaTurn = (A.arenaTurn || 0) + 1) % opp.arenas.length] || opp.arenas[0];
+    const cfg = { mode: 'arcade', p1: { def: CHAR[A.id], costume: A.cos }, p2: { def: opp, costume: Math.floor(Math.random() * opp.costumes.length) }, arena: ar, cpu: [null, A.diff] };
     this.startMatch(cfg);
   },
   /* --- incontro --- */
   startMatch(cfg) {
-    this.clearBackdrop(); this.setScreen(null); this.endMatch();
-    ARENA.build(cfg.arena);
-    cfg.onEnd = r => this.afterMatch(cfg, r);
-    this.match = new Match(cfg); Controls.show(); AU.music(null); this.paused = false;
+    this.clearBackdrop(); this.setScreen(null); this.endMatch(); AU.music(null);
+    const A = ARENAS[cfg.arena], label = cfg.mode === 'arcade' ? 'Arcade · incontro ' + (this.arcade.idx + 1) + ' di ' + this.arcade.ladder.length : 'Battaglia libera';
+    const vs = el(`<div id="vs"><div class="mode">${esc(label)}</div><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
+      <div class="place"><small>Si combatte a</small><b>${esc(A.name)}</b></div></div>`);
+    document.body.appendChild(vs); AU.sfx('confirm');
+    const t0 = performance.now();
+    setTimeout(() => {
+      ARENA.build(cfg.arena);
+      cfg.onEnd = r => this.afterMatch(cfg, r);
+      this.match = new Match(cfg); Controls.show(); this.paused = false;
+      R.render(scene, camera);
+      setTimeout(() => vs.remove(), Math.max(0, 2200 - (performance.now() - t0)));
+    }, 60);
   },
-  endMatch() { if (this.match) { this.match.dispose(); this.match = null; HUD.hide(); Controls.hide(); } this.paused = false; if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; } },
+  endMatch() { document.body.classList.remove('touch'); if (this.match) { this.match.dispose(); this.match = null; HUD.hide(); Controls.hide(); } this.paused = false; if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; } },
   afterMatch(cfg, r) {
     const win = r.winner === 0;
     const M = this.match; Controls.hide();

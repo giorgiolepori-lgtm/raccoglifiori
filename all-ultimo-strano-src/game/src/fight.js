@@ -42,7 +42,7 @@ const STYLE_STD = {
   poke: M({ name: 'Punta bassa', level: 'l', start: 11, act: 3, dur: 28, dmg: 6, reach: 1.35, hs: 14, bs: 10, kb: .3, limb: 'lf', sfx: 'k', kick: true, low: true,
     keys: [{ f: 0, ...CROUCH }, { f: 11, e: 'o', lf: [-.05, .15, .78], lk: [-.4, .3, 1], lfd: [-.2, -.3, 1], hip: [0, -.4, -.06] }, { f: 15 }, { f: 27, ...CROUCH }] }),
   jab2: null, cross2: null,
-  grab: M({ name: 'Presa', level: 't', start: 10, act: 2, dur: 34, dmg: 14, reach: .95, limb: 'lh', sfx: 'g',
+  grab: M({ name: 'Presa', level: 't', start: 10, act: 3, dur: 34, dmg: 16, reach: 1.1, limb: 'lh', sfx: 'g',
     keys: [{ f: 0 }, { f: 6, lh: [-.18, 1.35, .62], rh: [.18, 1.35, .62], le: [-1, -.3, 0], re: [1, -.3, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], cp: .15, fist: .2 }, { f: 12 }, { f: 33, lh: GUARD.lh, rh: GUARD.rh, le: GUARD.le, re: GUARD.re, lho: GUARD.lho, rho: GUARD.rho, cp: GUARD.cp, fist: 1 }] }),
   jumpkick: M({ name: 'Calcio volante', level: 'm', start: 7, act: 6, dur: 999, dmg: 13, reach: 1.45, hs: 20, bs: 12, kb: 1.6, limb: 'rf', sfx: 'K', kick: true, air: true,
     keys: [{ f: 0, lf: [-.1, .6, .2], rf: [.15, .5, -.1], lk: [-.2, .5, 1], rk: [.2, .5, 1] }, { f: 7, e: 'o', rf: [0, .95, .85], rfd: [0, .2, 1], lf: [-.1, .55, -.05], cp: -.2 }, { f: 16 }] }),
@@ -74,7 +74,14 @@ function reactTrack(kind, dur, side) {
     : kind === 'bh' ? clonePose(BLOCK_H) : kind === 'bl' ? clonePose(BLOCK_L) : {};
   return track(kind === 'bl' ? CROUCH : GUARD, [{ f: 0 }, { f: Math.min(4, dur * .25), e: 'o', ...peak }, { f: Math.max(6, dur * .55) }, { f: dur }]);
 }
-const FALL = track(GUARD, [{ f: 0, hp: -.5, cp: -.3, jaw: .6 }, { f: 10, brx: -.9, hip: [0, -.12, 0], lh: [-.5, 1.5, 0], rh: [.5, 1.5, 0], lf: [-.15, .2, .3], e: 'i' }, { f: 20, ...LYING, e: 'i' }, { f: 26, ...LYING, by: .15 }, { f: 30, ...LYING }]);
+const FALL = track(GUARD, [{ f: 0, hp: -.55, cp: -.3, jaw: .6, fist: .4, hip: [0, -.05, -.1], lh: [-.35, 1.45, .15], rh: [.3, 1.4, .1], lho: [0, 1, 0], rho: [0, 1, 0] },
+  { f: 10, hip: [0, -.2, -.22], cp: -.1, hp: -.3, lf: [-.12, .1, .08], rf: [.16, .16, -.38], lh: [-.55, 1.4, -.05], rh: [.5, 1.45, -.1], le: [-1, 0, 0], re: [1, 0, 0] },
+  { f: 22, e: 'i', brx: -.85, hip: [0, -.2, -.05], cp: .1, hp: .2, lf: [-.15, .3, .3], rf: [.15, .2, .1], lh: [-.55, 1.5, 0], rh: [.55, 1.5, 0] },
+  { f: 30, e: 'i', ...LYING }, { f: 34, ...LYING, by: .21, cp: .15 }, { f: 40, ...LYING }]);
+const GRAB_ATT = track(GUARD, [{ f: 0 }, { f: 10, e: 'o', lh: [-.17, 1.42, .5], rh: [.17, 1.42, .5], le: [-1, -.3, 0], re: [1, -.3, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], fist: .5, cp: .15, yaw: 0, cy: 0 },
+  { f: 14, hip: [0, -.26, .05], cp: .2 }, { f: 32, hip: [0, -.04, 0], cp: -.25, hp: -.15, lh: [-.2, 1.8, .38], rh: [.2, 1.8, .38], le: [-1, -.6, .2], re: [1, -.6, .2], lho: [0, 1, .2, 1, 0, 0], rho: [0, 1, .2, -1, 0, 0] },
+  { f: 44, e: 'i', hip: [0, -.3, .1], cp: .55, hp: .2, lh: [-.2, .95, .75], rh: [.2, .95, .75], lho: [0, -.3, 1, 1, 0, 0], rho: [0, -.3, 1, -1, 0, 0], lf: [-.14, .1, .3], rf: [.18, .1, -.25] },
+  { f: 52 }, { f: 70, ...GUARD }]);
 const GETUP = track(LYING, [{ f: 0 }, { f: 10, brx: -.9, by: .1, hip: [0, -.35, 0], lf: [-.15, .1, .3], rf: [.18, .1, .1], lh: [-.3, .6, -.2], rh: [.3, .6, -.2] }, { f: 18, ...CROUCH, brx: -.15, by: 0 }, { f: 26, ...GUARD }]);
 
 /* ===== Lottatore ===== */
@@ -95,7 +102,7 @@ class Fighter {
   get crouching() { return this.state === 'crouch' || (this.state === 'attack' && this.move && this.move.low) || this.state === 'blockL'; }
   get busy() { return !['idle', 'walk', 'crouch', 'side', 'dash'].includes(this.state); }
   get fwd() { return new V3(Math.sin(this.yaw), 0, Math.cos(this.yaw)); }
-  set(state, keepPose) { if (!keepPose) { this.from = clonePose(this.pose); this.blendT = 0; } this.state = state; this.t = 0; }
+  set(state, keepPose) { if (!keepPose) { this.from = clonePose(this.pose); this.blendT = 0; } this.blendDur = 6; this.state = state; this.t = 0; }
 }
 
 /* ===== IA ===== */
@@ -119,7 +126,7 @@ class CPU {
     if (this.planT-- <= 0) {
       const r = Math.random();
       if (d > 1.65) this.plan = r < .75 ? 'approach' : r < .85 ? 'dash' : 'wait';
-      else if (d < .95) this.plan = r < .25 ? 'retreat' : r < .45 ? 'grab' : 'attack';
+      else if (d < 1.05) this.plan = r < .25 ? 'retreat' : r < .36 ? 'grab' : 'attack';
       else this.plan = r < D.aggr ? 'attack' : r < D.aggr + .15 ? 'side' : r < D.aggr + .25 ? 'retreat' : 'wait';
       this.planT = this.plan === 'attack' || this.plan === 'grab' ? 1 : (10 + Math.random() * 25) | 0;
     }

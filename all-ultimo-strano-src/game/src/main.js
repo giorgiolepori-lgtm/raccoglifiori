@@ -115,7 +115,7 @@ const App = {
       <p class="kick">La classifica degli strani</p><h2>${esc(c.name)}</h2>
       <p>Gli strani hanno deciso di sfidarsi per il titolo di <b>più strano</b>. In palio c'è anche un premio in denaro.</p>
       <p style="color:var(--gold)">${esc(c.motive)}</p>
-      <div class="ladder">${opp.map((o, i) => `<span class="${i === 0 ? 'now' : ''}">${esc(CHAR[o].name)}</span>`).join('')}</div>
+      <div class="ladder">${opp.map((o, i) => `<span class="${i === 0 ? 'now' : ''}">${esc(CHAR[o].name)} · ${esc(ARENAS[CHAR[o].arenas[0]].name)}</span>`).join('')}</div>
       <div class="row"><button class="cta ghost" id="no">Indietro</button><button class="cta" id="go">Combatti</button></div></div></div>`);
     s.querySelector('#no').addEventListener('click', () => { AU.sfx('back'); this.select('arcade'); });
     s.querySelector('#go').addEventListener('click', () => { AU.sfx('confirm'); this.arcadeNext(); });
@@ -123,17 +123,27 @@ const App = {
   },
   arcadeNext() {
     const A = this.arcade, opp = CHAR[A.ladder[A.idx]];
-    const cfg = { mode: 'arcade', p1: { def: CHAR[A.id], costume: A.cos }, p2: { def: opp, costume: Math.floor(Math.random() * opp.costumes.length) }, arena: pick(opp.arenas), cpu: [null, A.diff] };
+    const ar = opp.arenas[(A.arenaTurn = (A.arenaTurn || 0) + 1) % opp.arenas.length] || opp.arenas[0];
+    const cfg = { mode: 'arcade', p1: { def: CHAR[A.id], costume: A.cos }, p2: { def: opp, costume: Math.floor(Math.random() * opp.costumes.length) }, arena: ar, cpu: [null, A.diff] };
     this.startMatch(cfg);
   },
   /* --- incontro --- */
   startMatch(cfg) {
-    this.clearBackdrop(); this.setScreen(null); this.endMatch();
-    ARENA.build(cfg.arena);
-    cfg.onEnd = r => this.afterMatch(cfg, r);
-    this.match = new Match(cfg); Controls.show(); AU.music(null); this.paused = false;
+    this.clearBackdrop(); this.setScreen(null); this.endMatch(); AU.music(null);
+    const A = ARENAS[cfg.arena], label = cfg.mode === 'arcade' ? 'Arcade · incontro ' + (this.arcade.idx + 1) + ' di ' + this.arcade.ladder.length : 'Battaglia libera';
+    const vs = el(`<div id="vs"><div class="mode">${esc(label)}</div><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
+      <div class="place"><small>Si combatte a</small><b>${esc(A.name)}</b></div></div>`);
+    document.body.appendChild(vs); AU.sfx('confirm');
+    const t0 = performance.now();
+    setTimeout(() => {
+      ARENA.build(cfg.arena);
+      cfg.onEnd = r => this.afterMatch(cfg, r);
+      this.match = new Match(cfg); Controls.show(); this.paused = false;
+      R.render(scene, camera);
+      setTimeout(() => vs.remove(), Math.max(0, 2200 - (performance.now() - t0)));
+    }, 60);
   },
-  endMatch() { if (this.match) { this.match.dispose(); this.match = null; HUD.hide(); Controls.hide(); } this.paused = false; if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; } },
+  endMatch() { document.body.classList.remove('touch'); if (this.match) { this.match.dispose(); this.match = null; HUD.hide(); Controls.hide(); } this.paused = false; if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; } },
   afterMatch(cfg, r) {
     const win = r.winner === 0;
     const M = this.match; Controls.hide();

@@ -88,11 +88,13 @@ class Match {
     if (this.pt > 171 && (this.pt >= this.outroEnd || (skip && this.pt > 200))) { this.phase = 'done'; HUD.subtitle(null); if (this.o.onEnd) this.o.onEnd({ winner: this.f.indexOf(W) }); }
   }
   timeOver() {
+    if (this.phase !== 'fight') return;
     const [a, b] = this.f; HUD.banner('TEMPO!', 'big'); AU.announce('Time');
     const w = a.hp === b.hp ? null : a.hp > b.hp ? a : b;
     this.roundWinner = w; this.phase = 'ko'; this.pt = 40; if (w) w.wins++;
   }
   ko(loser) {
+    if (this.phase !== 'fight') return;
     const w = this.f[1 - this.f.indexOf(loser)]; this.roundWinner = w; w.wins++;
     this.phase = 'ko'; this.pt = 0; this.slow = .3; this.slowT = 1.1;
     HUD.banner('K.O.', 'ko'); AU.announce('K.O.'); AU.sfx('ko'); this.shake = .5;
@@ -161,10 +163,10 @@ class Match {
       case 'hit': case 'blockH': case 'blockL': if (me.t >= me.stun) me.set(me.state === 'blockL' ? 'crouch' : 'idle'); break;
       case 'air': {
         me.vy -= G * DT; me.y += me.vy * DT; me.pos.addScaledVector(me.vel, DT);
-        if (me.y <= 0 && me.vy < 0) { me.y = 0; me.vy = 0; me.vel.multiplyScalar(.3); me.set('down', true); me.pose = clonePose(LYING); me.from = null; AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .15); }
+        if (me.y <= 0 && me.vy < 0) { me.y = 0; me.vy = 0; me.vel.multiplyScalar(.3); me.set('down'); me.blendDur = 5; AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .15); }
         break;
       }
-      case 'fall': me.pos.addScaledVector(me.vel, DT); me.vel.multiplyScalar(.9); if (me.t === 18) { AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .15); } if (me.t >= 30) me.set('down', true); break;
+      case 'fall': me.pos.addScaledVector(me.vel, DT); me.vel.multiplyScalar(.92); if (me.t === 30) { AU.sfx('fall'); FX.dust(me.pos); this.shake = Math.max(this.shake, .25); } if (me.t >= 44) me.set('down', true); break;
       case 'down':
         me.pos.addScaledVector(me.vel, DT); me.vel.multiplyScalar(.85);
         if (me.hp > 0 && this.phase === 'fight' && ((me.t > 25 && (I.p.LP || I.p.RP || I.p.LK || I.p.RK || I.y > .5 || I.x !== 0)) || me.t > 75)) me.set('getup', true);
@@ -231,7 +233,7 @@ class Match {
     if (mv.launch || def.state === 'air') {
       def.set('air', def.state === 'air'); def.vy = mv.launch ? mv.launch : Math.max(2.2, def.vy * .3 + 2.4); def.y = Math.max(def.y, .05); def.vel.copy(att.fwd).multiplyScalar(1.2);
     } else if (mv.kd || (mv.kdCounter && counter)) {
-      def.set('fall'); def.vel.copy(att.fwd).multiplyScalar(2.2);
+      def.set('fall'); def.vel.copy(att.fwd).multiplyScalar(2.4); this.slow = .6; this.slowT = .35;
     } else {
       def.set('hit'); def.stun = mv.hs + (counter ? 6 : 0);
       def.react = reactTrack(mv.level, def.stun, Math.random() < .5 ? 1 : -1); def.vel.copy(att.fwd).multiplyScalar(mv.kb);
@@ -243,20 +245,26 @@ class Match {
   }
   /* --- prese --- */
   startThrow(att, def) {
-    att.set('grabbing'); def.set('thrown'); def.move = null; this.throwT = 0; this.throwData = { a: att, d: def, start: def.pos.clone(), yaw: att.yaw };
-    AU.sfx('grab'); this.hitstop = 3;
+    att.set('grabbing'); def.set('thrown'); def.move = null; def.override = 'thrown'; def.throwLift = def.throwSlam = 0;
+    this.throwData = { a: att, d: def, yaw: att.yaw, d0: Math.max(.6, att.pos.distanceTo(def.pos)) };
+    AU.sfx('grab'); this.hitstop = 4; this.shake = .08;
   }
   stepThrow(att, def) {
-    const t = att.t, T = this.throwData, F = new V3(Math.sin(T.yaw), 0, Math.cos(T.yaw)), Rt = new V3(-F.z, 0, F.x);
-    if (t <= 46) {
-      const k = clamp((t - 12) / 22, 0, 1), e = smooth(k);
-      // la vittima viene sollevata e proiettata in avanti con una rotazione
-      def.pos.copy(att.pos).addScaledVector(F, lerp(.62, 1.35, e)).addScaledVector(Rt, Math.sin(e * Math.PI) * -.35);
-      def.y = Math.sin(e * Math.PI) * .75; def.yaw = T.yaw + Math.PI;
-      def.override = 'thrown'; def.throwK = e;
+    const t = att.t, T = this.throwData, F = new V3(Math.sin(T.yaw), 0, Math.cos(T.yaw));
+    if (t < 44) {
+      const grab = smooth(clamp(t / 10, 0, 1)), lift = smooth(clamp((t - 12) / 20, 0, 1)), slam = easeIn(clamp((t - 34) / 10, 0, 1));
+      def.yaw = T.yaw + Math.PI; att.yaw = T.yaw;
+      def.pos.copy(att.pos).addScaledVector(F, lerp(T.d0, .56, grab) + lift * .08 + slam * .6);
+      def.y = lift * .8 * (1 - slam); def.throwLift = lift; def.throwSlam = slam; def.override = 'thrown';
+      if (t === 12) { AU.sfx('whoosh'); AU.grunt(att); this.slow = .55; this.slowT = .7; }
+      if (t === 34) AU.sfx('whooshK');
+    } else if (t === 44) {
+      def.override = null; def.y = 0; def.set('down', true); def.pose = clonePose(LYING); def.from = null;
+      def.hp = Math.max(0, def.hp - 16); AU.sfx('slam'); AU.grunt(def, true); this.shake = .45; FX.dust(def.pos); FX.dust(def.pos.clone().addScaledVector(F, 1)); this.hitstop = 8;
+      HUD.flashText(this.f.indexOf(att) ? 1 : 0, 'PRESA!');
+      if (def.hp <= 0) this.ko(def);
     }
-    if (t === 34) { def.hp = Math.max(0, def.hp - 14); AU.sfx('slam'); AU.grunt(def); this.shake = .3; FX.dust(def.pos); this.hitstop = 6; if (def.hp <= 0) this.ko(def); }
-    if (t >= 46) { def.override = null; def.y = 0; def.set('down', true); def.pose = clonePose(LYING); def.from = null; att.set('idle'); }
+    if (t >= 70) att.set('idle');
   }
   /* --- mossa speciale --- */
   trySpecial(me, op) {
@@ -313,7 +321,7 @@ class Match {
       case 'fall': target = FALL(tt); break;
       case 'down': target = clonePose(LYING); target.cp = Math.sin(this.frame * .05) * .02; break;
       case 'getup': target = GETUP(tt); break;
-      case 'grabbing': target = P({ lh: [-.2, 1.3, .5], rh: [.2, 1.35, .5], le: [-1, -.2, 0], re: [1, -.2, 0], fist: .3, cy: lerp(0, -1.2, smooth(clamp((f.t - 10) / 24, 0, 1))), yaw: lerp(.3, -.6, smooth(clamp((f.t - 10) / 24, 0, 1))), hip: [0, -.12, 0] }); break;
+      case 'grabbing': target = GRAB_ATT(Math.min(tt, 70)); break;
       case 'spStart': target = P({ hip: [0, -.12, 0], cp: .15, hp: .3, lh: [-.25, 1.25, .2], rh: [.25, 1.25, .2], fist: 1, jaw: .4 }); break;
       case 'spWhiff': target = P({ cp: -.1, hp: -.2, lh: [-.4, 1.3, .3], rh: [.4, 1.3, .3], fist: 0, jaw: .3 }); break;
       default: target = clonePose(GUARD);

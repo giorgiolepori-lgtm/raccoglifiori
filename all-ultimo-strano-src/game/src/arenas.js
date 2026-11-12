@@ -66,6 +66,9 @@ function signTown(name) {   // cartello bianco di inizio centro abitato
   const b = new THREE.Mesh(new THREE.BoxGeometry(1.6, .62, .03), [pole, pole, pole, pole, new THREE.MeshStandardMaterial({ map: t, roughness: .6 }), std(0x9da1a5, .5, .5)]); b.position.y = 2.15; g.add(b);
   return g;
 }
+function addSigns(name, z, x) {   // un cartello per lato, così si vede da qualunque parte stia la telecamera
+  for (const sd of [-1, 1]) { const g = signTown(name); g.scale.setScalar(1.45); addA(g, sd * x, 0, sd * z, sd < 0 ? 0 : Math.PI); }
+}
 function stopSign() { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 2.4, 8), std(0x8e9296, .5, .6)); p.position.y = 1.2; g.add(p);
   const t = canvasTex(128, 128, (c, w) => { c.fillStyle = '#c4161c'; c.beginPath(); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + TAU / 16; c.lineTo(64 + Math.cos(a) * 62, 64 + Math.sin(a) * 62); } c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 5; c.stroke(); c.fillStyle = '#fff'; c.font = 'bold 38px Arial'; c.textAlign = 'center'; c.fillText('STOP', 64, 78); });
   const s = new THREE.Mesh(new THREE.CircleGeometry(.36, 8), new THREE.MeshStandardMaterial({ map: t, roughness: .5 })); s.position.set(0, 2.3, .035); s.rotation.z = TAU / 16; g.add(s); return g; }
@@ -145,7 +148,7 @@ const ARENAS = {
       for (let i = 0; i < 4; i++) { const x = -26 + i * 11; if (Math.abs(x - 4) < 7) continue; const wall = facade({ cols: 4, rows: 2, wall: villaCols[(i + 1) % 4], shutter: '#6a5039', frame: '#e9dfca', balcony: (r, c) => c % 2 === 0 }); addA(building(9, 6, 8, wall, 'tile', 0xa64a2a), x, 0, 12.8, Math.PI); const f = ironFence(10, 1.4); addA(f, x, .15, 7.2); }
       addA(lamp(7), -8, .15, -6.4, Math.PI / 2); addA(lamp(7), 14, .15, 6.4, -Math.PI / 2); addA(lamp(7), 30, .15, -6.4, Math.PI / 2);
       addA(stopSign(), 11, .15, -6.3, 0);
-      addA(signTown('Capoterra'), -9.5, .15, 6.4, Math.PI);
+      addSigns('Capoterra', 6.6, 2.4);
       for (const [x, z, s] of [[-14, -15, 1.3], [20, -16, 1.6], [-30, 15, 1.4], [26, 14, 1.2]]) addA(tree({ h: 4.5 * s, r: 1.6 * s }), x, 0, z);
       addA(palm(8), 16, 0, -9.5); addA(palm(7), -24, 0, 9.5);
       addA(parkedCar(0xd9d9d9), 20, 0, -3.3, 0); addA(parkedCar(0x7a1c1c), -24, 0, 3.4, Math.PI);
@@ -191,7 +194,7 @@ const ARENAS = {
       const cars = [0xffffff, 0x1b1b1b, 0xb8b8b8, 0xc21e1e, 0x2f4f8f, 0xe0e0e0];
       for (let i = 0; i < 7; i++) addA(parkedCar(cars[i % cars.length]), -24 + i * 4.6, 0, 26, Math.PI / 2 + rand(-.05, .05));
       for (const x of [-20, 0, 20]) addA(lamp(8), x, 0, 11, -Math.PI / 2);
-      addA(signTown('Quartello'), -16.8, 0, 6.5, Math.PI / 2);
+      addSigns('Quartello', 8.15, 3.2);
       ARENA.group.add(mountains(0x8f9db3, 170, 22, 2.2));
     },
   },

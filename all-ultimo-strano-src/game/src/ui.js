@@ -68,7 +68,7 @@ const Controls = {
       <div class="btn b-sp" data-b="SP" style="pointer-events:auto" hidden>SPECIALE</div>
       <button class="b-pause" aria-label="Pausa">II</button>
     </div>`);
-    UI.appendChild(r);
+    UI.appendChild(r); document.body.classList.add('touch');
     r.querySelector('.b-pause').addEventListener('pointerdown', e => { e.stopPropagation(); App.togglePause(); });
     const zone = r.querySelector('.stick-zone');
     let stickEl = null;

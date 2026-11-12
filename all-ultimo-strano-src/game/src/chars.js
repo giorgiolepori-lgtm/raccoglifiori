@@ -41,7 +41,11 @@ function OVERRIDE_POSES(name, f, M) {
     case 'flying': { const p = clonePose(AIRBORNE); p.brx = -(f.spin || 0) * .6 - .6; p.brz = Math.sin((f.spin || 0)) * .5; return p; }
     case 'lying': return clonePose(LYING);
     case 'ballHit': return FALL(tt * .9);
-    case 'thrown': { const p = clonePose(AIRBORNE); p.brx = -(f.throwK || 0) * 2.4 - .2; return p; }
+    case 'thrown': { const L = f.throwLift || 0, S = f.throwSlam || 0; const p = P({ yaw: 0, cy: 0, cp: .35 - S * .3, hp: -.35 + S * .5, hr: .1, jaw: .5, fist: .4, hip: [0, -.12, 0],
+      lh: [-.2, 1.38 + L * .1, .35], rh: [.2, 1.38 + L * .1, .35], le: [-1, -.5, .2], re: [1, -.5, .2], lho: [0, 1, 0], rho: [0, 1, 0],
+      lf: [-.12, .1 + L * .2, .05 + L * .1], rf: [.13, .1 + L * .3, -.05], lk: [-.2, .2, 1], rk: [.2, .3, 1], lfdFree: 1, rfdFree: 1 });
+      if (S > 0) { p.lh = [-.55, 1.45, -.05]; p.rh = [.55, 1.45, -.05]; p.le = [-1, 0, 0]; p.re = [1, 0, 0]; }
+      p.brx = -(L * .45 + S * 1.12); p.by = .13 * S; return p; }
     case 'outro': return clonePose(GUARD);
   }
   return clonePose(GUARD);
