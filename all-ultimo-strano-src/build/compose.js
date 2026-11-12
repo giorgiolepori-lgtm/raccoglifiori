@@ -32,18 +32,26 @@ function bonePos(E, name) { const b = E.bones.find(b => b.name === name); return
 // headFrom: estratto donatore testa; body: estratto corpo. opts.headScale
 function compose(body, headFrom, opts = {}) {
   const verts = [], tris = [], key = new Map();
-  const add = (E, i, off, sc, piv) => {
-    const k = (E === body ? 'b' : 'h') + i; if (key.has(k)) return key.get(k);
+  const add = (E, i, off, sc, piv, hs) => {
+    const k = (E === body ? 'b' : 'h') + i + (hs ? 'x' : ''); if (key.has(k)) return key.get(k);
     const s = E.V[i]; let p = s.p;
+    if (hs) { const hp = hs.piv; p = [(p[0] - hp.x) * hs.s[0] + hp.x + hs.o[0], (p[1] - hp.y) * hs.s[1] + hp.y + hs.o[1], (p[2] - hp.z) * hs.s[2] + hp.z + hs.o[2]]; }
     if (off) p = [ (p[0] - piv.x) * sc + piv.x + off.x, (p[1] - piv.y) * sc + piv.y + off.y, (p[2] - piv.z) * sc + piv.z + off.z ];
     verts.push({ ...s, p }); key.set(k, verts.length - 1); return verts.length - 1;
   };
   const useHead = headFrom && headFrom !== body;
+  const hsrc = useHead ? headFrom : body;
+  const hs = opts.hairScale ? { s: opts.hairScale, o: opts.hairOffset || [0, 0, 0], piv: bonePos(hsrc, 'Bip01_Head').add(new THREE.Vector3(0, 8, 0)) } : null;
+  if (!useHead && hs) { for (const t of body.tris) { const h = t[3] === 'hair' ? hs : null; tris.push([add(body, t[0], null, 1, null, h), add(body, t[1], null, 1, null, h), add(body, t[2], null, 1, null, h), t[3]]); } return { verts, tris, bones: body.bones }; }
   for (const t of body.tris) if (!useHead || t[3] === 'body') tris.push([add(body, t[0]), add(body, t[1]), add(body, t[2]), t[3]]);
   if (useHead) {
     const hp = bonePos(headFrom, opts.anchor || 'Bip01_Neck'), bp = bonePos(body, opts.anchor || 'Bip01_Neck');
     const off = bp.clone().sub(hp).add(new THREE.Vector3(...(opts.nudge || [0, 0, 0]))), sc = opts.headScale || 1;
-    for (const t of headFrom.tris) if (t[3] !== 'body' || opts.keepHeadBody) tris.push([add(headFrom, t[0], off, sc, hp), add(headFrom, t[1], off, sc, hp), add(headFrom, t[2], off, sc, hp), t[3]]);
+    for (const t of headFrom.tris) if (t[3] !== 'body' || opts.keepHeadBody) { const h = t[3] === 'hair' ? hs : null; tris.push([add(headFrom, t[0], off, sc, hp, h), add(headFrom, t[1], off, sc, hp, h), add(headFrom, t[2], off, sc, hp, h), t[3]]); }
+    // strati di capelli in più (volume): stessi ciuffi ingranditi
+    (opts.hairLayers || []).forEach((L, li) => { const h2 = { s: L.s, o: L.o || [0, 0, 0], piv: hs ? hs.piv : bonePos(headFrom, 'Bip01_Head').add(new THREE.Vector3(0, 8, 0)), tag: li };
+      const add2 = (i) => { const k = 'L' + li + '_' + i; if (key.has(k)) return key.get(k); const sv = headFrom.V[i], q = h2.piv; let p = [(sv.p[0] - q.x) * h2.s[0] + q.x + h2.o[0], (sv.p[1] - q.y) * h2.s[1] + q.y + h2.o[1], (sv.p[2] - q.z) * h2.s[2] + q.z + h2.o[2]]; p = [(p[0] - hp.x) * sc + hp.x + off.x, (p[1] - hp.y) * sc + hp.y + off.y, (p[2] - hp.z) * sc + hp.z + off.z]; verts.push({ ...sv, p }); key.set(k, verts.length - 1); return verts.length - 1; };
+      for (const t of headFrom.tris) if (t[3] === 'hair') tris.push([add2(t[0]), add2(t[1]), add2(t[2]), 'hair']); });
   }
   return { verts, tris, bones: body.bones };
 }

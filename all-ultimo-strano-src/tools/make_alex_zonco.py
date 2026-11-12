@@ -11,7 +11,7 @@ def cards(base, name, col=(.08, .06, .05)):
     a = load(base, 'opacity_color'); out = hair_color(a, col, 1.); out[..., 3] = a[..., 3]; save(out, name + '_hair', 1024)
 TAN = (1.0, .93, .85)
 head('a07', 'full', 1.15, TAN, 'alex'); cards('a07', 'alex')
-head('a06', 'mg', 1.25, TAN, 'zonco', (.06, .045, .04)); cards('a04', 'zonco', (.06, .045, .04))
+head('a06', 'mg', 1.25, TAN, 'zonco', (.06, .045, .04)); cards('a01', 'zonco', (.06, .045, .04))
 # --- corpo Alex: camicia bianca a righe grigie sottili, maniche arrotolate ---
 b = load('b06', 'body_color'); S = 2048
 yy, xx = np.mgrid[0:S, 0:S]
@@ -43,6 +43,7 @@ for box in ((420, 205, 600, 430), (150, 140, 200, 200), (825, 180, 880, 200), (2
     z[..., :3] = z[..., :3] * (1 - m[..., None]) + bg * m[..., None]
 for box in ((110, 0, 200, 175), (830, 0, 920, 175)):   # scia bianca sui pantaloncini
     m = region(2048, box) * np.clip((lum(z) - .35) / .15, 0, 1); z[..., :3] = z[..., :3] * (1 - m[..., None]) + .06 * m[..., None]
+fill_rows(z, 425, 600, 205, 430, 432, 446)   # retro: niente numero e scritte
 z = tone(z, skin_mask(z), TAN); save(z, 'zonco_body')
 # normal map
 for av, nm in (('b06', 'alex'), ('s02', 'zonco')): save(load(av, 'body_normal', 1024), nm + '_body_n', 1024, 80)
