@@ -175,9 +175,11 @@ class Avatar {
       if (ho && this.handAx[s]) this.orientHand(s, ho);
       else if (P[s + 'hd']) { const tgt = H.getWorldPosition(new V3()).add(this.Ldir(P[s + 'hd'], new V3()).multiplyScalar(.1)); aimBone(H, this.fing[s][2][0] || H.children[0], tgt, 1); }
       const ax = this.fing[s][1][0] && this.fing[s][4][0] ? this.fing[s][4][0].getWorldPosition(new V3()).sub(this.fing[s][1][0].getWorldPosition(new V3())).normalize() : Rr;
-      const sg = s === 'l' ? -1 : 1;
-      for (let f = 1; f < 5; f++) for (const bn of this.fing[s][f]) rotWorld(bn, ax, sg * fist * 1.35);
-      const th = this.fing[s][0]; if (th[0]) rotWorld(th[0], ax, sg * fist * .5); if (th[1]) rotWorld(th[1], ax, sg * fist * .7);
+      const sg = s === 'l' ? 1 : -1;
+      const CURL = [1.6, 1.55, 1.0]; for (let f = 1; f < 5; f++) this.fing[s][f].forEach((bn, k) => rotWorld(bn, ax, sg * fist * CURL[k]));
+      const th = this.fing[s][0];
+      if (th[0] && fist > 0) { const hf = this.fing[s][2][0].getWorldPosition(new V3()).sub(H.getWorldPosition(new V3())).normalize(); const pn = new V3().crossVectors(hf, ax).normalize(); rotWorld(th[0], pn, (s === 'l' ? 1 : -1) * fist * 1.2); rotWorld(th[0], hf, (s === 'l' ? 1 : -1) * fist * .6); }
+      for (let k = 1; k < th.length; k++) rotWorld(th[k], ax, fist * 1);
     }
     // gambe
     this.ik('lTh', 'lCa', 'lFt', this.L(P.lf, new V3()), this.Ldir(P.lk || [-.1, 0, 1], new V3()));
@@ -186,7 +188,14 @@ class Avatar {
     for (const s of ['l', 'r']) {
       const Ft = B[s + 'Ft'], Toe = B[s + 'Toe']; if (!Ft || !Toe) continue;
       const fd = P[s + 'fd'] || [s === 'l' ? -.15 : .15, -.05, 1];
-      aimBone(Ft, Toe, Ft.getWorldPosition(new V3()).add(this.Ldir(fd, new V3())));
+      const ank = Ft.getWorldPosition(new V3()), dir = this.Ldir(fd, new V3()).normalize();
+      const gy = this.obj.position.y, h = ank.y - gy, upright = Math.abs(P.brx || 0) < .3 && Math.abs(P.brz || 0) < .3;
+      if (upright && h < .2 && !P[s + 'fdFree']) {
+        // piede a terra: la punta appoggia al suolo nella direzione voluta
+        const L = ank.distanceTo(Toe.getWorldPosition(new V3())), dy = Math.max(-L * .95, .012 - h), hz = Math.sqrt(Math.max(0, L * L - dy * dy));
+        dir.y = 0; if (dir.lengthSq() < 1e-6) dir.copy(this.Ldir([0, 0, 1], new V3())).setY(0); dir.normalize();
+        aimBone(Ft, Toe, ank.clone().addScaledVector(dir, hz).add(new V3(0, dy, 0)));
+      } else aimBone(Ft, Toe, ank.add(dir));
     }
     // mascella e palpebre
     if (B.jaw && P.jaw) rotWorld(B.jaw, Rr, -P.jaw * .35);

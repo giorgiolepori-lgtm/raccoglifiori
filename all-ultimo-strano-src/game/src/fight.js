@@ -6,7 +6,7 @@ const MAXHP = 100;
 
 /* --- pose base (coordinate: [destra, alto, avanti] in metri, rispetto ai piedi) --- */
 const GUARD = { hip: [0, -.11, 0], yaw: .3, pitch: 0, roll: 0, cy: -.05, cp: .06, cr: 0, hy: 0, hp: .1, hr: 0, lsh: 0, rsh: 0,
-  lh: [-.13, 1.4, .41], rh: [.07, 1.37, .28], le: [-.15, -1, -.1], re: [.2, -1, -.1], lho: [0, .3, 1, 0, 1, 0], rho: [-.1, .35, 1, 0, 1, 0],
+  lh: [-.13, 1.4, .41], rh: [.07, 1.37, .28], le: [-.15, -1, -.1], re: [.2, -1, -.1], lho: [-1, 0, 0], rho: [1, 0, 0],
   lf: [-.12, .1, .17], rf: [.17, .1, -.2], lk: [-.2, 0, 1], rk: [.3, 0, 1], lfd: [.25, -.05, 1], rfd: [.55, -.2, .8],
   fist: 1, jaw: 0, bx: 0, by: 0, bz: 0, brx: 0, bry: 0, brz: 0 };
 const P = (o) => Object.assign(clonePose(GUARD), o);
