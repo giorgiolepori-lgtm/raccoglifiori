@@ -130,18 +130,20 @@ const App = {
   /* --- incontro --- */
   startMatch(cfg) {
     this.clearBackdrop(); this.setScreen(null); this.endMatch(); AU.music(null);
-    const A = ARENAS[cfg.arena], label = cfg.mode === 'arcade' ? 'Arcade · incontro ' + (this.arcade.idx + 1) + ' di ' + this.arcade.ladder.length : 'Battaglia libera';
-    const vs = el(`<div id="vs"><div class="mode">${esc(label)}</div><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
-      <div class="place"><small>Si combatte a</small><b>${esc(A.name)}</b></div></div>`);
+    const A = ARENAS[cfg.arena];
+    // schermata di sfida: i due nomi e il luogo, con l'arena sullo sfondo
+    ARENA.build(cfg.arena);
+    const sg = ARENA.sign || [0, -7];
+    this.bg = { avs: [], t: 0, cam: t => ({ pos: new V3(sg[0] - 2.2 + t * .5, 1.3, sg[1] + 9.5), look: new V3(sg[0] + t * .25, .55, sg[1]) }) };
+    const vs = el(`<div id="vs"><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
+      <div class="place">${esc(A.name)}</div></div>`);
     document.body.appendChild(vs); AU.sfx('confirm');
-    const t0 = performance.now();
     setTimeout(() => {
-      ARENA.build(cfg.arena);
+      this.bg = null;
       cfg.onEnd = r => this.afterMatch(cfg, r);
       this.match = new Match(cfg); Controls.show(); this.paused = false;
-      R.render(scene, camera);
-      setTimeout(() => vs.remove(), Math.max(0, 2200 - (performance.now() - t0)));
-    }, 60);
+      vs.remove();
+    }, 2300);
   },
   endMatch() { document.body.classList.remove('touch'); if (this.match) { this.match.dispose(); this.match = null; HUD.hide(); Controls.hide(); } this.paused = false; if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; } },
   afterMatch(cfg, r) {

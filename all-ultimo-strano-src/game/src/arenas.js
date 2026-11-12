@@ -67,6 +67,7 @@ function signTown(name) {   // cartello bianco di inizio centro abitato
   return g;
 }
 function addSigns(name, z, x) {   // un cartello per lato, così si vede da qualunque parte stia la telecamera
+  ARENA.sign = [-x, -z];
   for (const sd of [-1, 1]) { const g = signTown(name); g.scale.setScalar(1.45); addA(g, sd * x, 0, sd * z, sd < 0 ? 0 : Math.PI); }
 }
 function stopSign() { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 2.4, 8), std(0x8e9296, .5, .6)); p.position.y = 1.2; g.add(p);
@@ -95,7 +96,7 @@ const ARENA = {
   group: new THREE.Group(), sun: null, hemi: null, cur: null,
   build(id) {
     if (this.curId === id && this.group.parent) return this.cur;
-    this.clear(); scene.add(this.group);
+    this.clear(); scene.add(this.group); this.sign = null;
     const A = ARENAS[id]; this.cur = A; this.curId = id;
     scene.fog = new THREE.Fog(A.fog || 0xc9d8e6, 40, 230);
     scene.background = new THREE.Color(A.fog || 0xc9d8e6);
