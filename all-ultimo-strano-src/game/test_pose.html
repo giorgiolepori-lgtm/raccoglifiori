@@ -1,0 +1,9 @@
+<!doctype html><html><body style="margin:0">
+<script src="../lib/three.js"></script><script src="../lib/fflate.js"></script><script src="src/assets.js"></script><script src="src/engine.js"></script>
+<script>
+scene.background=new THREE.Color(0x8a96a3); scene.add(new THREE.HemisphereLight(0xffffff,0x445566,.9)); const sun=new THREE.DirectionalLight(0xffffff,1.3); sun.position.set(3,6,4); scene.add(sun);
+const fl=new THREE.Mesh(new THREE.PlaneGeometry(20,20),std(0x666666)); fl.rotation.x=-Math.PI/2; scene.add(fl);
+window.GUARD={hip:[0,-.07,0],yaw:.35,hp:.08,lh:[-.12,1.42,.32],rh:[.08,1.40,.16],le:[-.4,-.7,-.2],re:[.4,-.7,-.3],lf:[-.12,.1,.2],rf:[.17,.1,-.22],lk:[-.2,0,1],rk:[.2,0,1],lfd:[.2,-.05,1],rfd:[.6,-.05,.8],fist:1};
+window.mk=(id,mesh,x,ry,P)=>{const a=new Avatar(id,mesh); a.obj.position.x=x; a.obj.rotation.y=ry; scene.add(a.obj); a.obj.updateMatrixWorld(true); a.apply(P); return a;};
+window.render=()=>R.render(scene,camera);
+</script></body></html>

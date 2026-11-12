@@ -1,0 +1,26 @@
+<!doctype html><html><body style="margin:0;background:#888">
+<script src="lib/three.js"></script><script src="lib/fbx.js"></script><script src="compose.js"></script>
+<script>
+const R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true}); R.setSize(900,600); R.outputEncoding=THREE.sRGBEncoding; document.body.appendChild(R.domElement);
+const sc=new THREE.Scene(); sc.background=new THREE.Color(0x9aa4ad);
+sc.add(new THREE.HemisphereLight(0xffffff,0x555555,1.0)); const dl=new THREE.DirectionalLight(0xffffff,1.2); dl.position.set(2,4,5); sc.add(dl);
+const cam=new THREE.PerspectiveCamera(30,1.5,.05,50);
+const tl=new THREE.TextureLoader(); const tx=(u,s)=>{const t=tl.load(u); if(s)t.encoding=THREE.sRGBEncoding; return t;};
+window.info=[];
+async function load(name, x, opts={}){
+  const buf=await (await fetch('rb/'+name+'.fbx')).arrayBuffer();
+  const mgr=new THREE.LoadingManager(); mgr.setURLModifier(()=> 'data:image/gif;base64,R0lGODlhAQABAAAAACw=');
+  const m=new THREE.FBXLoader(mgr).parse(buf,'');
+  let mesh=[]; m.traverse(c=>{ if(c.isSkinnedMesh) mesh.push(c); if(c.isLight||c.isCamera) c.visible=false;});
+  const pre=name.split('__')[0]+'__'+name.split('__')[1]+'__Textures__';
+  for(const me of mesh){ info.push(name+' mesh '+me.name+' mats '+(Array.isArray(me.material)?me.material.map(a=>a.name).join(','):me.material.name)+' verts '+me.geometry.attributes.position.count+' groups '+JSON.stringify(me.geometry.groups));
+    const mats=(Array.isArray(me.material)?me.material:[me.material]).map(mt=>{ const n=mt.name; const code=opts.code;
+      if(/body/.test(n)) return new THREE.MeshStandardMaterial({map:tx('tex/'+pre+code+'_body_color.png',1),normalMap:tx('tex/'+pre+code+'_body_normal.png'),roughness:.8,skinning:true});
+      if(/head/.test(n)) return new THREE.MeshStandardMaterial({map:tx('tex/'+pre+code+'_head_color.png',1),normalMap:tx('tex/'+pre+code+'_head_normal.png'),roughness:.6,skinning:true});
+      return new THREE.MeshStandardMaterial({map:tx('tex/'+pre+code+'_opacity_color.png',1),alphaTest:.4,side:THREE.DoubleSide,skinning:true,color:0xffffff});
+    }); me.material=Array.isArray(me.material)?mats:mats[0]; me.frustumCulled=false; }
+  m.scale.setScalar(.01); m.position.x=x; sc.add(m); return m;
+}
+window.render=()=>{R.render(sc,cam);};
+window.setCam=(x,y,z,tx,ty,tz)=>{cam.position.set(x,y,z); cam.lookAt(tx,ty,tz); R.render(sc,cam);};
+</script></body></html>
