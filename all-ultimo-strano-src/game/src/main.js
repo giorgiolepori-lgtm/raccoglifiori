@@ -135,8 +135,9 @@ const App = {
     ARENA.build(cfg.arena);
     const sg = ARENA.sign || [0, -7];
     this.bg = { avs: [], t: 0, cam: t => ({ pos: new V3(sg[0] - 2.2 + t * .5, 1.3, sg[1] + 9.5), look: new V3(sg[0] + t * .25, .55, sg[1]) }) };
-    const vs = el(`<div id="vs"><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
-      <div class="place">${esc(A.name)}</div></div>`);
+    const label = cfg.mode === 'arcade' ? 'Arcade · incontro ' + (this.arcade.idx + 1) + ' di ' + this.arcade.ladder.length : 'Battaglia libera';
+    const vs = el(`<div id="vs"><div class="mode">${esc(label)}</div><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
+      <div class="at"><small>Si combatte a</small><div class="place">${esc(A.name)}</div></div></div>`);
     document.body.appendChild(vs); AU.sfx('blade');
     setTimeout(() => {
       this.bg = null;

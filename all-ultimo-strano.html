@@ -145,6 +145,10 @@ button { font-family: var(--font); color: inherit; }
 @keyframes vsL { from { transform: translateX(-60vw); } to { transform: none; } }
 @keyframes vsR { from { transform: translateX(60vw); } to { transform: none; } }
 #vs .place { font-family: var(--font-title); font-size: clamp(24px, 7vh, 48px); text-transform: uppercase; color: #111; background: #f4f4f0; border: 4px solid #111; outline: 3px solid #f4f4f0; padding: 2px 18px 0; animation: fadeUp .5s .35s both; }
+#vs .mode { font-size: clamp(12px, 2.8vh, 16px); font-weight: 800; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); text-shadow: 0 2px 0 #000; }
+#vs .at { display: flex; flex-direction: column; align-items: center; gap: 6px; animation: fadeUp .5s .35s both; }
+#vs .at small { font-size: clamp(12px, 2.8vh, 16px); font-weight: 800; letter-spacing: .3em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 0 #000; }
+#vs .at .place { animation: none; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #vs .n, #vs .place { animation: none; } }
 #rotate { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 24px; }
@@ -1763,8 +1767,9 @@ const App = {
     ARENA.build(cfg.arena);
     const sg = ARENA.sign || [0, -7];
     this.bg = { avs: [], t: 0, cam: t => ({ pos: new V3(sg[0] - 2.2 + t * .5, 1.3, sg[1] + 9.5), look: new V3(sg[0] + t * .25, .55, sg[1]) }) };
-    const vs = el(`<div id="vs"><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
-      <div class="place">${esc(A.name)}</div></div>`);
+    const label = cfg.mode === 'arcade' ? 'Arcade · incontro ' + (this.arcade.idx + 1) + ' di ' + this.arcade.ladder.length : 'Battaglia libera';
+    const vs = el(`<div id="vs"><div class="mode">${esc(label)}</div><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
+      <div class="at"><small>Si combatte a</small><div class="place">${esc(A.name)}</div></div></div>`);
     document.body.appendChild(vs); AU.sfx('blade');
     setTimeout(() => {
       this.bg = null;
