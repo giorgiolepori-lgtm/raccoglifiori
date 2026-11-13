@@ -83,8 +83,13 @@ def jaw_mask(size):
     m = mask(size, FULL, 10); cheek = mask(size, lambda d: (d.ellipse((330, 330, 470, 520), fill=255), d.ellipse((554, 330, 694, 520), fill=255), d.ellipse((410, 405, 614, 470), fill=255)), 16)
     must = mask(size, lambda d: d.ellipse((445, 372, 579, 398), fill=255), 5) * .75
     return np.clip(m * (1 - cheek) + must, 0, 1) * (1 - mask(size, MOUTH, 4))
-def head(face, beard, dens, tone_, name, hair=(.075, .055, .045)):
+BROWS = lambda d: (d.ellipse((372, 236, 482, 276), fill=255), d.ellipse((542, 236, 652, 276), fill=255))
+def thicken_brows(h, k):
+    m = mask(2048, BROWS, 6); L = lum(h); dark = np.clip((L.max() * 0 + .55 - L) / .3, 0, 1)
+    a = np.clip(m * (.35 + dark) * k, 0, .9)[..., None]; h[..., :3] = h[..., :3] * (1 - a) + np.array((.05, .04, .035)) * a
+def head(face, beard, dens, tone_, name, hair=(.075, .055, .045), brows=0):
     h = load(face, 'head_color'); h = tone(h, skin_mask(h), tone_)
+    if brows: thicken_brows(h, brows)
     hz = mask(2048, HAIRZONE, 20); h2 = hair_color(h, hair); h[..., :3] = h[..., :3] * (1 - hz[..., None]) + h2[..., :3] * hz[..., None]
     if beard == 'jaw':
         ba = beard_alpha(); a = np.clip(ba * jaw_mask(2048) * dens, 0, 1)[..., None]
@@ -95,9 +100,9 @@ def cards(geom, name, col):
     a = load(geom, 'opacity_color'); out = hair_color(a, col, 1.); out[..., 3] = a[..., 3]; save(out, name + '_hair', 1024)
 HEADS = {   # personaggio: (geometria testa, volto, barba, densità, tono, colore capelli)
     'alex': ('a07', 'a07', 'full', 1.15, TAN, (.075, .055, .045)), 'zonco': ('a01', 'a06', 'mg', 1.25, TAN, (.06, .045, .04)),
-    'bruno': ('a06', 'a20', 'full', .62, TAN, (.11, .075, .055)), 'edo': ('b03', 'a08', 'jaw', 1.1, TAN, (.05, .04, .035)),
-    'pet': ('a02', 'a02', 'full', 1.25, TAN, (.1, .07, .05)), 'josto': ('a08', 'b03', 'full', .75, TAN, (.07, .05, .04)),
-    'davidino': ('a10', 'b06', 'full', 1.15, TAN, (.06, .045, .04)), 'gio': ('b01', 'b01', 'full', .22, PALE, (.1, .07, .05)),
+    'bruno': ('a06', 'a20', 'full', .62, TAN, (.11, .075, .055)), 'edo': ('b03', 'a01', 'full', .95, TAN, (.04, .035, .03), .9),
+    'pet': ('a02', 'a02', 'full', 1.25, TAN, (.1, .07, .05)), 'josto': ('a08', 'b02', 'full', .65, TAN, (.06, .045, .04), .3),
+    'davidino': ('a10', 's02', 'full', 1.25, TAN, (.05, .04, .035), .6), 'gio': ('b01', 'b01', 'full', .22, PALE, (.1, .07, .05)),
 }
 # ---------------- vestiti ----------------
 def C_alex_1():
@@ -135,7 +140,7 @@ def C_zonco_1():
 def C_zonco_2(): return s02_base()
 def C_bruno_2():
     z = s02_base(); flat(z, S02_JERSEY() * cloth(z), (.11, .15, .27)); recolor(z, S02_SHORTS() * cloth(z), (.62, .58, .5), .6); s02_bare_legs(z); return z
-def b06_shirt(): b = body('b06'); return b, ztop() * np.clip((lum(b) - .5) / .1, 0, 1)
+def b06_shirt(): b = body('b06'); return b, ztop() * (1 - ZHANDS()) * np.clip((lum(b) - .5) / .1, 0, 1)
 def C_bruno_1(): b, sh = b06_shirt(); roll_sleeves(b); recolor(b, ZPANTS() * cloth(b), (.11, .14, .24), .7); return b
 def C_pet_3(): b, sh = b06_shirt(); paint(b, sh, pattern_floral([(.82, .46, .18), (.42, .26, .14), (.18, .32, .55), (.3, .48, .3), (.9, .7, .35)], 30, 4)); roll_sleeves(b, 600); return b
 def C_zonco_3(): b, sh = b06_shirt(); paint(b, sh, pattern_floral([(.1, .17, .4), (.35, .5, .75), (.85, .88, .92), (.15, .3, .6)], 26, 7)); roll_sleeves(b, 600); return b
@@ -182,8 +187,8 @@ def C_edo_3(): b = body('a20'); recolor(b, ztop() * near(b, (.3, .2, .15), .25),
 def C_edo_4(): b = body('a02'); recolor(b, TOPZ() * np.clip((lum(b) - .2) / .1, 0, 1), (.38, .1, .14), .7); return b
 def C_gio_1(): b = body('a02'); recolor(b, TOPZ() * np.clip((lum(b) - .2) / .1, 0, 1), (.62, .46, .3), .7); return b
 def a07(): return body('a07')
-A07_JACKET = lambda b: ztop() * near(b, (.38, .38, .38), .2)
-A07_SHIRT = lambda b: ztop() * near(b, (.62, .38, .3), .25)
+A07_JACKET = lambda b: ztop() * (1 - ZHANDS()) * near(b, (.38, .38, .38), .2)
+A07_SHIRT = lambda b: ztop() * (1 - ZHANDS()) * near(b, (.62, .38, .3), .25)
 def C_zonco_4():
     b = a07(); recolor(b, A07_JACKET(b), (.28, .33, .16), .7); recolor(b, A07_SHIRT(b), (.32, .45, .66), .6)
     paint(b, ZPANTS() * cloth(b), pattern_pinstripe((.3, .2, .13), (.55, .45, .35), 16))
@@ -209,9 +214,9 @@ if __name__ == '__main__':
     only = sys.argv[1].split(',') if len(sys.argv) > 1 else None
     meta = {}
     for ch, lst in COSTUMES.items():
-        g, face, beard, dens, tn, hc = HEADS[ch]
+        g, face, beard, dens, tn, hc = HEADS[ch][:6]; br = HEADS[ch][6] if len(HEADS[ch]) > 6 else 0
         if not only or ch in only:
-            head(face, beard, dens, tn, ch, hc); cards(g, ch, hc)
+            head(face, beard, dens, tn, ch, hc, br); cards(g, ch, hc)
             for i, (bd, fn, acc, nm) in enumerate(lst):
                 img = fn(); img = tone(img, skin_mask(img), tn); save(img, f'{ch}_{i + 1}_body', 1024, 84); print(ch, i + 1, nm)
         meta[ch] = {'head': g, 'costumes': [{'body': bd, 'acc': acc, 'name': nm} for bd, fn, acc, nm in lst]}

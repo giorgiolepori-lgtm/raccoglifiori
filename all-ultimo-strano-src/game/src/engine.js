@@ -293,12 +293,14 @@ function addAccessories(av, list) {
       const pos = kind === 'sunhead' ? at(F.eyes, 0, .1, -.005) : at(F.eyes, 0, .003, .03);
       const q = F.q.clone(); if (kind === 'sunhead') q.multiply(new QT().setFromAxisAngle(new V3(1, 0, 0), -.5));
       attachAt(av, B.head, g, pos, q);
-    } else if (kind === 'cap') {
+    } else if (kind === 'cap') {   // cappellino con visiera: la calotta copre i capelli
       const col = opt === 'green' ? 0x0d2614 : 0x0e0f12, m = accMat('cap' + col, () => std(col, .95));
-      const g = new THREE.Group(), dome = new THREE.Mesh(new THREE.SphereGeometry(.104, 24, 12, 0, TAU, 0, Math.PI / 2), m); dome.scale.set(1, .74, 1.08); g.add(dome);
-      const brim = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, .008, 24, 1, false, -Math.PI / 2, Math.PI), m); brim.scale.set(1, 1, .8); brim.position.set(0, .002, .085); g.add(brim);
-      const btn = new THREE.Mesh(new THREE.SphereGeometry(.01, 8, 6), m); btn.position.y = .088; g.add(btn);
-      attachAt(av, B.head, g, at(F.eyes, 0, .028, -.055), F.q);
+      const g = new THREE.Group(), dome = new THREE.Mesh(new THREE.SphereGeometry(.112, 26, 12, 0, TAU, 0, Math.PI / 2 + .1), m); dome.scale.set(1, .74, 1.1); g.add(dome);
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(.113, .113, .02, 26, 1, true), m); band.material.side = THREE.DoubleSide; band.scale.set(1, 1, 1.1); band.position.y = -.008; g.add(band);
+      const vis = new THREE.Shape(); vis.absarc(0, 0, .1, Math.PI * .08, Math.PI * .92, false); vis.lineTo(0, .03);
+      const brim = new THREE.Mesh(new THREE.ExtrudeGeometry(vis, { depth: .006, bevelEnabled: false }), m); brim.rotation.x = Math.PI / 2 - .12; brim.position.set(0, -.006, .07); brim.scale.set(1.05, 1.15, 1); g.add(brim);
+      const btn = new THREE.Mesh(new THREE.SphereGeometry(.01, 8, 6), m); btn.position.y = .082; g.add(btn);
+      attachAt(av, B.head, g, at(F.eyes, 0, .045, -.06), F.q);
     } else if (kind === 'bandana') {
       const m = accMat('band', () => std(0x1f3f86, .8)); const g = new THREE.Group();
       const band = new THREE.Mesh(new THREE.TorusGeometry(.094, .017, 8, 30), m); band.rotation.x = Math.PI / 2 - .25; band.scale.set(1, 1.18, .8); g.add(band);
