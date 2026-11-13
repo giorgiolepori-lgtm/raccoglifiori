@@ -53,11 +53,11 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 - **Pagina di download** (app Android e file del gioco): https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/tag/strano
   - App Android: https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/download/strano/all-ultimo-strano.apk
   - File del gioco (computer, iPhone, Android): https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/download/strano/all-ultimo-strano.html
-- **Sito per giocare dal browser** (dopo aver attivato GitHub Pages, vedi sotto): https://giorgiolepori-lgtm.github.io/raccoglifiori/all-ultimo-strano.html
+- **Sito per giocare dal browser**: https://giorgiolepori-lgtm.github.io/raccoglifiori/all-ultimo-strano.html
 
 L'app e il file vengono ricompilati da GitHub Actions a ogni modifica del gioco (`.github/workflows/strano-apk.yml`, progetto Android in `android-strano/`).
-Il sito si pubblica con `.github/workflows/strano-pages.yml`; per attivarlo una volta: Settings → Pages → Source: «GitHub Actions»,
-poi Settings → Environments → github-pages → Deployment branches: aggiungere il ramo `ccr-5b3a4ed5-98ft7n` (oppure «No restriction»).
+Il sito si pubblica con `.github/workflows/strano-pages.yml` (GitHub Pages con Source «GitHub Actions») e contiene anche
+Il Cammino di Bruno (`cammino-di-bruno.html`), Grand Theft Ufficio (`ufficio.html`) e Raccogli Fiori (`index.html`).
 
 ### Online
 
