@@ -87,22 +87,30 @@ BROWS = lambda d: (d.ellipse((372, 236, 482, 276), fill=255), d.ellipse((542, 23
 def thicken_brows(h, k):
     m = mask(2048, BROWS, 6); L = lum(h); dark = np.clip((L.max() * 0 + .55 - L) / .3, 0, 1)
     a = np.clip(m * (.35 + dark) * k, 0, .9)[..., None]; h[..., :3] = h[..., :3] * (1 - a) + np.array((.05, .04, .035)) * a
+def youthen(h, k):   # pelle più liscia: attenua rughe e segni lasciando occhi, labbra e sopracciglia
+    sm_ = np.asarray(Image.fromarray((np.clip(h[..., :3], 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(5))).astype(np.float32) / 255
+    m = (skin_mask(h) * k)[..., None]; h[..., :3] = h[..., :3] * (1 - m) + sm_ * m
+YOUNG = {'edo': .85, 'josto': .7}
 def head(face, beard, dens, tone_, name, hair=(.075, .055, .045), brows=0):
     h = load(face, 'head_color'); h = tone(h, skin_mask(h), tone_)
+    if YOUNG.get(name): youthen(h, YOUNG[name])
     if brows: thicken_brows(h, brows)
     hz = mask(2048, HAIRZONE, 20); h2 = hair_color(h, hair); h[..., :3] = h[..., :3] * (1 - hz[..., None]) + h2[..., :3] * hz[..., None]
     if beard == 'jaw':
         ba = beard_alpha(); a = np.clip(ba * jaw_mask(2048) * dens, 0, 1)[..., None]
         h[..., :3] = h[..., :3] * (1 - a) + np.array((.07, .05, .04)) * (.6 + .8 * h[..., :3].mean(-1, keepdims=True)) * a
     elif beard: h = add_beard(h, beard, dens)
-    h = eyes_brown(h); save(h, name + '_head'); save(load(face, 'head_normal', 1024), name + '_head_n', 1024, 80)
+    h = eyes_brown(h); save(h, name + '_head')
+    n = load(face, 'head_normal', 1024)
+    if YOUNG.get(name): n[..., :3] = n[..., :3] * (1 - YOUNG[name] * .7) + np.array((.5, .5, 1.0)) * YOUNG[name] * .7
+    save(n, name + '_head_n', 1024, 80)
 def cards(geom, name, col):
     a = load(geom, 'opacity_color'); out = hair_color(a, col, 1.); out[..., 3] = a[..., 3]; save(out, name + '_hair', 1024)
 HEADS = {   # personaggio: (geometria testa, volto, barba, densità, tono, colore capelli)
     'alex': ('a07', 'a07', 'full', 1.15, TAN, (.075, .055, .045)), 'zonco': ('a01', 'a06', 'mg', 1.25, TAN, (.06, .045, .04)),
-    'bruno': ('a06', 'a20', 'full', .62, TAN, (.11, .075, .055)), 'edo': ('b03', 'a01', 'full', .95, TAN, (.04, .035, .03), .9),
-    'pet': ('a02', 'a02', 'full', 1.25, TAN, (.1, .07, .05)), 'josto': ('a08', 'b02', 'full', .65, TAN, (.06, .045, .04), .3),
-    'davidino': ('a10', 's02', 'full', 1.25, TAN, (.05, .04, .035), .6), 'gio': ('b01', 'b01', 'full', .22, PALE, (.1, .07, .05)),
+    'bruno': ('a06', 'a20', 'full', .62, TAN, (.11, .075, .055)), 'edo': ('a10', 'a01', 'full', .65, TAN, (.04, .035, .03), .8),
+    'pet': ('a02', 'a02', 'full', 1.25, TAN, (.1, .07, .05)), 'josto': ('a08', 'b02', 'full', .5, TAN, (.06, .045, .04), .3),
+    'davidino': ('a07', 's02', 'full', 1.25, TAN, (.05, .04, .035), .6), 'gio': ('b01', 'b01', 'full', .22, PALE, (.1, .07, .05)),
 }
 # ---------------- vestiti ----------------
 def C_alex_1():

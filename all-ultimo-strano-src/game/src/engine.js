@@ -308,11 +308,11 @@ function addAccessories(av, list) {
       attachAt(av, B.head, g, at(F.eyes, 0, .045, -.07), F.q);
     } else if (kind === 'earrings' || kind === 'earring') {
       const m = accMat('silver', () => std(0xd8d8dc, .2, 1));
-      for (const s of kind === 'earring' ? [1] : [-1, 1]) { const r = new THREE.Mesh(new THREE.TorusGeometry(.007, .0013, 6, 16), m); attachAt(av, B.head, r, at(F.eyes, s * .072, -.055, -.085), F.q.clone().multiply(new QT().setFromAxisAngle(new V3(0, 1, 0), Math.PI / 2))); }
+      for (const s of kind === 'earring' ? [1] : [-1, 1]) { const r = new THREE.Mesh(new THREE.TorusGeometry(kind === 'earring' ? .007 : .013, kind === 'earring' ? .0013 : .0022, 8, 24), m); attachAt(av, B.head, r, at(F.eyes, s * .074, -.062, -.072), F.q.clone().multiply(new QT().setFromAxisAngle(new V3(0, 1, 0), Math.PI / 2))); }
     } else if (kind === 'chain') {
       const m = accMat('gold', () => std(0xd8b25a, .25, 1)); const neck = B.neck.getWorldPosition(new V3());
-      const c = new THREE.Mesh(new THREE.TorusGeometry(.075, .0028, 6, 40), m); c.scale.set(1, 1.2, 1);
-      attachAt(av, B.spine2, c, neck.clone().addScaledVector(F.fwd, .02).addScaledVector(F.up, -.06), F.q.clone().multiply(new QT().setFromAxisAngle(new V3(1, 0, 0), Math.PI / 2 - .45)));
+      const c = new THREE.Mesh(new THREE.TorusGeometry(.078, .0026, 6, 48), m); c.scale.set(1, 1.25, 1);
+      attachAt(av, B.spine2, c, neck.clone().addScaledVector(F.fwd, .03).addScaledVector(F.up, -.085), F.q.clone().multiply(new QT().setFromAxisAngle(new V3(1, 0, 0), Math.PI / 2 - 1.0)));
     } else if (kind === 'watch' || kind === 'smartwatch') {
       const g = new THREE.Group(), strap = accMat('strap' + kind, () => std(kind === 'watch' ? 0xb8bcc4 : 0x111111, .35, kind === 'watch' ? .9 : .1));
       const band = new THREE.Mesh(new THREE.CylinderGeometry(.032, .032, .018, 18, 1, true), strap); band.material.side = THREE.DoubleSide; g.add(band);
