@@ -1,0 +1,51 @@
+name: Sito dei giochi (GitHub Pages)
+
+# Pubblica su GitHub Pages i giochi: All'ultimo strano (da questo ramo), Il Cammino di Bruno e Grand Theft Ufficio
+# (presi dai loro rami), Raccogli Fiori. Serve una sola impostazione: Settings → Pages → Source: "GitHub Actions".
+on:
+  push:
+    paths:
+      - 'all-ultimo-strano.html'
+      - 'manifest-strano.webmanifest'
+      - 'icone-strano/**'
+      - '.github/workflows/strano-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepara il sito
+        run: |
+          mkdir -p sito
+          cp index.html raccogli-fiori.html all-ultimo-strano.html manifest-strano.webmanifest sito/
+          cp -r icone-strano sito/
+          touch sito/.nojekyll
+          # altri giochi dai loro rami, se ci sono
+          if git rev-parse -q --verify origin/ccr-fa6defe2-e4vkqr >/dev/null; then
+            for f in cammino-di-bruno.html manifest-bruno.webmanifest sw.js; do git show "origin/ccr-fa6defe2-e4vkqr:$f" > "sito/$f" || true; done
+            mkdir -p sito/icone && for f in $(git ls-tree --name-only origin/ccr-fa6defe2-e4vkqr icone/); do git show "origin/ccr-fa6defe2-e4vkqr:$f" > "sito/$f"; done
+          fi
+          if git rev-parse -q --verify origin/claude/dreamy-ptolemy-wa0n4p >/dev/null; then git show origin/claude/dreamy-ptolemy-wa0n4p:ufficio.html > sito/ufficio.html || true; fi
+          ls -la sito
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: sito
+      - id: deployment
+        uses: actions/deploy-pages@v4

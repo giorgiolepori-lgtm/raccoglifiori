@@ -1,0 +1,74 @@
+name: All'ultimo strano - APK
+
+# Compila "All'ultimo strano" come app Android e la pubblica, insieme al file HTML, nella release "strano".
+on:
+  push:
+    paths:
+      - 'all-ultimo-strano.html'
+      - 'android-strano/**'
+      - '.github/workflows/strano-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: strano-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Copia il gioco nell'app
+        run: |
+          mkdir -p android-strano/app/src/main/assets
+          cp all-ultimo-strano.html android-strano/app/src/main/assets/index.html
+
+      - name: Compila l'APK
+        working-directory: android-strano
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: gradle assembleRelease --no-daemon --stacktrace
+
+      - name: Prepara i file
+        run: cp android-strano/app/build/outputs/apk/release/app-release.apk all-ultimo-strano.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: all-ultimo-strano-apk
+          path: all-ultimo-strano.apk
+
+      - name: Pubblica APK e HTML nella release "strano"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="All'ultimo strano. Android: apri questa pagina con Chrome, tocca all-ultimo-strano.apk, conferma il download, poi apri il file e consenti l'installazione da origini sconosciute. Computer o iPhone: scarica all-ultimo-strano.html e aprilo con il browser (funziona anche l'online). Versione del commit ${GITHUB_SHA::7}."
+          if ! gh release view strano >/dev/null 2>&1; then
+            gh release create strano all-ultimo-strano.apk all-ultimo-strano.html --target "${GITHUB_SHA}" --title "All'ultimo strano" --notes "$NOTES"
+            exit 0
+          fi
+          # il link resta sempre valido: si carica il file nuovo con un nome temporaneo, poi si scambia
+          swap() {
+            name="$1"; tmp="nuovo-$1"; cp "$name" "$tmp"
+            gh release upload strano "$tmp" --clobber
+            ids=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/strano" --jq '.assets[] | "\(.name) \(.id)"')
+            old_id=$(echo "$ids" | awk -v n="$name" '$1==n{print $2}')
+            new_id=$(echo "$ids" | awk -v n="$tmp" '$1==n{print $2}')
+            if [ -n "$old_id" ]; then gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${old_id}"; fi
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/assets/${new_id}" -f name="$name" >/dev/null
+          }
+          swap all-ultimo-strano.apk
+          swap all-ultimo-strano.html
+          gh release edit strano --title "All'ultimo strano" --notes "$NOTES"

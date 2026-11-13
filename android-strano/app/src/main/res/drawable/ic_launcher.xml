@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icona: pugno arancione su sfondo scuro -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#0B0B0D" android:pathData="M2,24 A22,22 0 1,1 46,24 A22,22 0 1,1 2,24 Z" />
+    <path android:fillColor="#FF4A1C" android:pathData="M15,20 L15,15 A2.5,2.5 0 0,1 20,15 L20,19 L21,19 L21,13 A2.5,2.5 0 0,1 26,13 L26,19 L27,19 L27,14 A2.5,2.5 0 0,1 32,14 L32,20 L33,20 A2.8,2.8 0 0,1 35.8,23 L35,31 A8,8 0 0,1 27,38 L23,38 A8,8 0 0,1 15,30 Z" />
+    <path android:fillColor="#FFCF3A" android:pathData="M18,23 L30,23 L30,25 L18,25 Z" />
+</vector>

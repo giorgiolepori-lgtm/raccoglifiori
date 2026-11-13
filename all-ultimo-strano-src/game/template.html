@@ -8,6 +8,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>All'ultimo strano</title>
+<link rel="manifest" href="manifest-strano.webmanifest">
+<link rel="apple-touch-icon" href="icone-strano/strano-apple-180.png">
+<link rel="icon" href="icone-strano/strano-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700;800&display=swap">
 <style>
@@ -39,6 +42,7 @@ button { font-family: var(--font); color: inherit; }
 .mbtn:hover::before, .mbtn:focus-visible::before, .mbtn.sel::before { opacity: 1; }
 .mbtn[disabled] { color: #5c5852; cursor: default; transform: none; }
 .mbtn small { font-family: var(--font); font-size: .42em; font-weight: 700; letter-spacing: .12em; color: var(--gold); vertical-align: middle; margin-left: 8px; }
+.getapp { display: inline-block; margin-top: 10px; font-weight: 800; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); text-decoration: none; border: 2px solid rgba(255,207,58,.5); border-radius: 999px; padding: 5px 12px; align-self: flex-start; }
 .foot { position: fixed; right: calc(16px + var(--safe-r)); bottom: calc(10px + var(--safe-b)); font-size: 13px; color: var(--ink-dim); letter-spacing: .06em; z-index: 11; }
 
 /* --- pannelli e selezione --- */

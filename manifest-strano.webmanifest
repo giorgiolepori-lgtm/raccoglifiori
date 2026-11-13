@@ -1,0 +1,17 @@
+{
+  "name": "All'ultimo strano",
+  "short_name": "Ultimo strano",
+  "description": "Picchiaduro 3D: la classifica degli strani. Arcade, battaglia libera e online.",
+  "lang": "it",
+  "start_url": "./all-ultimo-strano.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "icons": [
+    { "src": "icone-strano/strano-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icone-strano/strano-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icone-strano/strano-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

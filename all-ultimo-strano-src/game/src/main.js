@@ -33,7 +33,7 @@ const App = {
         <button class="mbtn" data-a="free">Battaglia libera</button>
         <button class="mbtn" data-a="online">Online</button>
         <button class="mbtn" data-a="opts">Opzioni</button>
-      </nav></div></div>`);
+      </nav>${/AllUltimoStranoApp/.test(navigator.userAgent) ? '' : '<a class="getapp" href="https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/tag/strano" target="_blank" rel="noopener">Scarica l\'app Android</a>'}</div></div>`);
     s.querySelectorAll('.mbtn').forEach(b => b.addEventListener('click', () => { AU.init(); AU.sfx('select'); const a = b.dataset.a; if (a === 'arcade') this.select('arcade'); else if (a === 'free') this.select('free'); else if (a === 'online') this.select('online'); else if (a === 'opts') this.options(); }));
     this.setScreen(s);
     const foot = el(`<div class="foot">${READY.length} di ${CHARS.length} personaggi pronti</div>`); s.appendChild(foot);
@@ -306,6 +306,13 @@ const ChatBtn = {
   },
   hide() { if (this.el) this.el.remove(); this.el = null; },
   bubble(who, text) { if (!this.el) { toast(who + ': ' + text); return; } const B = this.el.querySelector('.bubbles'); const d = el(`<div class="bub"><b>${esc(who)}</b> ${esc(text)}</div>`); B.appendChild(d); setTimeout(() => d.remove(), 4500); },
+};
+/* tasto Indietro dell'app Android */
+window.appBack = () => {
+  if (App.match) { App.togglePause(); return 'ok'; }
+  if (document.querySelector('#title')) return 'exit';
+  if (window.NET) NET.disconnect();
+  App.title(); return 'ok';
 };
 function toast(t) { const d = el(`<div class="toast">${esc(t)}</div>`); document.body.appendChild(d); setTimeout(() => d.remove(), 1400); }
 
