@@ -38,7 +38,7 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 - **10 arene**: Capoterra, Porto Sa Ruxi, Maracalagonis, Zona musicisti, Padova, Banari, Quartello, Viale Colombo, Niu Crobu, Pitz'e Serra
   (cartello con il nome in tutte tranne Porto Sa Ruxi).
 - **Modalità**: Arcade (tutti gli altri personaggi nelle loro arene, motivazione all'inizio e finale del personaggio),
-  Battaglia libera contro il computer, **Online** (sala d'attesa con chi è collegato, sfida diretta, partita veloce, codice stanza,
+  Battaglia libera contro il computer (difficoltà ultra facile, facile, normale, difficile), **Online** (sala d'attesa con chi è collegato, sfida diretta, partita veloce, codice stanza,
   chat con frasi rapide, rivincita).
 - **Mosse speciali** (tasto SPECIALE quando l'energia scende sotto un quarto, una volta per round): Fiat Punto blu (Alex),
   latte e menta gigante dal cielo (Bruno), calci alle caviglie con aura blu (Edo), attacco telepatico rosso (Pet),

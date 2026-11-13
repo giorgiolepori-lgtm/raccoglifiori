@@ -196,6 +196,7 @@ class Match {
     if (['thrown', 'clinched', 'down'].includes(a.state) || ['thrown', 'clinched', 'down'].includes(b.state)) return;
     if (L < min && Math.abs(a.y - b.y) < 1.2) { if (L < 1e-4) d.set(1, 0, 0); else d.multiplyScalar(1 / L); const push = (min - L) / 2; a.pos.addScaledVector(d, -push); b.pos.addScaledVector(d, push); }
   }
+  dmgMul(f) { const ai = this.cpu[this.f.indexOf(f)]; return ai && ai.d.dmg ? ai.d.dmg : 1; }
   /* --- colpi --- */
   hitCheck(att, def, k) {
     const mv = att.move; if (att.hitDone || !mv) return;
@@ -222,6 +223,7 @@ class Match {
     const juggle = def.state === 'air' || def.state === 'hit';
     att.combo = juggle ? att.combo + 1 : 1;
     let dmg = mv.dmg * (mv.kick ? (att.def.kickMul || 1) : 1) * (counter ? 1.25 : 1) * (juggle ? Math.pow(.82, att.combo - 1) : 1);
+    const ai = this.cpu[this.f.indexOf(att)]; if (ai && ai.d.dmg) dmg *= ai.d.dmg;
     dmg = Math.max(1, Math.round(dmg));
     def.hp = Math.max(0, def.hp - dmg);
     const strong = mv.kick || dmg >= 10;
@@ -261,7 +263,7 @@ class Match {
   stepClinch(att, def) {
     const t = att.t, T = this.throwData, F = new V3(Math.sin(T.yaw), 0, Math.cos(T.yaw));
     if (t < 62) { def.yaw = T.yaw + Math.PI; att.yaw = T.yaw; def.pos.copy(att.pos).addScaledVector(F, lerp(T.d0, .5, smooth(clamp(t / 8, 0, 1)))); def.override = 'clinched'; }
-    for (const hitT of [22, 44]) if (t === hitT) { def.hp = Math.max(0, def.hp - 8); AU.sfx('kickHard'); AU.grunt(def); this.shake = .3; this.hitstop = 6; FX.spark(def.av.B.spine2.getWorldPosition(new V3()), 0xffffff, 12, 1.1); if (def.hp <= 0) { this.ko(def); } }
+    for (const hitT of [22, 44]) if (t === hitT) { def.hp = Math.max(0, def.hp - Math.round(8 * this.dmgMul(att))); AU.sfx('kickHard'); AU.grunt(def); this.shake = .3; this.hitstop = 6; FX.spark(def.av.B.spine2.getWorldPosition(new V3()), 0xffffff, 12, 1.1); if (def.hp <= 0) { this.ko(def); } }
     if (t === 62) { def.override = null; def.set('fall'); def.vel.copy(F).multiplyScalar(2.6); AU.sfx('whooshK'); HUD.flashText(this.f.indexOf(att) ? 1 : 0, 'PRESA!'); }
     if (t >= 76) att.set('idle');
   }
@@ -276,7 +278,7 @@ class Match {
       if (t === 34) AU.sfx('whooshK');
     } else if (t === 44) {
       def.override = null; def.y = 0; def.set('down', true); def.pose = clonePose(LYING); def.from = null;
-      def.hp = Math.max(0, def.hp - (STYLES[att.style].throwDmg || 16)); AU.sfx('slam'); AU.grunt(def, true); this.shake = .45; FX.dust(def.pos); FX.dust(def.pos.clone().addScaledVector(F, 1)); this.hitstop = 8;
+      def.hp = Math.max(0, def.hp - Math.round((STYLES[att.style].throwDmg || 16) * this.dmgMul(att))); AU.sfx('slam'); AU.grunt(def, true); this.shake = .45; FX.dust(def.pos); FX.dust(def.pos.clone().addScaledVector(F, 1)); this.hitstop = 8;
       HUD.flashText(this.f.indexOf(att) ? 1 : 0, 'PRESA!');
       if (def.hp <= 0) this.ko(def);
     }
@@ -316,7 +318,7 @@ class Match {
     if (S.t >= S.def.dur) {
       if (S.def.end) S.def.end(this, S.a, S.d, S.data);
       this.special = null; this.camOverride = null;
-      S.d.hp = Math.max(0, S.d.hp - S.def.dmg); S.a.override = null; S.d.override = null; S.a.set('idle');
+      S.d.hp = Math.max(0, S.d.hp - Math.round(S.def.dmg * this.dmgMul(S.a))); S.a.override = null; S.d.override = null; S.a.set('idle');
       S.d.set('down', true); S.d.pose = clonePose(LYING); S.d.from = null; S.d.y = 0;
       if (S.d.hp <= 0) this.ko(S.d);
     }

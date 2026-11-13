@@ -136,7 +136,7 @@ class Fighter {
 }
 
 /* ===== IA ===== */
-const DIFF = { facile: { react: 20, block: .25, aggr: .35, punish: .2, special: .5 }, normale: { react: 13, block: .5, aggr: .55, punish: .5, special: .8 }, difficile: { react: 8, block: .78, aggr: .7, punish: .85, special: 1 } };
+const DIFF = { 'ultra facile': { react: 60, block: .05, aggr: .16, punish: 0, special: .25, dmg: .55, wait: 2.2, combo: 0, grab: 0 }, facile: { react: 20, block: .25, aggr: .35, punish: .2, special: .5 }, normale: { react: 13, block: .5, aggr: .55, punish: .5, special: .8 }, difficile: { react: 8, block: .78, aggr: .7, punish: .85, special: 1 } };
 class CPU {
   constructor(diff) { this.d = DIFF[diff] || DIFF.normale; this.plan = null; this.planT = 0; this.seen = 0; this.blockFor = 0; this.lastOppState = ''; }
   input(me, op, M) {
@@ -156,9 +156,9 @@ class CPU {
     if (this.planT-- <= 0) {
       const r = Math.random();
       if (d > 1.65) this.plan = r < .75 ? 'approach' : r < .85 ? 'dash' : 'wait';
-      else if (d < 1.05) this.plan = r < .25 ? 'retreat' : r < .36 ? 'grab' : 'attack';
+      else if (d < 1.05) this.plan = r < .25 ? 'retreat' : r < .25 + .11 * (D.grab ?? 1) ? 'grab' : 'attack';
       else this.plan = r < D.aggr ? 'attack' : r < D.aggr + .15 ? 'side' : r < D.aggr + .25 ? 'retreat' : 'wait';
-      this.planT = this.plan === 'attack' || this.plan === 'grab' ? 1 : (10 + Math.random() * 25) | 0;
+      this.planT = this.plan === 'attack' || this.plan === 'grab' ? 1 : ((10 + Math.random() * 25) * (D.wait || 1)) | 0;
     }
     switch (this.plan) {
       case 'approach': I.x = 1; break;
@@ -169,7 +169,7 @@ class CPU {
       case 'attack': {
         const opts = op.crouching ? ['LK', 'RK', 'dRP', 'dLK'] : ['LP', 'LP', 'RP', 'LK', 'RK', 'fRK', 'fLP', 'fRP', 'dRP', 'dRK'];
         const c = pick(opts); if (c[0] === 'f') { I.x = 1; I.p[c.slice(1)] = 1; } else if (c[0] === 'd') { I.y = -1; I.p[c.slice(1)] = 1; } else I.p[c] = 1;
-        const FOL = { LP: [['RP'], ['LP', 'RP'], ['RP', 'RK']], RP: [['RK']], LK: [['RK']] }; this.combo = FOL[c] && Math.random() < .55 ? pick(FOL[c]).slice() : null; this.plan = 'wait'; break;
+        const FOL = { LP: [['RP'], ['LP', 'RP'], ['RP', 'RK']], RP: [['RK']], LK: [['RK']] }; this.combo = FOL[c] && Math.random() < .55 * (D.combo ?? 1) ? pick(FOL[c]).slice() : null; this.plan = 'wait'; break;
       }
     }
     return I;
