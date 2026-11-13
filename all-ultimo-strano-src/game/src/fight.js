@@ -49,19 +49,46 @@ const STYLE_STD = {
 };
 STYLE_STD.jab2 = Object.assign({}, STYLE_STD.jab, { name: 'Doppio diretto', start: 8, next: { RP: 'cross2' } });
 STYLE_STD.cross2 = Object.assign({}, STYLE_STD.cross, { name: 'Uno-due', start: 10, next: { RK: 'volley' } });
-const STYLES = { std: STYLE_STD };
-// tracce precalcolate
+/* mosse aggiuntive degli altri stili */
+const G0 = { lh: GUARD.lh, rh: GUARD.rh, le: GUARD.le, re: GUARD.re, lho: GUARD.lho, rho: GUARD.rho, yaw: GUARD.yaw, cy: GUARD.cy, cp: GUARD.cp, hip: GUARD.hip, lf: GUARD.lf, rf: GUARD.rf, rk: GUARD.rk, lk: GUARD.lk, rfd: GUARD.rfd, lfd: GUARD.lfd, roll: 0, lsh: 0, rsh: 0 };
+const XMOVES = {
+  roundhouse: M({ name: 'Calcio circolare', start: 16, act: 4, dur: 44, dmg: 15, reach: 1.45, hs: 22, bs: 15, kb: 1.6, limb: 'rf', sfx: 'K', kick: true,
+    keys: [{ f: 0 }, { f: 8, yaw: .8, rf: [.3, .55, -.1], rk: [.8, .4, .5], lf: [-.08, .1, .2], lfd: [.7, -.05, .7] }, { f: 16, e: 'o', yaw: 1.35, roll: -.3, cy: .1, rf: [-.25, 1.45, .62], rk: [.9, .5, .2], rfd: [1, .1, .2], lh: [-.3, 1.4, .3], rh: [.45, 1.2, -.15], hip: [0, -.02, 0] }, { f: 22 }, { f: 30, rf: [.2, .5, .0], roll: -.1 }, { f: 43, ...G0 }] }),
+  knee: M({ name: 'Ginocchiata', level: 'm', start: 12, act: 4, dur: 36, dmg: 13, reach: 1.0, hs: 20, bs: 13, kb: 1.2, limb: 'rf', sfx: 'k', kick: true,
+    keys: [{ f: 0 }, { f: 6, lh: [-.15, 1.5, .5], rh: [.15, 1.5, .5], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], fist: .4 }, { f: 12, e: 'o', rf: [.05, .85, .5], rk: [.1, .6, 1], rfd: [0, -1, .3], cp: -.2, hip: [0, -.02, .08], lh: [-.12, 1.4, .58], rh: [.12, 1.4, .58] }, { f: 16 }, { f: 35, ...G0, fist: 1 }] }),
+  elbow: M({ name: 'Gomitata', start: 11, act: 3, dur: 30, dmg: 12, reach: .95, hs: 19, bs: 12, kb: .9, limb: 'lh',
+    keys: [{ f: 0 }, { f: 5, lh: [-.4, 1.5, .25], le: [-1, .3, -.2], cy: .3 }, { f: 11, e: 'o', lh: [.15, 1.55, .25], le: [-.2, .2, 1], lho: [1, 0, 0], cy: -.55, yaw: .15, hip: [0, -.13, .05] }, { f: 15 }, { f: 29, ...G0 }] }),
+  sidekick: M({ name: 'Calcio laterale', level: 'm', start: 15, act: 4, dur: 42, dmg: 14, reach: 1.55, hs: 20, bs: 14, kb: 2.4, limb: 'rf', sfx: 'K', kick: true,
+    keys: [{ f: 0 }, { f: 8, yaw: 1.3, rf: [.1, .7, .1], rk: [1, .5, .3], lfd: [1, -.05, .3] }, { f: 15, e: 'o', yaw: 1.5, roll: -.35, rf: [-.05, 1.0, .95], rk: [1, .3, 0], rfd: [1, 0, 0], lh: [-.25, 1.35, .25], rh: [.3, 1.25, -.2] }, { f: 20 }, { f: 41, ...G0 }] }),
+  oizuki: M({ name: 'Oi-zuki', start: 10, act: 3, dur: 28, dmg: 7, reach: 1.42, hs: 16, bs: 10, kb: .8, limb: 'lh',
+    keys: [{ f: 0 }, { f: 10, e: 'o', lh: [-.03, 1.4, .82], le: [-.4, -.3, -.4], lho: [0, 0, 1, 1, 0, 0], lsh: .35, cy: -.3, hip: [0, -.18, .14], lf: [-.12, .1, .4], rh: [.2, 1.08, .1], rho: [1, 0, 0] }, { f: 14 }, { f: 27, ...G0 }] }),
+};
+function mkStyle(base, map, extra) { const st = Object.assign({}, base, extra || {}); st.map = map; return st; }
+const MAP_STD = { LP: 'jab', fLP: 'hook', RP: 'cross', fRP: 'body', dRP: 'upper', LK: 'lowkick', dLK: 'poke', RK: 'volley', fRK: 'punta', dRK: 'sweep' };
+const STYLES = {
+  std: mkStyle(STYLE_STD, MAP_STD),
+  mma: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { RK: 'roundhouse', fRK: 'knee' }), XMOVES),
+  muay: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { fLP: 'elbow', fRP: 'knee', RK: 'roundhouse', fRK: 'punta', dRK: 'lowkick' }), Object.assign({ throwType: 'clinch' }, XMOVES)),
+  bjj: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { RK: 'punta', fRK: 'knee' }), Object.assign({ throwDmg: 22 }, XMOVES)),
+  kick: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { RK: 'roundhouse', fRK: 'punta' }), Object.assign({ throwType: 'clinch' }, XMOVES)),
+  karate: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { LP: 'oizuki', LK: 'punta', RK: 'roundhouse', fRK: 'sidekick' }), XMOVES),
+};
 for (const st of Object.values(STYLES)) for (const mv of Object.values(st)) if (mv && mv.keys && !mv.track) mv.track = track(GUARD, mv.keys);
+/* guardie diverse per stile (solo da fermi e camminando) */
+const STYLE_GUARD = {
+  mma: { hip: [0, -.13, 0], lh: [-.15, 1.36, .42], rh: [.08, 1.33, .3] },
+  muay: { hip: [0, -.06, 0], cp: 0, hp: .12, lh: [-.12, 1.5, .36], rh: [.09, 1.49, .32], lf: [-.12, .1, .2], rf: [.14, .1, -.18], rfd: [.4, -.35, .9] },
+  bjj: { hip: [0, -.22, 0], cp: .22, hp: -.05, lh: [-.2, 1.24, .5], rh: [.15, 1.2, .44], fist: .35, lho: [0, .3, 1, 1, 0, 0], rho: [0, .3, 1, -1, 0, 0], lf: [-.16, .1, .2], rf: [.2, .1, -.22] },
+  karate: { hip: [0, -.17, 0], yaw: .5, lh: [-.1, 1.3, .52], le: [-.3, -1, 0], rh: [.18, 1.1, .1], rho: [1, 0, 0], lf: [-.1, .1, .33], rf: [.2, .1, -.3], lk: [-.3, 0, 1], rk: [.5, 0, 1], rfd: [.9, -.05, .4] },
+};
+
 
 /* comandi -> mossa */
 function chooseMove(style, inp, crouching, air) {
-  const S = STYLES[style], fwd = inp.x > .5, down = inp.y < -.5;
+  const S = STYLES[style], m = S.map, fwd = inp.x > .5, down = inp.y < -.5 || crouching;
   if (air) return (inp.p.LK || inp.p.RK || inp.p.LP || inp.p.RP) ? S.jumpkick : null;
   if (inp.p.GR || (inp.p.LP && inp.p.RP)) return S.grab;
-  if (inp.p.RK) return down || crouching ? S.sweep : fwd ? S.punta : S.volley;
-  if (inp.p.LK) return down || crouching ? S.poke : S.lowkick;
-  if (inp.p.RP) return down || crouching ? S.upper : fwd ? S.body : S.cross;
-  if (inp.p.LP) return fwd ? S.hook : S.jab;
+  for (const b of ['RK', 'LK', 'RP', 'LP']) if (inp.p[b]) { const k = (down && m['d' + b]) ? 'd' + b : (fwd && m['f' + b]) ? 'f' + b : b; return S[m[k]] || S[m[b]]; }
   return null;
 }
 
@@ -82,13 +109,16 @@ const GRAB_ATT = track(GUARD, [{ f: 0 }, { f: 10, e: 'o', lh: [-.17, 1.42, .5], 
   { f: 14, hip: [0, -.26, .05], cp: .2 }, { f: 32, hip: [0, -.04, 0], cp: -.25, hp: -.15, lh: [-.2, 1.8, .38], rh: [.2, 1.8, .38], le: [-1, -.6, .2], re: [1, -.6, .2], lho: [0, 1, .2, 1, 0, 0], rho: [0, 1, .2, -1, 0, 0] },
   { f: 44, e: 'i', hip: [0, -.3, .1], cp: .55, hp: .2, lh: [-.2, .95, .75], rh: [.2, .95, .75], lho: [0, -.3, 1, 1, 0, 0], rho: [0, -.3, 1, -1, 0, 0], lf: [-.14, .1, .3], rf: [.18, .1, -.25] },
   { f: 52 }, { f: 70, ...GUARD }]);
+const CLINCH_ATT = track(GUARD, [{ f: 0 }, { f: 8, cp: .1, lh: [-.1, 1.55, .45], rh: [.1, 1.55, .45], fist: .4, yaw: 0, cy: 0, hip: [0, -.08, 0] },
+  { f: 14, rf: [.15, .1, -.2] }, { f: 22, e: 'o', rf: [.05, .9, .45], rk: [.1, .6, 1], rfd: [0, -1, .3], cp: -.2 }, { f: 30, rf: [.15, .1, -.2], cp: .1 }, { f: 36 },
+  { f: 44, e: 'o', rf: [.05, .95, .45], rk: [.1, .6, 1], rfd: [0, -1, .3], cp: -.2 }, { f: 52, rf: [.15, .1, -.2], cp: .1 }, { f: 62, e: 'o', lh: [-.15, 1.4, .7], rh: [.15, 1.4, .7], cp: .25 }, { f: 76, ...GUARD }]);
 const GETUP = track(LYING, [{ f: 0 }, { f: 10, brx: -.9, by: .1, hip: [0, -.35, 0], lf: [-.15, .1, .3], rf: [.18, .1, .1], lh: [-.3, .6, -.2], rh: [.3, .6, -.2] }, { f: 18, ...CROUCH, brx: -.15, by: 0 }, { f: 26, ...GUARD }]);
 
 /* ===== Lottatore ===== */
 class Fighter {
   constructor(def, costume, side) {
     this.def = def; this.id = def.id; this.side = side;
-    this.av = new Avatar(def.id, def.costumes[costume].mesh);
+    this.av = new Avatar(def.id, costume);
     this.style = def.style;
     this.pos = new V3(side < 0 ? -1.4 : 1.4, 0, 0); this.vel = new V3(); this.y = 0; this.vy = 0;
     this.yaw = side < 0 ? Math.PI / 2 : -Math.PI / 2;

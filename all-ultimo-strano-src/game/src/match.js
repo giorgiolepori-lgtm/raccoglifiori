@@ -16,7 +16,7 @@ class Match {
     this.resetRound(true);
     HUD.show(this); HUD.names(this.f[0].def.name, this.f[1].def.name);
   }
-  dispose() { this.f.forEach(f => { scene.remove(f.av.obj); f.av.dispose(); }); FX.clear(); if (this.special && this.special.cleanup) this.special.cleanup(this); }
+  dispose() { this.f.forEach(f => { scene.remove(f.av.obj); f.av.dispose(); }); FX.clear(); if (this.winProps) scene.remove(this.winProps); if (this.special && this.special.cleanup) this.special.cleanup(this); }
   resetRound(first) {
     const [a, b] = this.f;
     a.pos.set(-1.35, 0, 0); b.pos.set(1.35, 0, 0);
@@ -29,7 +29,7 @@ class Match {
   update(dt, inputs) {
     this.acc += Math.min(dt, .1) * this.slow;
     let steps = 0;
-    while (this.acc >= DT && steps < 4) { this.acc -= DT; steps++; this.step(inputs); inputs = this.consumed(inputs); }
+    while (this.acc >= DT && steps < 4) { this.acc -= DT; steps++; this.step(inputs); if (this.onStep) this.onStep(this.frame, inputs); inputs = this.consumed(inputs); }
     if (this.slowT > 0) { this.slowT -= dt; if (this.slowT <= 0) this.slow = 1; }
     this.render(dt);
   }
@@ -61,15 +61,17 @@ class Match {
     for (const f of this.f) { f.dispHp += (f.hp - f.dispHp) * .35; if (f.lagHp > f.dispHp) f.lagHp -= .35; else f.lagHp = f.dispHp; }
   }
   /* --- introduzione: le frasi dei due personaggi --- */
+  lineText(line, op) { return typeof line.text === 'function' ? line.text(op) : (line.text || ''); }
   stepIntro(ins) {
     const skip = ins.some(I => I && (I.p.LP || I.p.RP || I.p.LK || I.p.RK || I.p.ANY)) && this.pt > 20;
-    const who = this.introStep, f = this.f[who];
+    const who = this.introStep, f = this.f[who], op = this.f[1 - who];
+    const line = f.def.lines.vs && f.def.lines.vs[op.id] || f.def.lines.intro;
     if (this.pt === 1) {
-      const op = this.f[1 - who], line = f.def.lines.vs && f.def.lines.vs[op.id] || f.def.lines.intro;
-      HUD.subtitle(f.def.name, line.text || '', line.big); f.override = line.pose || 'intro'; f.state = 'intro'; f.t = 0;
+      HUD.subtitle(line.delay ? null : f.def.name, line.delay ? '' : this.lineText(line, op), line.big); f.override = line.pose || 'intro'; f.state = 'intro'; f.t = 0;
       if (line.sfx) AU.sfx(line.sfx);
       this.introLen = line.len || 170;
     }
+    if (line.delay && this.pt === line.delay) HUD.subtitle(f.def.name, this.lineText(line, op), line.big);
     if (this.pt >= this.introLen || skip) {
       HUD.subtitle(null); f.override = null; f.state = 'idle';
       if (this.introStep === 0) { this.introStep = 1; this.pt = 0; this.firstCam = true; }
@@ -79,13 +81,14 @@ class Match {
   stepOutro(ins) {
     const W = this.winner, Lo = this.f[1 - this.f.indexOf(W)];
     const skip = ins.some(I => I && (I.p.LP || I.p.RP || I.p.ANY)) && this.pt > 30;
-    if (this.pt === 1) { const l = Lo.def.lines.lose; HUD.subtitle(Lo.def.name, l.text || '', l.big); Lo.override = l.pose; Lo.state = 'outro'; Lo.t = 0; W.override = 'idleWin'; this.outroWho = Lo; if (l.sfx) AU.sfx(l.sfx); }
-    if (this.pt === 170 || (skip && this.outroWho === Lo && this.pt < 170)) { this.firstCam = true;
-      this.pt = 171; const l = W.def.lines.win; HUD.subtitle(W.def.name, l.text || '', l.big, l.fx); W.override = l.pose; W.state = 'outro'; W.t = 0; this.outroWho = W;
+    if (this.pt === 1) { const l = Lo.def.lines.lose; HUD.subtitle(Lo.def.name, this.lineText(l, W), l.big); Lo.override = l.pose; Lo.state = 'outro'; Lo.t = 0; W.override = 'idleWin'; this.outroWho = Lo; this.loseLen = l.len || 170; if (l.sfx) AU.sfx(l.sfx); }
+    if (this.pt === this.loseLen || (skip && this.outroWho === Lo && this.pt < this.loseLen)) { this.firstCam = true;
+      this.pt = 1000; const l = W.def.lines.win; HUD.subtitle(W.def.name, this.lineText(l, Lo), l.big, l.fx); W.override = l.pose; W.state = 'outro'; W.t = 0; this.outroWho = W;
+      Lo.override = Lo.state === 'down' ? null : 'idleSad';
       if (l.music) AU.music(l.music); else AU.music(null); if (l.sfx) AU.sfx(l.sfx);
-      this.outroEnd = 171 + (l.len || 230); if (W.def.winScene) W.def.winScene(this, W, Lo);
+      this.outroEnd = 1000 + (l.len || 230); if (WIN_SCENES[l.pose]) this.winProps = WIN_SCENES[l.pose](this, W);
     }
-    if (this.pt > 171 && (this.pt >= this.outroEnd || (skip && this.pt > 200))) { this.phase = 'done'; HUD.subtitle(null); if (this.o.onEnd) this.o.onEnd({ winner: this.f.indexOf(W) }); }
+    if (this.pt > 1000 && (this.pt >= this.outroEnd || (skip && this.pt > 1030))) { this.phase = 'done'; HUD.subtitle(null); if (this.o.onEnd && !this._ended) { this._ended = true; this.o.onEnd({ winner: this.f.indexOf(W) }); } }
   }
   timeOver() {
     if (this.phase !== 'fight') return;
@@ -173,7 +176,8 @@ class Match {
         break;
       case 'getup': if (me.t >= 26) me.set('idle', true); break;
       case 'grabbing': this.stepThrow(me, op); break;
-      case 'thrown': break;
+      case 'clinching': this.stepClinch(me, op); break;
+      case 'thrown': case 'clinched': break;
       case 'spStart': if (me.t === 14) this.fireSpecial(me, op); break;
       case 'spWhiff': if (me.t >= 46) me.set('idle'); break;
     }
@@ -189,7 +193,7 @@ class Match {
   }
   separate() {
     const [a, b] = this.f; const d = new V3().subVectors(b.pos, a.pos); d.y = 0; const L = d.length(), min = .74;
-    if (a.state === 'thrown' || b.state === 'thrown' || a.state === 'down' || b.state === 'down') return;
+    if (['thrown', 'clinched', 'down'].includes(a.state) || ['thrown', 'clinched', 'down'].includes(b.state)) return;
     if (L < min && Math.abs(a.y - b.y) < 1.2) { if (L < 1e-4) d.set(1, 0, 0); else d.multiplyScalar(1 / L); const push = (min - L) / 2; a.pos.addScaledVector(d, -push); b.pos.addScaledVector(d, push); }
   }
   /* --- colpi --- */
@@ -198,7 +202,7 @@ class Match {
     const v = new V3().subVectors(def.pos, att.pos); v.y = 0; const d = v.length();
     if (d > mv.reach + (def.state === 'air' ? .25 : 0)) return;
     const ang = Math.abs(angDiff(att.yaw, Math.atan2(v.x, v.z))); if (ang > .8) return;
-    if (['down', 'getup', 'fall', 'thrown', 'spV', 'grabbing'].includes(def.state)) return;
+    if (['down', 'getup', 'fall', 'thrown', 'spV', 'grabbing', 'clinched', 'clinching'].includes(def.state)) return;
     if (mv.level === 'h' && def.crouching && def.state !== 'air') return;
     if (def.state === 'air' && mv.level === 'l') return;
     if (Math.abs(def.y - att.y) > 1.3) return;
@@ -245,9 +249,21 @@ class Match {
   }
   /* --- prese --- */
   startThrow(att, def) {
+    if (STYLES[att.style].throwType === 'clinch') return this.startClinch(att, def);
     att.set('grabbing'); def.set('thrown'); def.move = null; def.override = 'thrown'; def.throwLift = def.throwSlam = 0;
     this.throwData = { a: att, d: def, yaw: att.yaw, d0: Math.max(.6, att.pos.distanceTo(def.pos)) };
     AU.sfx('grab'); this.hitstop = 4; this.shake = .08;
+  }
+  startClinch(att, def) {
+    att.set('clinching'); def.set('clinched'); def.move = null; def.override = 'clinched';
+    this.throwData = { a: att, d: def, yaw: att.yaw, d0: Math.max(.6, att.pos.distanceTo(def.pos)), clinch: true }; AU.sfx('grab'); this.hitstop = 4;
+  }
+  stepClinch(att, def) {
+    const t = att.t, T = this.throwData, F = new V3(Math.sin(T.yaw), 0, Math.cos(T.yaw));
+    if (t < 62) { def.yaw = T.yaw + Math.PI; att.yaw = T.yaw; def.pos.copy(att.pos).addScaledVector(F, lerp(T.d0, .5, smooth(clamp(t / 8, 0, 1)))); def.override = 'clinched'; }
+    for (const hitT of [22, 44]) if (t === hitT) { def.hp = Math.max(0, def.hp - 8); AU.sfx('kickHard'); AU.grunt(def); this.shake = .3; this.hitstop = 6; FX.spark(def.av.B.spine2.getWorldPosition(new V3()), 0xffffff, 12, 1.1); if (def.hp <= 0) { this.ko(def); } }
+    if (t === 62) { def.override = null; def.set('fall'); def.vel.copy(F).multiplyScalar(2.6); AU.sfx('whooshK'); HUD.flashText(this.f.indexOf(att) ? 1 : 0, 'PRESA!'); }
+    if (t >= 76) att.set('idle');
   }
   stepThrow(att, def) {
     const t = att.t, T = this.throwData, F = new V3(Math.sin(T.yaw), 0, Math.cos(T.yaw));
@@ -260,18 +276,19 @@ class Match {
       if (t === 34) AU.sfx('whooshK');
     } else if (t === 44) {
       def.override = null; def.y = 0; def.set('down', true); def.pose = clonePose(LYING); def.from = null;
-      def.hp = Math.max(0, def.hp - 16); AU.sfx('slam'); AU.grunt(def, true); this.shake = .45; FX.dust(def.pos); FX.dust(def.pos.clone().addScaledVector(F, 1)); this.hitstop = 8;
+      def.hp = Math.max(0, def.hp - (STYLES[att.style].throwDmg || 16)); AU.sfx('slam'); AU.grunt(def, true); this.shake = .45; FX.dust(def.pos); FX.dust(def.pos.clone().addScaledVector(F, 1)); this.hitstop = 8;
       HUD.flashText(this.f.indexOf(att) ? 1 : 0, 'PRESA!');
       if (def.hp <= 0) this.ko(def);
     }
     if (t >= 70) att.set('idle');
   }
   // le mani di chi afferra restano sul corpo di chi viene sollevato: spalle all'inizio, fianchi durante sollevamento e schianto
-  gripHands(att, vic, t) {
-    const w = smooth(clamp((t - 2) / 6, 0, 1)) * (1 - smooth(clamp((t - 39) / 5, 0, 1))); if (w <= 0) return;
+  gripHands(att, vic, t, clinch) {
+    const w = smooth(clamp((t - 2) / 6, 0, 1)) * (1 - smooth(clamp((t - (clinch ? 58 : 39)) / 5, 0, 1))); if (w <= 0) return;
     const B = vic.av.B, vr = vic.av.Ldir([1, 0, 0], new V3()), k = smooth(clamp((t - 10) / 8, 0, 1));
     att.av.obj.position.set(att.pos.x, att.y, att.pos.z); att.av.obj.rotation.y = att.yaw; att.av.obj.updateMatrixWorld(true); att.av.tilt.updateMatrixWorld(true);
     const spot = (side) => {
+      if (clinch) return B.head.getWorldPosition(new V3()).addScaledVector(vr, side * .07).add(new V3(0, -.06, 0)).addScaledVector(vic.fwd, -.06);
       const sh = (side > 0 ? B.rUp : B.lUp).getWorldPosition(new V3());
       const tor = B.spine1.getWorldPosition(new V3()).addScaledVector(vr, side * .17);
       return sh.lerp(tor, k);
@@ -294,7 +311,7 @@ class Match {
     sp.start(this, me, op, this.special.data);
   }
   stepSpecial() {
-    const S = this.special; S.t++;
+    const S = this.special; S.t++; S.a.t++; S.d.t++;
     S.def.update(this, S.a, S.d, S.t, S.data);
     if (S.t >= S.def.dur) {
       if (S.def.end) S.def.end(this, S.a, S.d, S.data);
@@ -307,7 +324,7 @@ class Match {
   /* --- rendering --- */
   render(dt) {
     // chi viene afferrato si mette in posa per primo: le mani di chi afferra lo seguono
-    const order = this.f[1].state === 'thrown' ? [this.f[1], this.f[0]] : this.f;
+    const order = (this.f[1].state === 'thrown' || this.f[1].state === 'clinched') ? [this.f[1], this.f[0]] : this.f;
     for (const f of order) { this.poseFighter(f, dt); f.av.tickFace(dt); }
     this.updateCamera(dt);
     HUD.update(this);
@@ -319,15 +336,15 @@ class Match {
     if (ov) target = OVERRIDE_POSES(ov, f, this);
     else switch (f.state) {
       case 'idle': case 'land': {
-        const b = Math.sin(this.frame * .09 + f.side) * .012; target = clonePose(GUARD); target.hip = [0, GUARD.hip[1] + b, 0];
-        target.lh = [GUARD.lh[0], GUARD.lh[1] + b * 1.5, GUARD.lh[2]]; target.rh = [GUARD.rh[0], GUARD.rh[1] + b * 1.5, GUARD.rh[2]];
+        const b = Math.sin(this.frame * .09 + f.side) * .012; target = Object.assign(clonePose(GUARD), STYLE_GUARD[f.style] || {}); const g = target;
+        target.hip = [g.hip[0], g.hip[1] + b, g.hip[2]]; target.lh = [g.lh[0], g.lh[1] + b * 1.5, g.lh[2]]; target.rh = [g.rh[0], g.rh[1] + b * 1.5, g.rh[2]];
         if (f.state === 'land') target.hip[1] -= .1;
         break;
       }
       case 'walk': {
-        const ph = f.walkPh, s = Math.sin(ph); target = clonePose(GUARD);
-        target.lf = [GUARD.lf[0], .1 + Math.max(0, s) * .07, GUARD.lf[2] + s * .1]; target.rf = [GUARD.rf[0], .1 + Math.max(0, -s) * .07, GUARD.rf[2] - s * .1];
-        target.hip = [0, GUARD.hip[1] - Math.abs(s) * .015, 0]; break;
+        const ph = f.walkPh, s = Math.sin(ph); target = Object.assign(clonePose(GUARD), STYLE_GUARD[f.style] || {}); const g = target;
+        target.lf = [g.lf[0], .1 + Math.max(0, s) * .07, g.lf[2] + s * .1]; target.rf = [g.rf[0], .1 + Math.max(0, -s) * .07, g.rf[2] - s * .1];
+        target.hip = [0, g.hip[1] - Math.abs(s) * .015, 0]; break;
       }
       case 'side': { const k = Math.sin(clamp(f.t / 16, 0, 1) * Math.PI); target = clonePose(GUARD); target.hip = [f.sideDir * k * .06, -.12, 0]; target.lf = [GUARD.lf[0] + f.sideDir * k * .15, .1 + k * .08, GUARD.lf[2]]; target.cr = f.sideDir * k * .15; break; }
       case 'dash': target = clonePose(GUARD); target.hip = [0, -.12, f.dashDir * .06]; target.cp = .15 * f.dashDir; break;
@@ -340,13 +357,14 @@ class Match {
       case 'down': target = clonePose(LYING); target.cp = Math.sin(this.frame * .05) * .02; break;
       case 'getup': target = GETUP(tt); break;
       case 'grabbing': target = GRAB_ATT(Math.min(tt, 70)); break;
+      case 'clinching': target = CLINCH_ATT(Math.min(tt, 76)); break;
       case 'spStart': target = P({ hip: [0, -.12, 0], cp: .15, hp: .3, lh: [-.25, 1.25, .2], rh: [.25, 1.25, .2], fist: 1, jaw: .4 }); break;
       case 'spWhiff': target = P({ cp: -.1, hp: -.2, lh: [-.4, 1.3, .3], rh: [.4, 1.3, .3], fist: 0, jaw: .3 }); break;
       default: target = clonePose(GUARD);
     }
     if (f.from && f.blendT < 1) { f.blendT = Math.min(1, f.blendT + dt * FPS / f.blendDur); f.pose = mixPose(f.from, target, smooth(f.blendT)); }
     else f.pose = target;
-    if (f.state === 'grabbing' && this.throwData && this.throwData.a === f) this.gripHands(f, this.throwData.d, tt);
+    if ((f.state === 'grabbing' || f.state === 'clinching') && this.throwData && this.throwData.a === f) this.gripHands(f, this.throwData.d, tt, f.state === 'clinching');
     const o = f.av.obj; o.position.set(f.pos.x, f.y, f.pos.z); o.rotation.y = f.yaw;
     f.av.apply(f.pose);
   }
@@ -360,7 +378,7 @@ class Match {
       const k = (this.pt % 1000) / 200;
       pos = f.pos.clone().addScaledVector(fw, 1.45 - k * .2).addScaledVector(side, 1.0 + k * .2); pos.y = 1.55;
       look = f.pos.clone(); look.y = 1.38 + (f.state === 'down' ? -1 : 0);
-      if (f.def.camFocus && f.override && f.def.camFocus[f.override]) { const c = f.def.camFocus[f.override](f); pos = c.pos; look = c.look; }
+      if (f.override && CAM_FOCUS[f.override]) { const c = CAM_FOCUS[f.override](f); pos = c.pos; look = c.look; }
     } else {
       const mid = a.pos.clone().add(b.pos).multiplyScalar(.5); const ax = new V3().subVectors(b.pos, a.pos); ax.y = 0;
       const sep = ax.length(); ax.normalize(); let n = new V3(-ax.z, 0, ax.x);

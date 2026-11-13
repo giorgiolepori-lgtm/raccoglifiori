@@ -67,6 +67,19 @@ const AU = {
         }
         this.nz(r, .07, .35, 'highpass', 6000);
       },
+      clap: () => { this.nz(t, .06, .7, 'bandpass', 1500, 1.2); this.nz(t + .01, .05, .5, 'highpass', 3000); },
+      glass: () => { for (const f of [2400, 3800, 5200, 6900]) this.osc('sine', f * rand(.97, 1.03), t, .5, .12, this.rev); this.nz(t, .25, .6, 'highpass', 3500, 1, this.rev); },
+      splash: () => { this.nz(t, .7, .9, 'lowpass', 1800, 1, null, 300); this.nz(t, .5, .5, 'bandpass', 900, 1, this.rev); this.osc('sine', 90, t, .4, .9, null, 40); },
+      fallWhistle: () => this.osc('sine', 1800, t, 1.2, .18, this.rev, 500, .05),
+      aura: () => { const o = this.osc('sawtooth', 110, t, 1.3, .12, this.rev, 220, .2); this.nz(t, 1.2, .25, 'bandpass', 1200, 4, this.rev, 3000); },
+      tele: () => { for (let i = 0; i < 4; i++) { this.osc('sine', 300 + i * 70, t + i * .12, .5, .15, this.rev, 1400 + i * 200, .05); } this.osc('sawtooth', 60, t, 1.2, .2, null, 90); },
+      rec: () => { this.osc('square', 1760, t, .08, .08); this.osc('square', 1760, t + .14, .08, .08); },
+      whirr: () => this.nz(t, 1.4, .12, 'bandpass', 2600, 6),
+      boom: () => { this.osc('sine', 60, t, 1.2, 1.5, null, 22); this.nz(t, 1.0, 1.2, 'lowpass', 1600, 1, null, 120); this.nz(t, 1.6, .6, 'lowpass', 600, 1, this.rev); },
+      spray: () => this.nz(t, 1.1, .45, 'highpass', 2500, .6),
+      cough: () => { for (let i = 0; i < 3; i++) { this.nz(t + i * .28, .14, .6, 'bandpass', 700, 2); this.osc('sawtooth', 160, t + i * .28, .1, .2, null, 110); } },
+      strain: () => { const o = this.osc('sawtooth', 95, t, 1.4, .18, null, 115, .2); this.nz(t, 1.3, .1, 'bandpass', 600, 3); },
+      whooshBig: () => this.nz(t, .45, .5, 'bandpass', 250, 1.2, null, 2600),
       select: () => { this.osc('square', 660, t, .05, .12); this.osc('square', 990, t + .05, .06, .1); },
       move: () => this.osc('triangle', 520, t, .04, .1),
       back: () => this.osc('triangle', 330, t, .06, .12, null, 220),
@@ -109,6 +122,8 @@ const AU = {
     if (s.stab && s.stab[i] === 'x') { for (const n of [0, 7, 12]) { const f = 110 * Math.pow(2, (root + n) / 12); for (const d of [-6, 6]) { const o = this.ctx.createOscillator(), gg = this.ctx.createGain(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = d; this.env(gg, t, .004, .07, .14); o.connect(gg); gg.connect(g); o.start(t); o.stop(t + .25); } } }
     if (s.lead && i % 2 === 0) { const n = s.lead[(bar * 8 + i / 2) % s.lead.length]; if (n !== null && n !== undefined) { const f = 220 * Math.pow(2, (root + n) / 12); const o = this.ctx.createOscillator(), gg = this.ctx.createGain(), fl = this.ctx.createBiquadFilter(); o.type = 'square'; o.frequency.value = f; fl.type = 'lowpass'; fl.frequency.value = 2400; this.env(gg, t, .01, .06 + seq.intensity * .03, .22); o.connect(fl); fl.connect(gg); gg.connect(g); gg.connect(this.rev); o.start(t); o.stop(t + .3); } }
     if (s.pad && i === 0) { for (const n of ch.slice(1)) { const f = 110 * Math.pow(2, (root + n) / 12); const o = this.ctx.createOscillator(), gg = this.ctx.createGain(), fl = this.ctx.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = rand(-8, 8); fl.type = 'lowpass'; fl.frequency.value = 900; const d = 60 / s.bpm * 4; gg.gain.setValueAtTime(.0001, t); gg.gain.exponentialRampToValueAtTime(.05, t + d * .3); gg.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(fl); fl.connect(gg); gg.connect(g); gg.connect(this.rev); o.start(t); o.stop(t + d + .05); } }
+    if (s.cowbell && i % 2 === 0) { const n = s.cowbell[(bar * 8 + i / 2) % s.cowbell.length]; const f = 220 * Math.pow(2, (root + n) / 12);
+      for (const m of [1, 1.48]) { const o = this.ctx.createOscillator(), gg = this.ctx.createGain(), bp = this.ctx.createBiquadFilter(); o.type = 'square'; o.frequency.value = f * m; bp.type = 'bandpass'; bp.frequency.value = f * 1.2; bp.Q.value = 3; this.env(gg, t, .002, .09, .13); o.connect(bp); bp.connect(gg); gg.connect(g); gg.connect(this.rev); o.start(t); o.stop(t + .2); } }
     if (s.bell && s.bell[i] === 'x') { const f = 880 * Math.pow(2, (root + pick([0, 3, 7, 10])) / 12); this.osc('sine', f, t, .5, .05, this.rev); }
   },
 };
@@ -120,5 +135,7 @@ const SONGS = {
       bass: 'x.....x...x...o.', bassWave: 'sine', bassVol: .8, bassLen: .4, glide: true, bassCut: 600, lead: [0, null, 3, null, 7, 5, 3, null, 0, null, 3, 5, 3, null, -2, null], pad: true }
     : { bpm: 152, bars: 4, chords: [[7, 0, 3, 7], [7, 0, 3, 7], [3, 0, 4, 7], [5, 0, 4, 7]], kick: 'x...x...x...x.x.', snare: '....x.......x...', hat: 'x.x.x.x.x.x.x.x.', roll: true,
       bass: 'xx.xx.xx.xx.x5xo', bassVol: .42, bassLen: .12, stab: 'x.....x.....x...', lead: [12, null, 10, 12, 15, null, 12, 10, 7, null, 10, null, 12, null, null, null] },
+  aura: () => ({ bpm: 128, bars: 4, chords: [[5], [5], [3], [0]], kick: 'x..x..x...x..x..', snare: '....x.......x...', hat: 'x.xxx.xx.xxxx.xx', roll: true,
+    bass: 'x.....x...x..o..', bassWave: 'sine', bassVol: .9, bassLen: .45, glide: true, bassCut: 500, cowbell: [12, 12, 15, 12, 10, 12, 7, 10, 12, 12, 15, 17, 15, 12, 10, 7] }),
   victory: () => ({ bpm: 120, bars: 2, chords: [[3, 0, 4, 7], [-2, 0, 4, 7]], kick: 'x.......x.......', snare: '....x.......x...', hat: 'x.x.x.x.x.x.x.x.', bass: 'x...x...x...x...', pad: true, lead: [0, 4, 7, 12, 7, 4, 7, null] }),
 };

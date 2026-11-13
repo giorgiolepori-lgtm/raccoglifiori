@@ -93,10 +93,12 @@ function skyDome(top, mid, bottom) {
 function parkedCar(col) { const c = makePunto(); c.traverse(m => { if (m.isMesh && m.material.color && m.material.color.getHex() === 0x1d3f8f) { m.material = m.material.clone(); m.material.color.setHex(col); } }); return c; }
 
 const ARENA = {
-  group: new THREE.Group(), sun: null, hemi: null, cur: null,
+  group: new THREE.Group(), sun: null, hemi: null, cur: null, movers: [], sea: null,
+  tick(dt) { for (const o of this.movers) { const P = o.userData.path; o.userData.t = ((o.userData.t || Math.random() * 20) + dt * P.speed / P.from.distanceTo(P.to)) % 1; o.position.copy(P.from).lerp(P.to, o.userData.t); o.rotation.y = Math.atan2(P.to.x - P.from.x, P.to.z - P.from.z) - Math.PI / 2; }
+    if (this.sea) this.sea.position.y = -.35 + Math.sin(performance.now() * .0008) * .03; },
   build(id) {
     if (this.curId === id && this.group.parent) return this.cur;
-    this.clear(); scene.add(this.group); this.sign = null;
+    this.clear(); scene.add(this.group); this.sign = null; this.movers = []; this.sea = null;
     const A = ARENAS[id]; this.cur = A; this.curId = id;
     scene.fog = new THREE.Fog(A.fog || 0xc9d8e6, 40, 230);
     scene.background = new THREE.Color(A.fog || 0xc9d8e6);
@@ -114,7 +116,7 @@ const ARENA = {
 
 const ARENAS = {
   capoterra: {
-    name: 'Capoterra', music: 0, bounds: [8.5, 3.6], cam: [24, 6.6], sky: ['#5d8fd0', '#a8c8ea', '#d9d3c4'], fog: 0xc3d3e4, sunPos: [6, 16, 9],
+    name: 'Capoterra', music: 0, bounds: [8.5, 3.6], cam: [24, 6.4], sky: ['#5d8fd0', '#a8c8ea', '#d9d3c4'], fog: 0xc3d3e4, sunPos: [6, 16, 9],
     build() {
       // strada
       const road = new THREE.Mesh(new THREE.PlaneGeometry(90, 9), new THREE.MeshStandardMaterial({ map: texAsphalt(), roughness: .95 })); road.rotation.x = -Math.PI / 2; addA(road, 0, 0, 0, 0, 'recv');
@@ -207,7 +209,8 @@ function mergeStatic(group) {
   const buckets = new Map(), remove = [];
   const keyOf = m => m.map || m.alphaMap || m.transparent || m.type !== 'MeshStandardMaterial' ? m.uuid : 'c' + m.color.getHex() + '|' + m.roughness + '|' + m.metalness + '|' + m.side + '|' + (m.emissive ? m.emissive.getHex() : 0);
   group.traverse(o => {
-    if (!o.isMesh || o.isSkinnedMesh || o.userData.keep || !o.geometry.attributes.position) return;
+    if (!o.isMesh || o.isSkinnedMesh || !o.geometry.attributes.position) return;
+    for (let p = o; p; p = p.parent) if (p.userData.keep) return;
     const mats = Array.isArray(o.material) ? o.material : [o.material];
     const groups = Array.isArray(o.material) ? o.geometry.groups : [{ start: 0, count: o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count, materialIndex: 0 }];
     for (const gr of groups) { const m = mats[gr.materialIndex]; const k = keyOf(m); if (!buckets.has(k)) buckets.set(k, { mat: m, parts: [], cast: false, recv: false }); const b = buckets.get(k); b.parts.push({ o, gr }); b.cast = b.cast || o.castShadow; b.recv = b.recv || o.receiveShadow; }

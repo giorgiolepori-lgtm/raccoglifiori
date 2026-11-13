@@ -136,3 +136,129 @@ const SPECIALS = {
     end(M, a, d, D) { if (D.vape.parent) D.vape.parent.remove(D.vape); scene.remove(D.ball); },
   },
 };
+
+/* ===== Oggetti delle altre mosse speciali ===== */
+function makeGlassLM() {   // bicchiere gigante di latte e menta
+  const g = new THREE.Group();
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(1.15, .9, 3.2, 40, 1, true), std(0xeaf6f2, .05, 0, { transparent: true, opacity: .32, side: THREE.DoubleSide, depthWrite: false }));
+  glass.position.y = 1.6; g.add(glass);
+  const bottom = new THREE.Mesh(new THREE.CylinderGeometry(.9, .9, .12, 40), std(0xeaf6f2, .05, 0, { transparent: true, opacity: .5 })); bottom.position.y = .06; g.add(bottom);
+  const milk = new THREE.Mesh(new THREE.CylinderGeometry(1.08, .88, 2.6, 40), std(0x9fe3b8, .35, 0, { emissive: 0x153b22 })); milk.position.y = 1.36; g.add(milk);
+  const top = new THREE.Mesh(new THREE.CircleGeometry(1.08, 40), std(0xc8f3d6, .3)); top.rotation.x = -Math.PI / 2; top.position.y = 2.67; g.add(top);
+  const straw = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 4, 12), std(0xe23b3b, .4)); straw.position.set(.45, 2.6, .1); straw.rotation.z = -.28; g.add(straw);
+  const ice = std(0xffffff, .05, 0, { transparent: true, opacity: .6 });
+  for (let i = 0; i < 5; i++) { const c = new THREE.Mesh(new THREE.BoxGeometry(.4, .4, .4), ice); c.position.set(rand(-.6, .6), 2.55, rand(-.6, .6)); c.rotation.set(rand(0, 3), rand(0, 3), 0); g.add(c); }
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g;
+}
+function makeShoulderCam() {
+  const g = new THREE.Group(), body = std(0x1d1f22, .45, .4), dark = std(0x0b0b0c, .3, .5);
+  const b = new THREE.Mesh(new THREE.BoxGeometry(.12, .16, .36), body); g.add(b);
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(.055, .065, .2, 18), dark); lens.rotation.x = Math.PI / 2; lens.position.set(0, .01, .26); g.add(lens);
+  const glassL = new THREE.Mesh(new THREE.CircleGeometry(.05, 18), std(0x223355, .05, .9)); glassL.position.set(0, .01, .361); g.add(glassL);
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(.03, .03, .22), dark); handle.position.set(0, .1, .02); g.add(handle);
+  const vf = new THREE.Mesh(new THREE.BoxGeometry(.06, .05, .08), dark); vf.position.set(-.08, .05, -.12); g.add(vf);
+  const led = new THREE.Mesh(new THREE.SphereGeometry(.008, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff2020 })); led.position.set(.05, .07, .17); g.add(led); g.led = led;
+  return g;
+}
+function makeSpray() { const g = new THREE.Group(); const c = new THREE.Mesh(new THREE.CylinderGeometry(.022, .022, .12, 14), std(0xc42222, .35, .3)); g.add(c); const cap = new THREE.Mesh(new THREE.CylinderGeometry(.014, .02, .025, 10), std(0x111111, .4)); cap.position.y = .07; g.add(cap); return g; }
+function holdInRight(av, obj, offset, rot) { const H = av.B.rHa; H.add(obj); obj.scale.setScalar(100); obj.position.set(...offset); if (rot) obj.rotation.set(...rot); return obj; }
+const sideOf = F => new V3(-F.z, 0, F.x);
+
+Object.assign(SPECIALS, {
+  bruno: {
+    dur: 230, dmg: 30, name: 'Latte e menta dal cielo',
+    start(M, a, d, D) { D.glass = makeGlassLM(); D.glass.position.copy(d.pos).setY(18); scene.add(D.glass); a.override = 'pointSky'; d.override = 'lookUpScared'; HUD.specialTitle(a.def.name, this.name); AU.sfx('fallWhistle'); },
+    update(M, a, d, t, D) {
+      const F = a.fwd, S = sideOf(F), hit = 64;
+      if (t < hit) { const k = easeIn(t / hit); D.glass.position.set(d.pos.x, lerp(18, 0, k), d.pos.z); D.glass.rotation.y += .05; }
+      if (t === hit) { AU.sfx('glass'); AU.sfx('splash'); AU.grunt(d, true); M.shake = .7; M.slow = .4; M.slowT = .5; d.override = 'lying'; d.av.tilt.scale.set(1.25, .12, 1.25);
+        for (let i = 0; i < 40; i++) { const m = new THREE.SpriteMaterial({ map: SPR.smoke, color: 0x9fe3b8, transparent: true, depthWrite: false }); FX.add(m, d.pos.clone().setY(.3), { vel: new V3(rand(-4, 4), rand(1, 5), rand(-4, 4)), life: rand(.5, 1), size: rand(.2, .4), g: 9, drag: .97 }); } }
+      if (t > hit + 70 && t < hit + 110) { const k = (t - hit - 70) / 40; D.glass.position.y = k * 22; }
+      if (t === hit + 72) { d.av.tilt.scale.set(1, 1, 1); AU.sfx('whooshBig'); }
+      if (t < hit - 6) M.camOverride = { pos: d.pos.clone().addScaledVector(F, -3.5).addScaledVector(S, 1.6).setY(1.0), look: d.pos.clone().setY(lerp(3.5, 1.4, t / hit)) };
+      else M.camOverride = { pos: d.pos.clone().addScaledVector(F, -4.2).addScaledVector(S, 2.4).setY(2.2), look: d.pos.clone().setY(1.0) };
+      if (t === 175) a.override = 'idleWin';
+    },
+    end(M, a, d, D) { scene.remove(D.glass); d.av.tilt.scale.set(1, 1, 1); },
+  },
+  edo: {
+    dur: 210, dmg: 30, name: 'Calci alle caviglie',
+    start(M, a, d, D) { a.override = 'edoKick'; d.override = 'dazed'; HUD.specialTitle(a.def.name, this.name); AU.sfx('aura'); D.n = 0; a.pos.copy(d.pos).addScaledVector(a.fwd, -.95); },
+    update(M, a, d, t, D) {
+      const F = a.fwd, S = sideOf(F);
+      if (t % 3 === 0) FX.aura(a.pos, 0x3a7bff);
+      if (t > 20 && t < 150 && (t - 20) % 18 === 9) { const p = d.pos.clone().setY(.2); FX.spark(p, 0x6aa8ff, 12, 1); FX.ring(p, true); AU.sfx('kickHard'); AU.grunt(d); M.shake = .25; M.hitstop = 0; d.override = 'ankleHit'; d.t = 0; }
+      if (t === 160) { d.override = 'ballHit'; d.t = 0; AU.sfx('fall'); }
+      a.t = t; M.camOverride = { pos: a.pos.clone().addScaledVector(F, .5).addScaledVector(S, 2.4).setY(.9), look: a.pos.clone().addScaledVector(F, .55).setY(.6) };
+      if (t > 160) M.camOverride = { pos: a.pos.clone().addScaledVector(S, 3.2).setY(1.6), look: d.pos.clone().setY(.6) };
+    },
+    end(M, a, d, D) { },
+  },
+  pet: {
+    dur: 230, dmg: 30, name: 'Attacco telepatico',
+    start(M, a, d, D) { a.override = 'petTele'; d.override = 'dazed'; HUD.specialTitle(a.def.name, this.name); AU.sfx('tele'); },
+    update(M, a, d, t, D) {
+      const F = a.fwd, S = sideOf(F), head = a.av.B.head.getWorldPosition(new V3());
+      if (t === 20) HUD.subtitle(a.def.name, 'Ho dovuto attaccarti telepaticamente purtroppo');
+      if (t > 20 && t < 130 && t % 6 === 0) { const m = new THREE.SpriteMaterial({ map: SPR.ring, color: 0xff2a2a, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }); FX.add(m, head.clone().addScaledVector(F, .2), { vel: F.clone().multiplyScalar(4.5), life: .5, size: .25, grow: 3 }); }
+      if (t > 60 && t < 140) { d.override = 'teleHit'; d.y = Math.min(.6, (t - 60) * .01); if (t % 4 === 0) FX.aura(d.pos, 0xff3030); if (t === 61) { AU.grunt(d, true); M.shake = .3; } }
+      if (t === 140) { d.override = 'flying'; d.spin = 0; AU.sfx('whooshBig'); }
+      if (t > 140 && t < 170) { const k = (t - 140) / 30; d.pos.addScaledVector(F, .06); d.y = .6 * (1 - k); d.spin = k * 4; }
+      if (t === 170) { d.y = 0; d.override = 'lying'; AU.sfx('fall'); FX.dust(d.pos); M.shake = .35; }
+      if (t < 60) M.camOverride = { pos: a.pos.clone().addScaledVector(F, 1.3).addScaledVector(S, .4).setY(1.65), look: head };
+      else M.camOverride = { pos: a.pos.clone().addScaledVector(S, 3.4).addScaledVector(F, .9).setY(1.6), look: a.pos.clone().addScaledVector(F, 1.4).setY(1.2) };
+      if (t === 200) HUD.subtitle(null);
+    },
+    end(M, a, d, D) { HUD.subtitle(null); d.y = 0; },
+  },
+  josto: {
+    dur: 240, dmg: 30, name: 'In diretta',
+    start(M, a, d, D) { D.cam = makeShoulderCam(); holdInRight(a.av, D.cam, [-7, 4, 6], [0, Math.PI / 2, 0]); a.override = 'jostoFilm'; d.override = 'dazed'; HUD.specialTitle(a.def.name, this.name); AU.sfx('rec'); AU.sfx('whirr'); D.c = d.pos.clone(); D.r = a.pos.distanceTo(d.pos); D.a0 = Math.atan2(a.pos.x - d.pos.x, a.pos.z - d.pos.z); },
+    update(M, a, d, t, D) {
+      if (t < 150) { const ang = D.a0 + (t / 150) * Math.PI * 1.6, r = lerp(D.r, 1.5, Math.min(1, t / 40)); a.pos.set(D.c.x + Math.sin(ang) * r, 0, D.c.z + Math.cos(ang) * r); a.yaw = Math.atan2(D.c.x - a.pos.x, D.c.z - a.pos.z); d.yaw = Math.atan2(a.pos.x - d.pos.x, a.pos.z - d.pos.z); }
+      D.cam.led.visible = (t >> 3) % 2 === 0;
+      if (t > 100 && t < 150 && t % 3 === 0) { d.av.setTint(new THREE.Color(0xff6a20), (t - 100) / 60); }
+      if (t === 150) { AU.sfx('boom'); AU.grunt(d, true); M.shake = .9; M.slow = .35; M.slowT = .6; d.av.setTint(new THREE.Color(0), 0); const p = d.pos.clone().setY(1);
+        FX.spark(p, 0xffc040, 40, 2.4); FX.spark(p, 0xff5020, 30, 1.8); FX.smoke(p, 0x555555, 30, .8); FX.smoke(p, 0x222222, 20, 1); d.override = 'flying'; d.spin = 0; }
+      if (t > 150 && t < 200) { const k = (t - 150) / 50; d.y = Math.sin(k * Math.PI) * 2.2; d.spin = k * 6; }
+      if (t === 200) { d.y = 0; d.override = 'lying'; AU.sfx('fall'); FX.dust(d.pos); }
+      const F = a.fwd, S = sideOf(F);
+      M.camOverride = t < 150 ? { pos: D.c.clone().add(new V3(Math.sin(t * .01) * 4, 2.2, Math.cos(t * .01) * 4)), look: D.c.clone().setY(1.1) } : { pos: D.c.clone().add(new V3(4.5, 2.6, 4.5)), look: D.c.clone().setY(1.2) };
+      if (t === 205) a.override = 'jostoFilmEnd';
+    },
+    end(M, a, d, D) { if (D.cam.parent) D.cam.parent.remove(D.cam); d.av.setTint(new THREE.Color(0), 0); d.y = 0; },
+  },
+  davidino: {
+    dur: 230, dmg: 30, name: 'Braccio di ferro',
+    start(M, a, d, D) { a.override = 'armWrestleA'; d.override = 'armWrestleB'; HUD.specialTitle(a.def.name, this.name); AU.sfx('grab'); D.c = a.pos.clone().lerp(d.pos, .5); const F = a.fwd; a.pos.copy(D.c).addScaledVector(F, -.36); d.pos.copy(D.c).addScaledVector(F, .36); d.yaw = a.yaw + Math.PI; },
+    update(M, a, d, t, D) {
+      const F = a.fwd, S = sideOf(F);
+      a.wrestle = d.wrestle = t < 110 ? Math.sin(t * .3) * .12 * (t / 110) : Math.min(1, (t - 110) / 14);
+      if (t === 20) AU.sfx('strain'); if (t === 70) AU.sfx('strain');
+      if (t > 20 && t < 110) M.shake = Math.max(M.shake, .06);
+      if (t === 116) { AU.sfx('whooshBig'); AU.grunt(d, true); d.override = 'flying'; d.spin = 0; D.f0 = d.pos.clone(); }
+      if (t > 116 && t < 160) { const k = (t - 116) / 44; d.pos.copy(D.f0).addScaledVector(F, k * 1.4); d.y = Math.sin(k * Math.PI) * 1.4; d.spin = k * 4.2; }
+      if (t === 160) { d.y = 0; d.override = 'lying'; AU.sfx('slam'); FX.dust(d.pos); M.shake = .5; a.override = 'fistPump'; a.t = 0; }
+      M.camOverride = { pos: D.c.clone().addScaledVector(S, 2.3).addScaledVector(F, .4).setY(1.45), look: D.c.clone().setY(1.25 + (t > 116 && t < 170 ? .3 : 0)) };
+    },
+    end(M, a, d, D) { a.wrestle = d.wrestle = 0; d.y = 0; },
+  },
+  gio: {
+    dur: 220, dmg: 30, name: 'Spray al peperoncino',
+    start(M, a, d, D) { D.can = makeSpray(); holdInRight(a.av, D.can, [-9, 3, 2], [0, 0, Math.PI / 2]); a.override = 'gioSpray'; d.override = 'dazed'; HUD.specialTitle(a.def.name, this.name); a.pos.copy(d.pos).addScaledVector(a.fwd, -1.0); },
+    update(M, a, d, t, D) {
+      const F = a.fwd, S = sideOf(F);
+      if (t === 24) AU.sfx('spray');
+      if (t > 24 && t < 80 && t % 2 === 0) { const p = a.av.B.rHa.getWorldPosition(new V3()).addScaledVector(F, .12); FX.smoke(p, 0xd8261c, 2, .12, F.clone().multiplyScalar(2.6)); }
+      if (t === 40) { d.override = 'eyesCovered'; d.t = 0; AU.grunt(d, true); }
+      if (t === 70) AU.sfx('cough');
+      if (t > 40 && t < 170) { d.pos.addScaledVector(F, .006); d.yaw += Math.sin(t * .08) * .02; }
+      if (t === 120) AU.sfx('cough');
+      if (t === 172) { d.override = 'ballHit'; d.t = 0; }
+      if (t === 203) { AU.sfx('fall'); FX.dust(d.pos); }
+      if (t === 90) a.override = 'mog';
+      M.camOverride = t < 90 ? { pos: a.pos.clone().addScaledVector(S, 2.4).addScaledVector(F, .5).setY(1.6), look: a.pos.clone().addScaledVector(F, .5).setY(1.5) } : { pos: d.pos.clone().addScaledVector(F, -1.7).addScaledVector(S, 1.2).setY(1.6), look: d.pos.clone().setY(1.4) };
+    },
+    end(M, a, d, D) { if (D.can.parent) D.can.parent.remove(D.can); },
+  },
+});

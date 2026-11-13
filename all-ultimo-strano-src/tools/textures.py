@@ -3,7 +3,9 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 import os
 B = os.path.dirname(os.path.abspath(__file__)) + '/../build/'
-AV = {'a01': ('Adults__Male_Adult_01', 'm002'), 'a04': ('Adults__Male_Adult_04', 'm006'), 'a06': ('Adults__Male_Adult_06', 'm011'), 'a07': ('Adults__Male_Adult_07', 'm013'),
+AV = {'a02': ('Adults__Male_Adult_02', 'm003'), 'a08': ('Adults__Male_Adult_08', 'm014'), 'a16': ('Adults__Male_Adult_16', 'm019'), 'a20': ('Adults__Male_Adult_20', 'm027'),
+      'b01': ('Professions__Business_Male_01', 'm005'), 'b02': ('Professions__Business_Male_02', 'm008'), 'b03': ('Professions__Business_Male_03', 'm020'),
+      'a01': ('Adults__Male_Adult_01', 'm002'), 'a04': ('Adults__Male_Adult_04', 'm006'), 'a06': ('Adults__Male_Adult_06', 'm011'), 'a07': ('Adults__Male_Adult_07', 'm013'),
       'a09': ('Adults__Male_Adult_09', 'm017'), 'a10': ('Adults__Male_Adult_10', 'm024'), 'b06': ('Professions__Business_Male_06', 'm025'), 's02': ('Professions__Sports_Male_02', 'm301')}
 def path(av, kind): a, c = AV[av]; return B + 'tex/' + a + '__Textures__' + c + '_' + kind + '.png'
 def load(av, kind, size=2048):

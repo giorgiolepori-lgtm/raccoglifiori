@@ -11,7 +11,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
     R.setPixelRatio(1); R.setSize(W, H); camera.aspect = W / H; camera.updateProjectionMatrix();
     const cv = document.createElement('canvas'); cv.width = W * views.length; cv.height = H * list.length; const cx = cv.getContext('2d');
     for (let r = 0; r < list.length; r++) {
-      const [id, pose, lab, focus] = list[r]; const a = new Avatar(id, id + '_1'); scene.add(a.obj);
+      const [id, pose, lab, focus] = list[r]; const a = new Avatar(id, 0); scene.add(a.obj);
       await new Promise(res => setTimeout(res, 60));
       for (let c = 0; c < views.length; c++) {
         a.obj.rotation.y = views[c][1]; a.obj.updateMatrixWorld(true); a.apply(pose);

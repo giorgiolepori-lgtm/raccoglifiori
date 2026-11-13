@@ -10,15 +10,16 @@ const App = {
   /* --- sfondo 3D dei menù: arena con i personaggi --- */
   menuBackdrop(arenaId, chars) {
     this.clearBackdrop(); ARENA.build(arenaId);
-    const avs = chars.map((c, i) => { const a = new Avatar(c.id, c.costumes[c.cos || 0].mesh); scene.add(a.obj); a.obj.position.set(i ? 1.75 : .35, 0, 0); a.obj.rotation.y = i ? -Math.PI / 2 + .6 : Math.PI / 2 - .6; return { a, c, t: rand(0, 100) }; });
+    const avs = chars.map((c, i) => { const a = new Avatar(c.id, c.cos || 0); scene.add(a.obj); a.obj.position.set(i ? 1.75 : .35, 0, 0); a.obj.rotation.y = i ? -Math.PI / 2 + .6 : Math.PI / 2 - .6; return { a, c, t: rand(0, 100) }; });
     this.bg = { avs, t: 0, arenaId };
   },
-  clearBackdrop() { if (this.bg) { this.bg.avs.forEach(o => { scene.remove(o.a.obj); o.a.dispose(); }); } this.bg = null; },
+  clearBackdrop() { if (this.bg && this.bg.cleanup) this.bg.cleanup(); this.endFx = null; if (this.bg) { this.bg.avs.forEach(o => { scene.remove(o.a.obj); o.a.dispose(); }); } this.bg = null; },
   updateBackdrop(dt) {
     const B = this.bg; if (!B) return; B.t += dt;
     for (const o of B.avs) { o.t += dt * 60; const b = Math.sin(o.t * .09) * .012; const p = clonePose(GUARD); p.hip = [0, GUARD.hip[1] + b, 0]; p.lh = [GUARD.lh[0], GUARD.lh[1] + b * 1.4, GUARD.lh[2]]; p.rh = [GUARD.rh[0], GUARD.rh[1] + b * 1.4, GUARD.rh[2]]; if (o.pose) Object.assign(p, o.pose(o.t)); o.a.apply(p); o.a.tickFace(dt); }
     const cam = B.cam || ((t) => ({ pos: new V3(Math.sin(t * .08) * .5 + .3, 1.45, 4.1), look: new V3(.3, 1.1, 0) }));
     const c = cam(B.t); camera.position.copy(c.pos); camera.lookAt(c.look);
+    if (B.shift) { const r = new V3().setFromMatrixColumn(camera.matrixWorld, 0), d = c.pos.distanceTo(c.look) * B.shift; camera.position.addScaledVector(r, d); camera.lookAt(c.look.clone().addScaledVector(r, d)); }
   },
   /* --- titolo --- */
   title() {
@@ -30,10 +31,10 @@ const App = {
       <nav class="menu">
         <button class="mbtn" data-a="arcade">Arcade</button>
         <button class="mbtn" data-a="free">Battaglia libera</button>
-        <button class="mbtn" data-a="online" disabled>Online <small>in arrivo</small></button>
+        <button class="mbtn" data-a="online">Online</button>
         <button class="mbtn" data-a="opts">Opzioni</button>
       </nav></div></div>`);
-    s.querySelectorAll('.mbtn').forEach(b => b.addEventListener('click', () => { AU.init(); AU.sfx('select'); const a = b.dataset.a; if (a === 'arcade') this.select('arcade'); else if (a === 'free') this.select('free'); else if (a === 'opts') this.options(); }));
+    s.querySelectorAll('.mbtn').forEach(b => b.addEventListener('click', () => { AU.init(); AU.sfx('select'); const a = b.dataset.a; if (a === 'arcade') this.select('arcade'); else if (a === 'free') this.select('free'); else if (a === 'online') this.select('online'); else if (a === 'opts') this.options(); }));
     this.setScreen(s);
     const foot = el(`<div class="foot">${READY.length} di ${CHARS.length} personaggi pronti</div>`); s.appendChild(foot);
   },
@@ -85,7 +86,7 @@ const App = {
         extra.innerHTML = `<p class="lbl">Difficoltà</p><div class="chips">${Object.keys(DIFF).map(d => `<button class="chip" data-df="${d}">${d}</button>`).join('')}</div>`;
         extra.querySelectorAll('[data-df]').forEach(b => { b.classList.toggle('on', b.dataset.df === st.diff); b.onclick = () => { st.diff = b.dataset.df; AU.sfx('move'); paint(); }; });
         s.querySelector('#go').textContent = 'Inizia';
-      } else { extra.innerHTML = ''; s.querySelector('#go').textContent = 'Scegli'; }
+      } else { extra.innerHTML = ''; s.querySelector('#go').textContent = mode === 'online' ? 'Vai alla sala' : 'Scegli'; }
     };
     s.querySelectorAll('.slot').forEach(b => b.addEventListener('click', () => {
       const c = CHAR[b.dataset.id]; if (!c.ready) { toast(c.name + ' arriva presto'); AU.sfx('back'); return; }
@@ -98,6 +99,7 @@ const App = {
     s.querySelector('#go').addEventListener('click', () => {
       AU.sfx('confirm');
       if (mode === 'arcade') { this.prefs.diff = st.diff; store.set({ diff: st.diff }); this.arcadeStart(st.p1, st.cos1, st.diff); return; }
+      if (mode === 'online') { Lobby.open(st.p1, st.cos1); return; }
       if (st.step === 'p1') { st.step = 'p2'; if (st.p2 === st.p1 && READY.length > 1) st.p2 = READY.find(c => c.id !== st.p1).id; st.arena = pick(CHAR[st.p2].arenas); paint(); refreshModels(); return; }
       this.prefs.diff = st.diff; store.set({ diff: st.diff });
       const cfg = { mode: 'free', p1: { def: CHAR[st.p1], costume: st.cos1 }, p2: { def: CHAR[st.p2], costume: st.cos2 }, arena: st.arena, cpu: [null, st.diff] };
@@ -135,20 +137,38 @@ const App = {
     ARENA.build(cfg.arena);
     const sg = ARENA.sign || [0, -7];
     this.bg = { avs: [], t: 0, cam: t => ({ pos: new V3(sg[0] - 2.2 + t * .5, 1.3, sg[1] + 9.5), look: new V3(sg[0] + t * .25, .55, sg[1]) }) };
-    const label = cfg.mode === 'arcade' ? 'Arcade · incontro ' + (this.arcade.idx + 1) + ' di ' + this.arcade.ladder.length : 'Battaglia libera';
+    const label = cfg.mode === 'arcade' ? 'Arcade · incontro ' + (this.arcade.idx + 1) + ' di ' + this.arcade.ladder.length : cfg.mode === 'online' ? 'Online · ' + cfg.names.join(' contro ') : 'Battaglia libera';
     const vs = el(`<div id="vs"><div class="mode">${esc(label)}</div><div class="names"><span class="n">${esc(cfg.p1.def.name)}</span><span class="v">vs</span><span class="n r">${esc(cfg.p2.def.name)}</span></div>
       <div class="at"><small>Si combatte a</small><div class="place">${esc(A.name)}</div></div></div>`);
     document.body.appendChild(vs); AU.sfx('blade');
     setTimeout(() => {
       this.bg = null;
       cfg.onEnd = r => this.afterMatch(cfg, r);
-      this.match = new Match(cfg); Controls.show(); this.paused = false;
+      this.match = new Match(cfg); this.match.local = cfg.local || 0; Controls.show(); this.paused = false;
+      if (cfg.mode === 'online') { this.match.online = true; ChatBtn.show(); if (NET.host) this.match.onStep = (n, ins) => NET.hostStep(this.match, n, ins); }
       vs.remove();
     }, 2300);
   },
-  endMatch() { document.body.classList.remove('touch'); if (this.match) { this.match.dispose(); this.match = null; HUD.hide(); Controls.hide(); } this.paused = false; if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; } },
+  endMatch() { document.body.classList.remove('touch'); ChatBtn.hide(); if (this.match) { this.match.dispose(); this.match = null; HUD.hide(); Controls.hide(); } this.paused = false; if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; } },
+  onlineMenu() {
+    if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; return; }
+    const s = this.pauseEl = el(`<div class="screen" style="z-index:20;background:rgba(0,0,0,.35)"><div class="card"><p class="kick">Online</p><h2>L'incontro continua</h2><p>Online non si può mettere in pausa.</p>
+      <div class="row"><button class="cta ghost" id="q">Esci dall'incontro</button><button class="cta" id="c">Torna a combattere</button></div></div></div>`);
+    s.querySelector('#c').addEventListener('click', () => this.onlineMenu());
+    s.querySelector('#q').addEventListener('click', () => { NET.leaveRoom(); this.endMatch(); if (this.lobbyArgs) Lobby.open(...this.lobbyArgs); else this.title(); });
+    UI.appendChild(s);
+  },
   afterMatch(cfg, r) {
-    const win = r.winner === 0;
+    const win = r.winner === (cfg.local || 0);
+    if (cfg.mode === 'online') {
+      Controls.hide(); NET.inMatch = false;
+      const s = el(`<div class="screen"><div class="card"><p class="kick">Online</p><h2>${win ? 'Hai <em>vinto</em>!' : 'Hai <em>perso</em>'}</h2><p>${esc(cfg.names[0])} contro ${esc(cfg.names[1])}</p>
+        <div class="row"><button class="cta ghost" id="q">Esci</button><button class="cta ghost" id="l">Sala d'attesa</button><button class="cta" id="again">Rivincita</button></div></div></div>`);
+      s.querySelector('#q').addEventListener('click', () => { AU.sfx('back'); NET.disconnect(); this.title(); });
+      s.querySelector('#l').addEventListener('click', () => { AU.sfx('back'); NET.leaveRoom(); this.endMatch(); Lobby.open(...this.lobbyArgs); });
+      s.querySelector('#again').addEventListener('click', () => { AU.sfx('confirm'); NET.again = true; NET.sendRoom({ t: 'again' }); this.netAgain(); });
+      this.setScreen(s); return;
+    }
     const M = this.match; Controls.hide();
     if (cfg.mode === 'arcade') {
       const A = this.arcade;
@@ -172,22 +192,11 @@ const App = {
   ending(c, cos) {
     this.endMatch(); this.clearBackdrop(); AU.music('victory');
     ARENA.build(c.arenas[0]);
-    const av = new Avatar(c.id, c.costumes[cos].mesh); scene.add(av.obj); av.obj.position.set(0, 0, 0); av.obj.rotation.y = .3;
+    const av = new Avatar(c.id, cos); scene.add(av.obj); av.obj.position.set(0, 0, 0); av.obj.rotation.y = .3;
     const props = new THREE.Group(); scene.add(props);
-    const E = c.ending;
-    if (E.scene === 'toilet') {
-      const white = std(0xf4f4f2, .25, .05);
-      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(.24, .17, .42, 24), white); bowl.position.set(.75, .21, .35); props.add(bowl);
-      const seat = new THREE.Mesh(new THREE.TorusGeometry(.2, .04, 10, 24), white); seat.rotation.x = Math.PI / 2; seat.position.set(.75, .44, .35); props.add(seat);
-      const water = new THREE.Mesh(new THREE.CircleGeometry(.16, 20), std(0x6fa8c8, .1, .2)); water.rotation.x = -Math.PI / 2; water.position.set(.75, .4, .35); props.add(water);
-      const tank = new THREE.Mesh(new THREE.BoxGeometry(.42, .38, .18), white); tank.position.set(.75, .62, .1); props.add(tank);
-      this.endFx = t => { if (Math.random() < .25) { const m = new THREE.SpriteMaterial({ map: SPR.glow, color: 0x7fd18b, transparent: true }); FX.add(m, new V3(.75 + rand(-.3, .3), 1.6, .35 + rand(-.2, .2)), { vel: new V3(0, -1.2, 0), life: .9, size: .09 }); } };
-      this.bg = { avs: [{ a: av, t: 0, pose: t => ({ rh: [-.25, 1.15, .45], re: [.5, -1, 0], fist: .4, cy: -.2, hy: -.4, hp: .3, yaw: -.1 }) }], t: 0, cam: t => ({ pos: new V3(1.9, 1.45, 2.4), look: new V3(.4, .95, .2) }) };
-    } else {
-      const phone = new THREE.Mesh(new THREE.BoxGeometry(.075, .15, .01), std(0x111214, .2, .6)); av.B.rHa.add(phone); phone.scale.setScalar(100); phone.position.set(-9, 2, 0);
-      this.endFx = t => { if (Math.random() < .15) { const m = new THREE.SpriteMaterial({ map: SPR.glow, color: pick([0xff3d5a, 0x3d8bff, 0xffcf3a]), transparent: true }); FX.add(m, new V3(rand(-.6, .6), rand(1.2, 1.8), rand(-.2, .4)), { vel: new V3(0, .7, 0), life: 1.4, size: .12 }); } };
-      this.bg = { avs: [{ a: av, t: 0, pose: t => ({ rh: [-.02, 1.38, .32], re: [.6, -1, 0], lh: [-.2, 1.1, .2], fist: .5, hp: .35, hy: .05, yaw: 0, cy: 0 }) }], t: 0, cam: t => ({ pos: new V3(-.6, 1.55, 2.2), look: new V3(0, 1.35, 0) }) };
-    }
+    const E = c.ending, SC = ENDINGS[E.scene](av, props);
+    this.endFx = SC.fx || null;
+    this.bg = { avs: [{ a: av, t: 0, pose: SC.pose }], t: 0, cam: SC.cam, shift: .45 };
     this.bg.cleanup = () => { scene.remove(props); };
     const s = el(`<div class="screen"><div class="card" style="left:auto;right:calc(16px + var(--safe-r));transform:translateY(-50%);width:min(52vw,480px)">
       <p class="kick">Finale · ${esc(c.name)}</p><h2>${esc(E.title)}</h2><p>${esc(E.text)}</p>
@@ -195,7 +204,19 @@ const App = {
     s.querySelector('#ok').addEventListener('click', () => { AU.sfx('back'); if (this.bg && this.bg.cleanup) this.bg.cleanup(); this.endFx = null; this.title(); });
     this.setScreen(s);
   },
+  /* --- online --- */
+  startOnline(c, host) {
+    const cfg = { mode: 'online', p1: { def: CHAR[c.p1.ch], costume: c.p1.cos }, p2: { def: CHAR[c.p2.ch], costume: c.p2.cos }, arena: c.arena, cpu: [null, null], local: host ? 0 : 1, names: [c.p1.name, c.p2.name] };
+    NET.ui = null; this.startMatch(cfg);
+  },
+  netGone(msg) {
+    if (this.match && this.match.online) { this.endMatch(); }
+    toast(msg); if (NET.lobby && this.lobbyArgs) Lobby.open(...this.lobbyArgs); else if (!NET.lobby) { NET.disconnect(); this.title(); }
+  },
+  netChat(who, text) { ChatBtn.bubble(who, text); },
+  netAgain() { const b = document.querySelector('#again'); if (b) b.textContent = NET.again ? 'Si parte!' : 'Rivincita (ti aspetta)'; if (NET.again && NET.peerAgain && NET.host) { NET.sendRoom(Object.assign({ t: 'start' }, NET.startCfg)); NET.beginMatch(NET.startCfg); } },
   togglePause() {
+    if (this.match && this.match.online) { this.onlineMenu(); return; }
     if (!this.match || this.match.phase === 'done') return;
     this.paused = !this.paused;
     if (this.paused) {
@@ -208,6 +229,84 @@ const App = {
     } else if (this.pauseEl) { this.pauseEl.remove(); this.pauseEl = null; }
   },
 };
+/* scene finali dell'Arcade */
+const sprite = (col, pos, vel, life, size) => FX.add(new THREE.SpriteMaterial({ map: SPR.glow, color: col, transparent: true }), pos, { vel, life, size });
+const ENDINGS = {
+  toilet(av, g) {
+    const white = std(0xf4f4f2, .25, .05);
+    const bowl = new THREE.Mesh(new THREE.CylinderGeometry(.24, .17, .42, 24), white); bowl.position.set(.75, .21, .35); g.add(bowl);
+    const seat = new THREE.Mesh(new THREE.TorusGeometry(.2, .04, 10, 24), white); seat.rotation.x = Math.PI / 2; seat.position.set(.75, .44, .35); g.add(seat);
+    const water = new THREE.Mesh(new THREE.CircleGeometry(.16, 20), std(0x6fa8c8, .1, .2)); water.rotation.x = -Math.PI / 2; water.position.set(.75, .4, .35); g.add(water);
+    const tank = new THREE.Mesh(new THREE.BoxGeometry(.42, .38, .18), white); tank.position.set(.75, .62, .1); g.add(tank);
+    return { fx: () => { if (Math.random() < .25) sprite(0x7fd18b, new V3(.75 + rand(-.3, .3), 1.6, .35 + rand(-.2, .2)), new V3(0, -1.2, 0), .9, .09); },
+      pose: t => ({ rh: [-.25, 1.15, .45], re: [.5, -1, 0], fist: .4, cy: -.2, hy: -.4, hp: .3, yaw: -.1 }), cam: t => ({ pos: new V3(1.9, 1.45, 2.4), look: new V3(.4, .95, .2) }) };
+  },
+  social(av, g) {
+    const phone = new THREE.Mesh(new THREE.BoxGeometry(.075, .15, .01), std(0x111214, .2, .6)); av.B.rHa.add(phone); phone.scale.setScalar(100); phone.position.set(-9, 2, 0);
+    return { fx: () => { if (Math.random() < .15) sprite(pick([0xff3d5a, 0x3d8bff, 0xffcf3a]), new V3(rand(-.6, .6), rand(1.2, 1.8), rand(-.2, .4)), new V3(0, .7, 0), 1.4, .12); },
+      pose: t => ({ rh: [-.02, 1.38, .32], re: [.6, -1, 0], lh: [-.2, 1.1, .2], fist: .5, hp: .35, hy: .05, yaw: 0, cy: 0 }), cam: t => ({ pos: new V3(-.6, 1.55, 2.2), look: new V3(0, 1.35, 0) }) };
+  },
+  santiago(av, g) {   // latte e menta e Cammino di Santiago: zaino, bastone e freccia gialla
+    av.obj.updateMatrixWorld(true);
+    const glass = new THREE.Mesh(new THREE.CylinderGeometry(.04, .032, .13, 16), std(0x9fe3b8, .3)); g.add(glass); glass.position.set(.75, .86, .45);
+    const pack = new THREE.Mesh(new THREE.BoxGeometry(.36, .5, .22), std(0x2f5a8a, .8)); attachAt(av, av.B.spine2, pack, av.B.spine2.getWorldPosition(new V3()).add(new V3(0, -.05, 0)).addScaledVector(new V3(0, 0, 1).transformDirection(av.obj.matrixWorld), -.22), av.obj.getWorldQuaternion(new QT()));
+    const tbl = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, .04, 24), std(0x8a6a48, .6)); tbl.position.set(.75, .78, .45); g.add(tbl); const tl = new THREE.Mesh(new THREE.CylinderGeometry(.04, .05, .78, 8), std(0x333333)); tl.position.set(.75, .39, .45); g.add(tl);
+    const stone = new THREE.Mesh(new THREE.BoxGeometry(.4, 1, .3), std(0xd9d2c3, .9)); stone.position.set(1.1, .5, .2); g.add(stone);
+    const arrow = new THREE.Mesh(new THREE.PlaneGeometry(.3, .12), std(0xf2c21a, .6)); arrow.position.set(1.1, .7, .36); g.add(arrow);
+    const shell = new THREE.Mesh(new THREE.CircleGeometry(.1, 10, 0, Math.PI), std(0xf2c21a, .6)); shell.position.set(1.1, .45, .36); g.add(shell);
+    return { pose: t => ({ rh: [.3, 1.2, .3], re: [.8, -.8, 0], fist: .5, lh: [-.25, 1.0, .1], hp: .1, hy: -.3, yaw: -.2, cy: -.1, jaw: (Math.sin(t * .1) > .9) ? .3 : 0 }), cam: t => ({ pos: new V3(-.5 + Math.sin(t * .1) * .2, 1.5, 2.6), look: new V3(.4, 1.2, 0) }) };
+  },
+  ai(av, g) {   // portatile con schermo luminoso
+    const desk = new THREE.Mesh(new THREE.BoxGeometry(1.2, .05, .6), std(0x6b4a30, .6)); desk.position.set(0, .78, .55); g.add(desk);
+    for (const [x, z] of [[-.55, .3], [.55, .3], [-.55, .8], [.55, .8]]) { const l = new THREE.Mesh(new THREE.BoxGeometry(.04, .78, .04), std(0x333333)); l.position.set(x, .39, z); g.add(l); }
+    const base = new THREE.Mesh(new THREE.BoxGeometry(.36, .02, .25), std(0x9aa0a6, .3, .7)); base.position.set(0, .815, .55); g.add(base);
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(.36, .23), new THREE.MeshBasicMaterial({ map: canvasTex(256, 160, (c, w, h) => { c.fillStyle = '#0d1b2a'; c.fillRect(0, 0, w, h); c.fillStyle = '#3d8bff'; for (let i = 0; i < 9; i++) c.fillRect(14, 14 + i * 15, rand(60, 220), 7); c.fillStyle = '#ffcf3a'; c.fillRect(14, 140, 90, 8); }) }));
+    scr.position.set(0, .94, .43); scr.rotation.x = -.15; scr.rotation.y = Math.PI; g.add(scr);
+    return { fx: () => { if (Math.random() < .1) sprite(0x3d8bff, new V3(rand(-.2, .2), rand(.95, 1.2), .45), new V3(0, .4, 0), 1, .06); },
+      pose: t => ({ lh: [-.14, 1.0, .42], rh: [.14, 1.0, .42], le: [-1, -.6, 0], re: [1, -.6, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], fist: .2, hp: .35, cp: .1, yaw: 0, cy: 0, hip: [0, -.05, 0] }), cam: t => ({ pos: new V3(1.2, 1.55, 2.2), look: new V3(0, 1.1, .3) }) };
+  },
+  fields(av, g) {   // prato verde: sdraiato a fare una chillata
+    const grass = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), new THREE.MeshStandardMaterial({ map: canvasTex(256, 256, (c, w, h) => { noiseFill(c, w, h, '#5f8f3a', .0, 0); for (let i = 0; i < 5000; i++) { c.strokeStyle = `rgba(${rand(60, 140)},${rand(140, 200)},${rand(50, 90)},.6)`; c.beginPath(); const x = rand(0, w), y = rand(0, h); c.moveTo(x, y); c.lineTo(x + rand(-2, 2), y - rand(3, 8)); c.stroke(); } }, true, [6, 6]), roughness: 1 }));
+    grass.rotation.x = -Math.PI / 2; grass.position.y = .02; g.add(grass);
+    for (let i = 0; i < 30; i++) { const f = new THREE.Mesh(new THREE.SphereGeometry(.04, 6, 4), std(pick([0xffffff, 0xf2d21a, 0xe0507a]), .6)); f.position.set(rand(-4, 4), .06, rand(-3, 3)); g.add(f); }
+    return { pose: t => Object.assign(clonePose(LYING), { lh: [-.1, 1.62, -.25], rh: [.1, 1.62, -.25], le: [-1, .3, 0], re: [1, .3, 0], fist: .2, rf: [.15, .35, .5], rk: [.2, 1, .3], jaw: 0, hp: .1 }), cam: t => ({ pos: new V3(1.4, 2.4, 1.6), look: new V3(0, .2, -.6) }) };
+  },
+  camera(av, g) {
+    const cam = makeShoulderCam(); holdInRight(av, cam, [-7, 4, 6], [0, Math.PI / 2, 0]);
+    return { fx: () => { cam.led.visible = (performance.now() >> 9) % 2 === 0; }, pose: t => ({ rh: [.14, 1.55, .12], re: [1, -.4, 0], rho: [0, 0, 1, -1, 0, 0], fist: .7, lh: [-.02, 1.52, .32], le: [-1, -.6, 0], lho: [0, 0, 1, 1, 0, 0], hy: -.1, yaw: 0, cy: 0, hip: [0, -.1, 0] }), cam: t => ({ pos: new V3(-.3, 1.6, 2.2), look: new V3(0, 1.45, 0) }) };
+  },
+  gym(av, g) {   // bilanciere sollevato
+    const bar = new THREE.Group(), m = std(0x222222, .4, .7); const rod = new THREE.Mesh(new THREE.CylinderGeometry(.015, .015, 1.6, 8), std(0xc0c4c8, .3, .9)); rod.rotation.z = Math.PI / 2; bar.add(rod);
+    for (const x of [-.65, .65]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, .06, 20), m); p.rotation.z = Math.PI / 2; p.position.x = x; bar.add(p); }
+    g.add(bar); const rack = new THREE.Mesh(new THREE.BoxGeometry(.8, .5, .4), std(0x333333, .5)); rack.position.set(1.2, .25, -.3); g.add(rack);
+    for (let i = 0; i < 4; i++) { const d = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .3, 10), m); d.rotation.z = Math.PI / 2; d.position.set(1.0 + i * .15 - .1, .55, -.3); g.add(d); }
+    return { pose: t => { const k = (Math.sin(t * .05) * .5 + .5); bar.position.set(0, 1.55 + k * .35, .1); return { lh: [-.32, 1.55 + k * .35, .1], rh: [.32, 1.55 + k * .35, .1], le: [-1, -.4, 0], re: [1, -.4, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], fist: 1, hp: -.1, yaw: 0, cy: 0, hip: [0, -.06, 0], jaw: k > .8 ? .3 : 0 }; }, cam: t => ({ pos: new V3(.4, 1.6, 2.8), look: new V3(0, 1.4, 0) }) };
+  },
+  slot(av, g) {   // slot machine, gratta e vinci e grafico degli ETF
+    const sm = new THREE.Group(); const body = new THREE.Mesh(new THREE.BoxGeometry(.7, 1.6, .6), std(0xb3171f, .5, .3)); body.position.y = .8; sm.add(body);
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(.5, .25), new THREE.MeshBasicMaterial({ map: canvasTex(192, 96, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.font = 'bold 56px Arial'; c.fillStyle = '#c00'; c.fillText('7 7 7', 12, 70); }) })); scr.position.set(0, 1.15, .301); sm.add(scr);
+    const lever = new THREE.Mesh(new THREE.CylinderGeometry(.02, .02, .5, 8), std(0xcccccc, .3, .8)); lever.position.set(.4, 1.2, 0); sm.add(lever); const knob = new THREE.Mesh(new THREE.SphereGeometry(.05, 10, 8), std(0x111111)); knob.position.set(.4, 1.45, 0); sm.add(knob);
+    sm.position.set(.85, 0, .35); sm.rotation.y = -.6; g.add(sm);
+    const card = new THREE.Mesh(new THREE.PlaneGeometry(.1, .07), new THREE.MeshBasicMaterial({ color: 0xf2c21a, side: THREE.DoubleSide })); av.B.lHa.add(card); card.scale.setScalar(100); card.position.set(-9, 2, 0);
+    return { fx: () => { if (Math.random() < .2) sprite(pick([0xffcf3a, 0x5fd35f]), new V3(.85 + rand(-.3, .3), rand(1, 1.8), .5), new V3(0, .8, 0), 1, .08); },
+      pose: t => ({ rh: [.4, 1.35, .45], re: [1, -.5, 0], fist: .8, lh: [-.1, 1.25, .3], lho: [0, 1, .3, 1, 0, 0], hp: .1, hy: -.3, yaw: -.3, cy: -.1, jaw: Math.sin(t * .3) > .8 ? .4 : 0 }), cam: t => ({ pos: new V3(-.2, 1.55, 2.6), look: new V3(.4, 1.25, .2) }) };
+  },
+};
+/* chat durante l'incontro online */
+const ChatBtn = {
+  el: null,
+  show() {
+    this.hide(); const e = this.el = el(`<div class="chatbtn"><button class="cbtn" aria-label="Chat">💬</button><div class="cpanel" hidden>${QUICK_CHAT.map(q => `<button class="chip qc">${esc(q)}</button>`).join('')}
+      <form class="chatrow"><input class="inp" maxlength="80" placeholder="Scrivi" autocomplete="off"><button class="chip on">Invia</button></form></div><div class="bubbles"></div></div>`);
+    document.body.appendChild(e);
+    const panel = e.querySelector('.cpanel'), say = t => { t = t.trim(); if (!t) return; NET.sendRoom({ t: 'chat', text: t.slice(0, 80) }); this.bubble('Tu', t.slice(0, 80)); panel.hidden = true; };
+    e.querySelector('.cbtn').addEventListener('pointerdown', ev => { ev.stopPropagation(); panel.hidden = !panel.hidden; });
+    e.querySelectorAll('.qc').forEach(b => b.addEventListener('click', () => say(b.textContent)));
+    e.querySelector('form').addEventListener('submit', ev => { ev.preventDefault(); const i = e.querySelector('form input'); say(i.value); i.value = ''; });
+  },
+  hide() { if (this.el) this.el.remove(); this.el = null; },
+  bubble(who, text) { if (!this.el) { toast(who + ': ' + text); return; } const B = this.el.querySelector('.bubbles'); const d = el(`<div class="bub"><b>${esc(who)}</b> ${esc(text)}</div>`); B.appendChild(d); setTimeout(() => d.remove(), 4500); },
+};
 function toast(t) { const d = el(`<div class="toast">${esc(t)}</div>`); document.body.appendChild(d); setTimeout(() => d.remove(), 1400); }
 
 /* ritratti dei personaggi per la griglia di selezione */
@@ -217,7 +316,7 @@ function makePortraits() {
   sc.background = new THREE.Color(0x1d1d22);
   const buf = new Uint8Array(192 * 192 * 4), cv = document.createElement('canvas'); cv.width = cv.height = 192; const cx = cv.getContext('2d');
   for (const c of READY) {
-    const a = new Avatar(c.id, c.costumes[0].mesh); sc.add(a.obj); a.obj.rotation.y = .25;
+    const a = new Avatar(c.id, 0); sc.add(a.obj); a.obj.rotation.y = .25;
     a.apply(P({ yaw: 0, cy: 0, hp: 0, lh: [-.25, 1.0, .1], rh: [.25, 1.0, .1] }));
     cam.position.set(.18, 1.62, .95); cam.lookAt(0, 1.6, 0);
     R.setRenderTarget(rt); R.render(sc, cam); R.readRenderTargetPixels(rt, 0, 0, 192, 192, buf); R.setRenderTarget(null);
@@ -234,7 +333,16 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   const M = App.match;
-  if (M && !App.paused) {
+  if (M && M.online) {
+    const me = M.f[M.local], op = M.f[1 - M.local];
+    const a = me.pos.clone().setY(1).project(camera), b = op.pos.clone().setY(1).project(camera);
+    const inp = Controls.enabled && !App.pauseEl ? Controls.read(b.x >= a.x ? 1 : -1) : { x: 0, y: 0, p: {}, h: {} };
+    if ((M.phase === 'intro' || M.phase === 'outro') && App.tapped) { inp.p.ANY = 1; App.tapped = false; }
+    if (NET.host) M.update(dt, [inp, NET.remoteInput()]);
+    else { NET.clientInput(inp, dt); NET.clientSteps(M, dt); M.render(dt); }
+    Controls.showSpecial(!me.specialUsed && me.hp > 0 && me.hp <= MAXHP * .25 && M.phase === 'fight');
+    AU.setIntensity(Math.min(me.hp, op.hp) < 30 ? 1 : 0);
+  } else if (M && !App.paused) {
     const me = M.f[0], op = M.f[1];
     const a = me.pos.clone().setY(1).project(camera), b = op.pos.clone().setY(1).project(camera);
     const sign = b.x >= a.x ? 1 : -1;
@@ -245,11 +353,12 @@ function frame(now) {
     AU.setIntensity(Math.min(me.hp, op.hp) < 30 ? 1 : 0);
   } else if (!M) App.updateBackdrop(dt);
   if (App.endFx) App.endFx(dt);
+  ARENA.tick(dt);
   FX.update(dt);
   R.render(scene, camera);
 }
 addEventListener('pointerdown', () => { AU.init(); App.tapped = true; });
-document.addEventListener('visibilitychange', () => { if (document.hidden && App.match && !App.paused && App.match.phase === 'fight') App.togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && App.match && !App.match.online && !App.paused && App.match.phase === 'fight') App.togglePause(); });
 
 function boot() {
   const bar = $('#loadbar'); bar.style.width = '30%';

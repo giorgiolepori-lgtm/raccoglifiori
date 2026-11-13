@@ -29,20 +29,30 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 # All'ultimo strano
 
 `all-ultimo-strano.html`: picchiaduro in 3D in stile Tekken, pensato per il telefono in orizzontale (funziona anche da computer).
-È un unico file (circa 1,9 MB): si apre dal browser, anche offline. Sorgenti e strumenti in `all-ultimo-strano-src/`.
+È un unico file (circa 11 MB): si apre dal browser, anche offline (tranne la modalità online). Sorgenti e strumenti in `all-ultimo-strano-src/`.
 
 - **La classifica degli strani**: gli strani si sfidano per il titolo di più strano, con un premio in denaro.
-- **Modalità**: Arcade (gli altri personaggi uno dopo l'altro, con la motivazione all'inizio e il finale del personaggio),
-  Battaglia libera contro il computer (scelta di avversario, arena e difficoltà). Online in arrivo.
-- **Personaggi pronti**: Alex (arena Capoterra, mossa speciale: la Fiat Punto blu) e Zonco (arena Quartello, mossa speciale:
-  pallonata in faccia mentre svapa). In arrivo: Bruno, Edo, Pet, Josto, Davidino, Gio.
-- Modelli 3D realistici costruiti dai modelli Rocketbox (testa e corpo uniti, carnagione, barba, occhi e vestiti rifatti),
-  animati con pose a cinematica inversa: guardia, diretti, ganci, montante, calcio basso, tiro al volo, punta, scivolata, prese, salti.
-- Colpi alti, medi e bassi, parate (stando fermi o indietro; accucciati per i bassi), contrattacchi, combo, cadute e rialzate.
-- Mossa speciale come in Tekken: quando l'energia scende sotto un quarto compare il tasto SPECIALE, una volta per round.
-- Frasi di inizio, vittoria e sconfitta come sottotitoli; musica da combattimento e suoni generati in tempo reale.
+- **8 personaggi, 27 vestiti a scelta**: Alex, Bruno, Edo, Pet, Zonco, Josto, Davidino e Gio, ognuno con il suo stile di lotta
+  (standard con calci da calciatore, MMA, Muay Thai, Brazilian Jiu Jitsu, Kickboxing, Karate Shotokan), la sua guardia,
+  le sue frasi (sottotitoli) e la sua mossa speciale.
+- **10 arene**: Capoterra, Porto Sa Ruxi, Maracalagonis, Zona musicisti, Padova, Banari, Quartello, Viale Colombo, Niu Crobu, Pitz'e Serra
+  (cartello con il nome in tutte tranne Porto Sa Ruxi).
+- **Modalità**: Arcade (tutti gli altri personaggi nelle loro arene, motivazione all'inizio e finale del personaggio),
+  Battaglia libera contro il computer, **Online** (sala d'attesa con chi è collegato, sfida diretta, partita veloce, codice stanza,
+  chat con frasi rapide, rivincita).
+- **Mosse speciali** (tasto SPECIALE quando l'energia scende sotto un quarto, una volta per round): Fiat Punto blu (Alex),
+  latte e menta gigante dal cielo (Bruno), calci alle caviglie con aura blu (Edo), attacco telepatico rosso (Pet),
+  pallonata con svapo (Zonco), telecamera da spalla che fa esplodere (Josto), braccio di ferro in piedi (Davidino),
+  spray al peperoncino (Gio).
 - **Comandi touch**: joystick a sinistra (tocco breve su/giù = passo laterale, su tenuto = salto, doppio avanti = scatto),
-  pugno sinistro/destro e calcio sinistro/destro a destra, PRESA, SPECIALE, pausa.
+  pugno sinistro/destro e calcio sinistro/destro a destra, PRESA, SPECIALE, pausa in alto a destra.
   Da computer: frecce o WASD, `U`/`I` pugni, `J`/`K` calci, `O` presa, `L` speciale, `Esc` pausa.
+
+### Online
+
+I messaggi passano da server MQTT pubblici e gratuiti (broker.emqx.io, in alternativa broker.hivemq.com o test.mosquitto.org),
+senza registrazione. Chi lancia la sfida fa girare l'incontro e manda all'altro telefono i comandi di entrambi; ogni mezzo secondo
+manda anche posizioni, energia e round per tenere i due incontri allineati. Serve aprire il gioco come file o da un sito normale:
+nell'anteprima di claude.ai i collegamenti esterni sono bloccati e l'online non si connette.
 
 Crediti: modelli 3D [Microsoft Rocketbox Avatar Library](https://github.com/microsoft/Microsoft-Rocketbox) (MIT), three.js r128 e fflate (MIT).

@@ -36,6 +36,7 @@ const HUD = {
     if (!who) { b.innerHTML = ''; return; }
     b.innerHTML = (fx ? `<div class="big-fx">${esc(fx)}</div>` : '') + (text ? `<div class="sub ${big ? 'big' : ''}"><div class="who">${esc(who)}</div><div class="txt">${esc(text)}</div></div>` : '');
   },
+  pulseFx() { const e = this.root && this.root.querySelector('.big-fx'); if (!e) return; e.classList.remove('pulse'); void e.offsetWidth; e.classList.add('pulse'); },
   combo(i, n) { const c = $('#c' + i); if (!c) return; c.innerHTML = `${n} colpi<small>combo</small>`; c.style.opacity = 1; clearTimeout(this['ct' + i]); this['ct' + i] = setTimeout(() => c.style.opacity = 0, 1100); },
   flashText(i, t) { const r = this.root; if (!r) return; const d = el(`<div class="flash" style="${i ? 'right' : 'left'}:calc(18px + var(--safe-${i ? 'r' : 'l'}))">${esc(t)}</div>`); r.appendChild(d); setTimeout(() => d.remove(), 900); },
   specialFlash() { const b = $('#spBox'); if (!b) return; const d = el('<div class="spflash"></div>'); b.appendChild(d); setTimeout(() => d.remove(), 600); },

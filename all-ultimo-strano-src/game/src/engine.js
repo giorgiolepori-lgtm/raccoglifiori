@@ -52,10 +52,15 @@ function decodeAvatar(A) {
   return { geometry: g, bones, root, groups: m.groups.map(gr => gr[2]) };
 }
 const TEXCACHE = {};
-function charTextures(id) {
+function charTextures(id) {   // testa e capelli del personaggio
   if (TEXCACHE[id]) return TEXCACHE[id];
   const T = AUS.tex[id];
-  return TEXCACHE[id] = { body: dtex(T.body, 1), body_n: dtex(T.body_n), head: dtex(T.head, 1), head_n: dtex(T.head_n), hair: dtex(T.hair, 1), hair_a: dtex(T.hair_a) };
+  return TEXCACHE[id] = { head: dtex(T.head, 1), head_n: dtex(T.head_n), hair: dtex(T.hair, 1), hair_a: dtex(T.hair_a) };
+}
+function costumeTextures(cid) {   // vestito (texture del corpo) e mappa normale condivisa
+  const k = 'c:' + cid; if (TEXCACHE[k]) return TEXCACHE[k];
+  const nk = 'n:' + AUS.bodyOf[cid]; if (!TEXCACHE[nk]) TEXCACHE[nk] = dtex(AUS.norm[AUS.bodyOf[cid]]);
+  return TEXCACHE[k] = { body: dtex(AUS.body[cid], 1), body_n: TEXCACHE[nk] };
 }
 
 /* --- scheletro: nomi delle ossa --- */
@@ -78,8 +83,9 @@ function aimBone(bone, child, targetPos, w = 1) {     // ruota l'osso perché il
 
 /* Avatar: oggetto 3D + scheletro + funzione che applica una posa */
 class Avatar {
-  constructor(charId, meshId) {
-    const U = decodeAvatar(AUS.mesh[meshId]), T = charTextures(charId);
+  constructor(charId, cos = 0) {
+    const cid = charId + '_' + (cos + 1), U = decodeAvatar(AUS.mesh[AUS.meshOf[cid]]), T = Object.assign({}, charTextures(charId), costumeTextures(cid));
+    this.charId = charId; this.cos = cos;
     const mats = U.groups.map(gn => gn === 'body' ? new THREE.MeshStandardMaterial({ map: T.body, normalMap: T.body_n, roughness: .82, skinning: true })
       : gn === 'head' ? new THREE.MeshStandardMaterial({ map: T.head, normalMap: T.head_n, normalScale: new THREE.Vector2(.8, .8), roughness: .55, skinning: true })
       : new THREE.MeshStandardMaterial({ map: T.hair, alphaMap: T.hair_a, alphaTest: .45, roughness: .7, skinning: true, side: THREE.DoubleSide }));
@@ -116,6 +122,7 @@ class Avatar {
     }
     this.blink = 0; this.nextBlink = rand(1, 4);
     this.flash = 0;
+    const meta = AUS.meta[charId]; addAccessories(this, ((meta.costumes[cos] || {}).acc || []).concat(CHAR_ACC[charId] || []));
   }
   dispose() { this.mesh.geometry.dispose(); this.mats.forEach(m => m.dispose()); }
   setTint(col, amt) { for (const m of this.mats) { m.emissive.copy(m.userData.emi).lerp(col, amt); } }
@@ -176,7 +183,7 @@ class Avatar {
       else if (P[s + 'hd']) { const tgt = H.getWorldPosition(new V3()).add(this.Ldir(P[s + 'hd'], new V3()).multiplyScalar(.1)); aimBone(H, this.fing[s][2][0] || H.children[0], tgt, 1); }
       const ax = this.fing[s][1][0] && this.fing[s][4][0] ? this.fing[s][4][0].getWorldPosition(new V3()).sub(this.fing[s][1][0].getWorldPosition(new V3())).normalize() : Rr;
       const sg = s === 'l' ? 1 : -1;
-      const CURL = [1.6, 1.55, 1.0]; for (let f = 1; f < 5; f++) this.fing[s][f].forEach((bn, k) => rotWorld(bn, ax, sg * fist * CURL[k]));
+      const CURL = [1.6, 1.55, 1.0], pt = P[s + 'pt']; for (let f = 1; f < 5; f++) { const fk = (f === 1 && pt) ? .1 : (f === 2 && pt === 2) ? .1 : 1; this.fing[s][f].forEach((bn, k) => rotWorld(bn, ax, sg * fist * fk * CURL[k])); }
       const th = this.fing[s][0];
       if (th[0] && fist > 0) { const hf = this.fing[s][2][0].getWorldPosition(new V3()).sub(H.getWorldPosition(new V3())).normalize(); const pn = new V3().crossVectors(hf, ax).normalize(); rotWorld(th[0], pn, (s === 'l' ? 1 : -1) * fist * 1.2); rotWorld(th[0], hf, (s === 'l' ? 1 : -1) * fist * .6); }
       for (let k = 1; k < th.length; k++) rotWorld(th[k], ax, fist * 1);
@@ -242,4 +249,74 @@ function track(base, keys) {
     }
     return mixPose(full[full.length - 1].p, full[full.length - 1].p, 0, out);
   };
+}
+
+/* ===== Accessori: occhiali, cappellini, bandana, orecchini, catenina, orologi ===== */
+const ACC_MAT = {}, CHAR_ACC = { gio: ['earring'] };
+const accMat = (k, make) => ACC_MAT[k] || (ACC_MAT[k] = (m => (m.color.convertSRGBToLinear(), m))(make()));
+function attachAt(av, bone, obj, worldPos, worldQuat) {
+  av.obj.updateMatrixWorld(true); obj.position.copy(worldPos); if (worldQuat) obj.quaternion.copy(worldQuat);
+  av.obj.add(obj); obj.updateMatrixWorld(true); bone.attach(obj);
+}
+function headFrame(av) {   // posizione e assi della testa a riposo (mondo)
+  av.obj.updateMatrixWorld(true);
+  const B = av.B, le = B.lEye ? B.lEye.getWorldPosition(new V3()) : null;
+  const byName = n => av.bones.find(b => b.name === n);
+  const L = byName('Bip01_LEye'), Rr = byName('Bip01_REye'), H = B.head.getWorldPosition(new V3());
+  const lp = L.getWorldPosition(new V3()), rp = Rr.getWorldPosition(new V3());
+  const eyes = lp.clone().add(rp).multiplyScalar(.5), side = lp.clone().sub(rp).normalize();   // side: verso l'occhio sinistro
+  const fwd = new V3(0, 0, 1).transformDirection(av.obj.matrixWorld); fwd.addScaledVector(side, -fwd.dot(side)).normalize();
+  const up = new V3().crossVectors(fwd, side).normalize().negate(); if (up.y < 0) up.negate();
+  const q = new QT().setFromRotationMatrix(new THREE.Matrix4().makeBasis(side, up, fwd));
+  return { H, eyes, side, up, fwd, q, half: lp.distanceTo(rp) / 2 };
+}
+function addAccessories(av, list) {
+  if (!list.length) return;
+  const F = headFrame(av), B = av.B;
+  const at = (v, x, y, z) => v.clone().addScaledVector(F.side, x).addScaledVector(F.up, y).addScaledVector(F.fwd, z);
+  for (const it of list) {
+    const [kind, opt] = it.split(':');
+    if (kind === 'glasses' || kind === 'sunglasses' || kind === 'sunhead') {
+      const g = new THREE.Group();
+      const frameCol = opt === 'gold' ? 0xc9a24a : opt === 'mirror' ? 0x2a2c30 : 0x141414;
+      const fr = accMat('fr' + frameCol, () => std(frameCol, .3, opt === 'gold' ? .9 : .3));
+      const sun = kind !== 'glasses', round = opt === 'gold';
+      const lens = sun ? accMat('lens' + opt, () => opt === 'mirror' ? std(0x2d5fd8, .05, .95, { envMapIntensity: 2 }) : std(0x0b0c0e, .08, .4))
+        : accMat('lensClear', () => std(0xd8eef8, .05, 0, { transparent: true, opacity: .15, depthWrite: false }));
+      const hw = Math.max(.03, F.half);
+      for (const s of [-1, 1]) {
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(round ? .02 : .022, round ? .0016 : .0026, 6, 26), fr); rim.scale.set(round ? 1 : 1.25, round ? 1 : .85, 1); rim.position.set(s * hw, 0, 0); g.add(rim);
+        const l = new THREE.Mesh(new THREE.CircleGeometry(round ? .02 : .022, 22), lens); l.scale.copy(rim.scale); l.position.set(s * hw, 0, -.001); g.add(l);
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(.0025, .003, .1), fr); arm.position.set(s * (hw + (round ? .021 : .028)), .003, -.05); g.add(arm);
+      }
+      const br = new THREE.Mesh(new THREE.BoxGeometry(hw * .7, .0025, .003), fr); br.position.set(0, .004, .001); g.add(br);
+      const pos = kind === 'sunhead' ? at(F.eyes, 0, .1, -.005) : at(F.eyes, 0, .003, .03);
+      const q = F.q.clone(); if (kind === 'sunhead') q.multiply(new QT().setFromAxisAngle(new V3(1, 0, 0), -.5));
+      attachAt(av, B.head, g, pos, q);
+    } else if (kind === 'cap') {
+      const col = opt === 'green' ? 0x0d2614 : 0x0e0f12, m = accMat('cap' + col, () => std(col, .95));
+      const g = new THREE.Group(), dome = new THREE.Mesh(new THREE.SphereGeometry(.104, 24, 12, 0, TAU, 0, Math.PI / 2), m); dome.scale.set(1, .74, 1.08); g.add(dome);
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(.09, .09, .008, 24, 1, false, -Math.PI / 2, Math.PI), m); brim.scale.set(1, 1, .8); brim.position.set(0, .002, .085); g.add(brim);
+      const btn = new THREE.Mesh(new THREE.SphereGeometry(.01, 8, 6), m); btn.position.y = .088; g.add(btn);
+      attachAt(av, B.head, g, at(F.eyes, 0, .028, -.055), F.q);
+    } else if (kind === 'bandana') {
+      const m = accMat('band', () => std(0x1f3f86, .8)); const g = new THREE.Group();
+      const band = new THREE.Mesh(new THREE.TorusGeometry(.094, .017, 8, 30), m); band.rotation.x = Math.PI / 2 - .25; band.scale.set(1, 1.18, .8); g.add(band);
+      const knot = new THREE.Mesh(new THREE.ConeGeometry(.03, .09, 6), m); knot.position.set(0, -.03, -.12); knot.rotation.x = 2.4; g.add(knot);
+      attachAt(av, B.head, g, at(F.eyes, 0, .045, -.07), F.q);
+    } else if (kind === 'earrings' || kind === 'earring') {
+      const m = accMat('silver', () => std(0xd8d8dc, .2, 1));
+      for (const s of kind === 'earring' ? [1] : [-1, 1]) { const r = new THREE.Mesh(new THREE.TorusGeometry(.007, .0013, 6, 16), m); attachAt(av, B.head, r, at(F.eyes, s * .072, -.055, -.085), F.q.clone().multiply(new QT().setFromAxisAngle(new V3(0, 1, 0), Math.PI / 2))); }
+    } else if (kind === 'chain') {
+      const m = accMat('gold', () => std(0xd8b25a, .25, 1)); const neck = B.neck.getWorldPosition(new V3());
+      const c = new THREE.Mesh(new THREE.TorusGeometry(.075, .0028, 6, 40), m); c.scale.set(1, 1.2, 1);
+      attachAt(av, B.spine2, c, neck.clone().addScaledVector(F.fwd, .02).addScaledVector(F.up, -.06), F.q.clone().multiply(new QT().setFromAxisAngle(new V3(1, 0, 0), Math.PI / 2 - .45)));
+    } else if (kind === 'watch' || kind === 'smartwatch') {
+      const g = new THREE.Group(), strap = accMat('strap' + kind, () => std(kind === 'watch' ? 0xb8bcc4 : 0x111111, .35, kind === 'watch' ? .9 : .1));
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(.032, .032, .018, 18, 1, true), strap); band.material.side = THREE.DoubleSide; g.add(band);
+      const face = new THREE.Mesh(kind === 'watch' ? new THREE.CylinderGeometry(.018, .018, .008, 20) : new THREE.BoxGeometry(.03, .008, .036), accMat('face' + kind, () => std(kind === 'watch' ? 0x1c2433 : 0x050505, .1, .5))); face.position.set(0, 0, 0); face.rotation.z = Math.PI / 2; face.position.x = -.033; g.add(face);
+      const fo = B.lFo.getWorldPosition(new V3()), ha = B.lHa.getWorldPosition(new V3()), dir = ha.clone().sub(fo).normalize(), p = ha.clone().addScaledVector(dir, -.05);
+      const q = new QT().setFromUnitVectors(new V3(0, 1, 0), dir); attachAt(av, B.lFo, g, p, q);
+    }
+  }
 }
