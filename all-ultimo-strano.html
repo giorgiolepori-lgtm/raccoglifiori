@@ -488,7 +488,7 @@ function track(base, keys) {
 }
 
 /* ===== Accessori: occhiali, cappellini, bandana, orecchini, catenina, orologi ===== */
-const ACC_MAT = {}, CHAR_ACC = { gio: ['earring'] }; let TX_TATTOO = null; const CAP_FIT = { rasco: [-.02, 1.17, -.02] };
+const ACC_MAT = {}, CHAR_ACC = { gio: ['earring'] }; let TX_TATTOO = null; const CAP_FIT = { rasco: [-.006, 1.04, -.018, 1.12] };
 const accMat = (k, make) => ACC_MAT[k] || (ACC_MAT[k] = (m => (m.color.convertSRGBToLinear(), m))(make()));
 function attachAt(av, bone, obj, worldPos, worldQuat) {
   av.obj.updateMatrixWorld(true); obj.position.copy(worldPos); if (worldQuat) obj.quaternion.copy(worldQuat);
@@ -536,7 +536,7 @@ function addAccessories(av, list) {
       const vis = new THREE.Shape(); vis.absarc(0, 0, .1, Math.PI * .08, Math.PI * .92, false); vis.lineTo(0, .03);
       const brim = new THREE.Mesh(new THREE.ExtrudeGeometry(vis, { depth: .006, bevelEnabled: false }), m); brim.rotation.x = Math.PI / 2 - .12; brim.position.set(0, -.006, .07); brim.scale.set(1.05, 1.15, 1); g.add(brim);
       const btn = new THREE.Mesh(new THREE.SphereGeometry(.01, 8, 6), m); btn.position.y = .082; g.add(btn);
-      const fit = CAP_FIT[av.charId] || [0, 1, 0]; g.scale.setScalar(fit[1]);
+      const fit = CAP_FIT[av.charId] || [0, 1, 0, 1]; g.scale.set(fit[1], fit[3] || fit[1], fit[1]);
       attachAt(av, B.head, g, at(F.eyes, 0, .045 + fit[0], -.06 + fit[2]), F.q);
     } else if (kind === 'bandana') {
       const m = accMat('band', () => std(0x1f3f86, .8)); const g = new THREE.Group();
