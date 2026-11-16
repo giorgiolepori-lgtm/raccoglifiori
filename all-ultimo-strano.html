@@ -2372,7 +2372,7 @@ class MqttWS {
 class LocalBus {
   constructor(url, cid, onMsg) { this.onMsg = onMsg; this.subs = new Set(); }
   connect() { this.bc = new BroadcastChannel('aus-local-bus'); this.bc.onmessage = e => { const [t, s] = e.data; if ([...this.subs].some(x => x === t)) this.onMsg(t, s); }; return Promise.resolve(this); }
-  sub(t) { this.subs.add(t); } unsub(t) { this.subs.delete(t); } pub(t, s) { this.bc.postMessage([t, s]); } close() { this.bc && this.bc.close(); }
+  sub(t) { this.subs.add(t); } unsub(t) { this.subs.delete(t); } pub(t, s) { const drop = +(new URLSearchParams(location.search).get('drop') || 0); if (drop && /\/r\//.test(t) && Math.random() < drop) return; this.bc.postMessage([t, s]); } close() { this.bc && this.bc.close(); }
 }
 
 /* --- comandi compressi in un numero: assi, tasti premuti, passo laterale, scatto --- */
@@ -2459,6 +2459,7 @@ const NET = {
       if (m.t === 'ch') { if (this.state === 'lobby' && this.ui) this.ui.incoming(m); else this.send(this.topic('to', m.id), { t: 'no', id: this.id, busy: 1 }); }
       else if (m.t === 'inv' && this.state === 'quick') { this.send(this.topic('to', m.id), { t: 'acc', id: this.id, name: this.me.name, ch: this.me.ch, cos: this.me.cos, room: m.room }); this.joinRoom(m.room, m.id, false, m); }
       else if (m.t === 'acc' && m.room === this.pendingRoom && (this.state === 'asking' || this.state === 'quick')) this.joinRoom(m.room, m.id, true, m);
+      else if (m.t === 'acc' && this.host && m.room === this.room && this.startCfg) this.sendRoom(Object.assign({ t: 'start' }, this.startCfg));   // il primo avvio è andato perso: lo rimando
       else if (m.t === 'no' && this.state === 'asking') { this.state = 'lobby'; if (this.ui) this.ui.status(m.busy ? 'Sta già giocando con qualcun altro.' : 'Ha rifiutato la sfida.'); }
       return;
     }
@@ -2466,7 +2467,7 @@ const NET = {
   },
   joinRoom(room, peer, host, info) {
     clearInterval(this.quickIv);
-    this.room = room; this.peer = peer; this.host = host; this.peerInfo = info; this.state = 'room';
+    this.room = room; this.peer = peer; this.host = host; this.peerInfo = info; this.state = 'room'; this.joinT = performance.now(); this.gotStart = false; this.accMsg = host ? null : { t: 'acc', id: this.id, name: this.me.name, ch: this.me.ch, cos: this.me.cos, room };
     this.mq.sub(this.topic('r', room, peer)); this.announce();
     this.lastRx = performance.now();
     if (host) {   // l'host decide l'arena e avvia
@@ -2486,6 +2487,7 @@ const NET = {
   watch() {
     if (!this.room) return;
     this.sendRoom({ t: 'ka' });
+    if (!this.host && !this.gotStart && this.accMsg && performance.now() - this.joinT > 2000) this.send(this.topic('to', this.peer), this.accMsg);   // nessun avvio ricevuto: richiedo
     if (performance.now() - this.lastRx > 8000) { const was = this.inMatch; this.leaveRoom(true); App.netGone(was ? 'Connessione persa: l\'altro giocatore non risponde più.' : 'L\'altro giocatore non risponde.'); }
   },
   beginMatch(cfg) {
@@ -2494,7 +2496,7 @@ const NET = {
   },
   roomRx(m) {
     switch (m.t) {
-      case 'start': if (!this.host) { this.startCfg = m; this.beginMatch(m); } break;
+      case 'start': if (!this.host && !this.inMatch) { this.gotStart = true; this.startCfg = m; this.beginMatch(m); } break;
       case 'in': {   // host: comandi dell'altro giocatore
         this.remote.x = m.x; this.remote.y = m.y; this.remote.h = m.j ? { jumpHold: 1 } : {};
         if (m.p) this.remote.pend.push(m.p); break;
@@ -2518,7 +2520,7 @@ const NET = {
   hostStep(M, n, ins) {   // host: registra i comandi usati e li spedisce a gruppi
     if (!this.outBuf.length) this.outFrom = n;
     this.outBuf.push([encIn(ins[0]), encIn(ins[1])]);
-    const snap = n % 30 === 0 ? [n, ...M.f.flatMap(f => [r3(f.pos.x), r3(f.pos.z), r3(f.y), r3(f.yaw), f.hp]), M.timer,
+    const snap = n % 20 === 0 ? [n, ...M.f.flatMap(f => [r3(f.pos.x), r3(f.pos.z), r3(f.y), r3(f.yaw), f.hp]), M.timer,
       PHASES.indexOf(M.phase), M.pt, M.round, M.f[0].wins, M.f[1].wins, M.roundWinner ? M.f.indexOf(M.roundWinner) : -1, M.winner ? M.f.indexOf(M.winner) : -1] : null;
     if (this.outBuf.length >= 3 || snap) { const msg = { t: 'f', n: this.outFrom, i: this.outBuf }; if (snap) msg.s = snap; this.sendRoom(msg); this.outBuf = []; }
   },
@@ -2528,7 +2530,17 @@ const NET = {
     else { this.sendT += dt; const key = I.x + ',' + I.y + ',' + (I.h.jumpHold ? 1 : 0); if (key !== this.lastKey || this.sendT > .25) { this.sendT = 0; this.lastKey = key; this.sendRoom({ t: 'in', x: I.x, y: I.y, j: I.h.jumpHold ? 1 : 0 }); } }
   },
   clientSteps(M, dt) {   // client: rigioca i fotogrammi ricevuti al ritmo giusto, recuperando se resta indietro
+    this.queue.sort((a, b) => a.n - b.n);
     while (this.queue.length && this.queue[0].n < this.nextFrame) this.queue.shift();
+    // un messaggio perso dal server non deve bloccare la partita: dopo poco si salta il buco
+    // e l'istantanea più recente dell'host rimette a posto posizioni, energia e fase
+    if (this.queue.length && this.queue[0].n > this.nextFrame) {
+      this.gapT = (this.gapT || 0) + dt;
+      if (this.gapT > .12 || this.queue.length > 8) { this.nextFrame = this.queue[0].n; this.gapT = 0; this.resync(M); }
+    } else this.gapT = 0;
+    // molto indietro rispetto all'host: si salta direttamente all'ultima istantanea
+    const last = this.queue.length ? this.queue[this.queue.length - 1].n : 0;
+    if (last - this.nextFrame > 90) { this.resync(M, true); }
     this.cAcc = (this.cAcc || 0) + Math.min(dt, .1) * M.slow;
     let steps = 0; const backlog = this.queue.length;
     const extra = backlog > 12 ? 3 : backlog > 6 ? 1 : 0;
@@ -2540,7 +2552,16 @@ const NET = {
     }
     if (!this.queue.length) this.cAcc = Math.min(this.cAcc, DT);
     if (M.slowT > 0) { M.slowT -= dt; if (M.slowT <= 0) M.slow = 1; }
+    for (const k of this.snaps.keys()) if (k < this.nextFrame - 1) this.snaps.delete(k);
     return steps;
+  },
+  resync(M, jump) {   // applica l'istantanea più recente già superata (o, se jump, l'ultima ricevuta)
+    let best = null;
+    for (const [k, s] of this.snaps) if ((jump || k <= this.nextFrame) && (!best || k > best[0])) best = s;
+    if (!best) return;
+    this.correct(M, best); M.frame = best[0];
+    if (jump && best[0] >= this.nextFrame) { this.nextFrame = best[0] + 1; while (this.queue.length && this.queue[0].n < this.nextFrame) this.queue.shift(); }
+    for (const k of [...this.snaps.keys()]) if (k <= best[0]) this.snaps.delete(k);
   },
   correct(M, s) {   // allinea il secondo telefono all'host: posizioni, energia, tempo, round e vittorie
     const [ph, pt, round, w0, w1, rw, win] = s.slice(12), phase = PHASES[ph];
