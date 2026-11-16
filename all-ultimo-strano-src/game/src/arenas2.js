@@ -151,6 +151,30 @@ Object.assign(ARENAS, {
       const hill = new THREE.Mesh(new THREE.PlaneGeometry(200, 60), new THREE.MeshStandardMaterial({ map: texGrassDry(), roughness: 1, color: 0xb9c48f })); hill.rotation.x = -Math.PI / 2 + .25; addA(hill, 0, 2, 40, 0, 'recv');
       addSigns('Niu Crobu', 7.3, 2.4); ARENA.group.add(mountains(0x7f8ea8, 150, 32, 5)); ARENA.group.add(cloudLayer(6));
     } },
+  sole: { name: 'Quartiere del sole', music: 0, bounds: [8.5, 3.0], cam: [24, 6.6], sky: ['#3f86da', '#a6cbee', '#e9e6de'], fog: 0xd3e1ec, sunPos: [7, 17, 6],
+    build() {
+      addA(ground(texPaving('#c9c2b4')), 0, -.02, 0, 0, 'recv'); addA(road(120, 11, 'none'), 0, 0, 0, 0, 'recv'); sidewalks(120, 5.5, 2.4, '#cfc7b8');
+      for (const z of [-4.3, 4.3]) { const l = new THREE.Mesh(new THREE.PlaneGeometry(120, .1), sm(0xeeeae0, .7)); l.rotation.x = -Math.PI / 2; addA(l, 0, .006, z, 0, null); }
+      for (let x = -40; x <= 40; x += 5) { const l = new THREE.Mesh(new THREE.PlaneGeometry(1.8, .1), sm(0xe2b82a, .7)); l.rotation.x = -Math.PI / 2; addA(l, x, .006, 2.6, 0, null); }
+      const bus = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.1), new THREE.MeshStandardMaterial({ map: canvasTex(256, 128, (c, w, h) => { c.clearRect(0, 0, w, h); c.fillStyle = 'rgba(226,184,42,.95)'; c.font = 'bold 110px Arial'; c.textAlign = 'center'; c.fillText('BUS', w / 2, h - 12); }), transparent: true, roughness: .8 }));
+      bus.rotation.x = -Math.PI / 2; bus.rotation.z = Math.PI / 2; addA(bus, 14, .008, 3.4, 0, null); bus.rotation.set(-Math.PI / 2, 0, Math.PI / 2);
+      const cars = [0xffffff, 0xf2f2f0, 0x9a9da2, 0xffffff, 0x2a2c30, 0xe8e8e6, 0xc8c8c4];
+      carsAlong(-4.9, 0, -40, 40, cars); carsAlong(4.9, Math.PI, -40, 40, cars);
+      const white = (lat) => facade({ cols: 6, rows: 4, wall: '#f4f2ec', roller: '#a9774c', frame: '#ffffff', balcony: true, balc: '#f4f2ec', rail: '#ffffff', lattice: lat, band: '#e9e6de' });
+      addA(building(18, 13, 11, white([1, 4]), 'flat', 0xe9e6de), -30, 0, -16); addA(building(16, 12, 11, white([2]), 'flat', 0xe9e6de), -8, 0, -16);
+      addA(building(16, 18, 12, facade({ cols: 6, rows: 6, wall: '#d07a5c', band: '#e6b39a', roller: '#cfa78a', balcony: true, rail: '#3a3a3a', frame: '#efe6dc' }), 'flat'), 14, 0, -16);
+      addA(building(14, 12, 11, facade({ cols: 5, rows: 4, wall: '#efe9de', brick: '#a4553a', roller: '#bfa78a', balcony: (r, c) => c % 2 === 1, rail: '#555' }), 'flat'), 34, 0, -16);
+      addA(building(18, 12, 11, white([0, 3]), 'flat', 0xe9e6de), -24, 0, 16, Math.PI); addA(building(18, 15, 12, facade({ cols: 6, rows: 5, wall: '#e7c9a4', band: '#f1e2cc', roller: '#c9ad8a', balcony: true, rail: '#555' }), 'flat'), 0, 0, 16, Math.PI);
+      addA(building(16, 12, 11, white([1, 4]), 'flat', 0xe9e6de), 24, 0, 16, Math.PI);
+      for (const [z, col] of [[-7.4, 0xf4f2ec], [7.4, 0xd9c3a3]]) { const w = box(90, 1.0, .3, sm(col, .9)); addA(w, 0, .5, z); }
+      for (let x = -40; x <= 40; x += 3.5) { const zz = x % 7 === 0 ? 7.9 : -7.9; addA(shrub(rand(.8, 1.1), '#3f6a2c'), x, .9, -7.9); if (Math.random() < .7) addA(shrub(rand(.7, 1), '#4a6e30'), x + 1.7, .9, 7.9); }
+      for (const x of [-34, -18, -2, 20, 32]) addA(oleander(0xd8247a), x, .5, -8.2);
+      for (const x of [-26, 8, 28]) addA(oleander(0xe0307e), x, .5, 8.2);
+      for (const x of [-12, 18]) addA(oleander(0x9a7bd0), x, .9, -8.2);
+      addA(pineUmbrella(10), -20, 0, -11); addA(pineUmbrella(9), 30, 0, 11); addA(palm(9), 4, 0, 10.5); addA(palm(8), -38, 0, -10.5);
+      for (let x = -40; x <= 40; x += 13) { addA(lamp(9), x, .15, -7.0, Math.PI / 2); addA(lamp(9), x + 6.5, .15, 7.0, -Math.PI / 2); }
+      addSigns('Quartiere del sole', 6.9, 2.6); ARENA.group.add(cloudLayer(5));
+    } },
   pitzeserra: { name: "Pitz'e Serra", music: 1, bounds: [8.5, 3.0], cam: [24, 6.6], sky: ['#4c8ad6', '#a7caee', '#e8e3d9'], fog: 0xd5e0ea, sunPos: [7, 16, 7],
     build() {
       addA(ground(texPaving('#c2baab')), 0, -.02, 0, 0, 'recv'); addA(road(120, 11, 'dashed'), 0, 0, 0, 0, 'recv'); sidewalks(120, 5.5);

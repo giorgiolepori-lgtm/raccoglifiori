@@ -42,6 +42,12 @@ button { font-family: var(--font); color: inherit; }
 .mbtn:hover::before, .mbtn:focus-visible::before, .mbtn.sel::before { opacity: 1; }
 .mbtn[disabled] { color: #5c5852; cursor: default; transform: none; }
 .mbtn small { font-family: var(--font); font-size: .42em; font-weight: 700; letter-spacing: .12em; color: var(--gold); vertical-align: middle; margin-left: 8px; }
+.upd { position: fixed; z-index: 40; left: 50%; top: calc(12px + var(--safe-t)); transform: translateX(-50%); width: min(92vw, 520px); background: var(--panel); border: 2px solid var(--gold); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 4px; }
+.upd b { font-family: var(--font-title); font-weight: 400; font-size: 22px; text-transform: uppercase; color: var(--gold); }
+.upd span { font-size: 15px; font-weight: 600; }
+.upd .row { display: flex; gap: 8px; justify-content: flex-end; }
+.upd a.cta { text-decoration: none; font-size: 18px; padding: 6px 14px; }
+.upd .cta.ghost { font-size: 16px; padding: 6px 12px; }
 .getapp { display: inline-block; margin-top: 10px; font-weight: 800; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); text-decoration: none; border: 2px solid rgba(255,207,58,.5); border-radius: 999px; padding: 5px 12px; align-self: flex-start; }
 .foot { position: fixed; right: calc(16px + var(--safe-r)); bottom: calc(10px + var(--safe-b)); font-size: 13px; color: var(--ink-dim); letter-spacing: .06em; z-index: 11; }
 
@@ -52,7 +58,7 @@ button { font-family: var(--font); color: inherit; }
 .back { appearance: none; border: 2px solid var(--edge); background: var(--panel); border-radius: 999px; width: 44px; height: 44px; font-size: 22px; display: grid; place-items: center; cursor: pointer; flex: none; }
 .back:active { transform: scale(.94); }
 #select { background: linear-gradient(180deg, rgba(8,8,10,.75), rgba(8,8,10,0) 30%, rgba(8,8,10,0) 60%, rgba(8,8,10,.85)); }
-.roster { position: absolute; left: calc(16px + var(--safe-l)); bottom: calc(14px + var(--safe-b)); display: grid; grid-template-columns: repeat(4, clamp(56px, 13vh, 92px)); gap: 6px; }
+.roster { position: absolute; left: calc(16px + var(--safe-l)); bottom: calc(14px + var(--safe-b)); display: grid; grid-template-columns: repeat(5, clamp(50px, 11.5vh, 84px)); gap: 6px; }
 .slot { position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 2px solid rgba(255,255,255,.14); background: #18181c center/cover no-repeat; cursor: pointer; padding: 0; }
 .slot .nm { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 4px; font-size: clamp(11px, 2.4vh, 14px); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; background: linear-gradient(0deg, rgba(0,0,0,.85), rgba(0,0,0,0)); text-align: left; }
 .slot.locked { filter: grayscale(1) brightness(.45); cursor: default; }

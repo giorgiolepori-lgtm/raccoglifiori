@@ -252,7 +252,7 @@ function track(base, keys) {
 }
 
 /* ===== Accessori: occhiali, cappellini, bandana, orecchini, catenina, orologi ===== */
-const ACC_MAT = {}, CHAR_ACC = { gio: ['earring'] };
+const ACC_MAT = {}, CHAR_ACC = { gio: ['earring'] }; let TX_TATTOO = null;
 const accMat = (k, make) => ACC_MAT[k] || (ACC_MAT[k] = (m => (m.color.convertSRGBToLinear(), m))(make()));
 function attachAt(av, bone, obj, worldPos, worldQuat) {
   av.obj.updateMatrixWorld(true); obj.position.copy(worldPos); if (worldQuat) obj.quaternion.copy(worldQuat);
@@ -278,10 +278,10 @@ function addAccessories(av, list) {
     const [kind, opt] = it.split(':');
     if (kind === 'glasses' || kind === 'sunglasses' || kind === 'sunhead') {
       const g = new THREE.Group();
-      const frameCol = opt === 'gold' ? 0xc9a24a : opt === 'mirror' ? 0x2a2c30 : 0x141414;
+      const frameCol = opt === 'gold' || opt === 'round' ? 0xc9a24a : opt === 'mirror' ? 0x2a2c30 : 0x141414;
       const fr = accMat('fr' + frameCol, () => std(frameCol, .3, opt === 'gold' ? .9 : .3));
-      const sun = kind !== 'glasses', round = opt === 'gold';
-      const lens = sun ? accMat('lens' + opt, () => opt === 'mirror' ? std(0x2d5fd8, .05, .95, { envMapIntensity: 2 }) : std(0x0b0c0e, .08, .4))
+      const sun = kind !== 'glasses', round = opt === 'gold' || opt === 'round';
+      const lens = sun ? accMat('lens' + opt, () => opt === 'round' ? std(0x5a1414, .1, .3) : opt === 'mirror' ? std(0x2d5fd8, .05, .95, { envMapIntensity: 2 }) : std(0x0b0c0e, .08, .4))
         : accMat('lensClear', () => std(0xd8eef8, .05, 0, { transparent: true, opacity: .15, depthWrite: false }));
       const hw = Math.max(.03, F.half);
       for (const s of [-1, 1]) {
@@ -294,7 +294,7 @@ function addAccessories(av, list) {
       const q = F.q.clone(); if (kind === 'sunhead') q.multiply(new QT().setFromAxisAngle(new V3(1, 0, 0), -.5));
       attachAt(av, B.head, g, pos, q);
     } else if (kind === 'cap') {   // cappellino con visiera: la calotta copre i capelli
-      const col = opt === 'green' ? 0x0d2614 : 0x0e0f12, m = accMat('cap' + col, () => std(col, .95));
+      const col = opt === 'green' ? 0x0d2614 : opt === 'beige' ? 0xcdb38f : 0x0e0f12, m = accMat('cap' + col, () => std(col, .95));
       const g = new THREE.Group(), dome = new THREE.Mesh(new THREE.SphereGeometry(.112, 26, 12, 0, TAU, 0, Math.PI / 2 + .1), m); dome.scale.set(1, .74, 1.1); g.add(dome);
       const band = new THREE.Mesh(new THREE.CylinderGeometry(.113, .113, .02, 26, 1, true), m); band.material.side = THREE.DoubleSide; band.scale.set(1, 1, 1.1); band.position.y = -.008; g.add(band);
       const vis = new THREE.Shape(); vis.absarc(0, 0, .1, Math.PI * .08, Math.PI * .92, false); vis.lineTo(0, .03);
@@ -313,6 +313,23 @@ function addAccessories(av, list) {
       const m = accMat('gold', () => std(0xd8b25a, .25, 1)); const neck = B.neck.getWorldPosition(new V3());
       const c = new THREE.Mesh(new THREE.TorusGeometry(.078, .0026, 6, 48), m); c.scale.set(1, 1.25, 1);
       attachAt(av, B.spine2, c, neck.clone().addScaledVector(F.fwd, .03).addScaledVector(F.up, -.085), F.q.clone().multiply(new QT().setFromAxisAngle(new V3(1, 0, 0), Math.PI / 2 - 1.0)));
+    } else if (kind === 'tattoo') {   // fuocherello maori sull'interno del polso sinistro
+      const t = TX_TATTOO || (TX_TATTOO = canvasTex(128, 128, (c, w) => { c.clearRect(0, 0, w, w); c.fillStyle = '#141414'; c.strokeStyle = '#141414'; c.lineWidth = 7; c.lineCap = 'round';
+        c.beginPath(); c.moveTo(64, 118); c.bezierCurveTo(20, 100, 24, 60, 48, 40); c.bezierCurveTo(46, 62, 58, 70, 62, 58); c.bezierCurveTo(60, 36, 72, 20, 70, 6); c.bezierCurveTo(98, 30, 112, 70, 92, 100); c.bezierCurveTo(86, 110, 76, 116, 64, 118); c.stroke();
+        c.lineWidth = 5; c.beginPath(); c.arc(64, 92, 14, Math.PI * .9, Math.PI * 2.2); c.stroke(); c.beginPath(); c.moveTo(52, 70); c.quadraticCurveTo(64, 60, 76, 74); c.stroke();
+        for (const [x, y] of [[40, 86], [88, 86], [64, 104]]) { c.beginPath(); c.arc(x, y, 3.5, 0, TAU); c.fill(); } }));
+      const mat = new THREE.MeshStandardMaterial({ map: t, transparent: true, alphaTest: .25, roughness: .8, emissive: 0xff5a10, emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -4, depthWrite: false });
+      const fo = B.lFo.getWorldPosition(new V3()), ha = B.lHa.getWorldPosition(new V3()), dir = ha.clone().sub(fo).normalize();
+      const fwd = new V3(0, 0, 1).transformDirection(av.obj.matrixWorld), out = fwd.clone().addScaledVector(dir, -fwd.dot(dir)).normalize();   // lato del palmo, verso avanti a riposo
+      const p = ha.clone().addScaledVector(dir, -.04).addScaledVector(out, .03);
+      const q = new QT().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new V3().crossVectors(dir, out), dir, out));
+      const pl = new THREE.Mesh(new THREE.PlaneGeometry(.045, .055), mat); attachAt(av, B.lFo, pl, p, q); av.tattoo = mat;
+    } else if (kind === 'cape') {   // mantello bianco a campana dietro le spalle
+      const g = new THREE.Group(), geo = new THREE.CylinderGeometry(.2, .42, 1.05, 18, 6, true, Math.PI * .62, Math.PI * .76); geo.translate(0, -.52, 0);
+      const pp = geo.attributes.position; for (let i = 0; i < pp.count; i++) { const y = -pp.getY(i); pp.setZ(i, pp.getZ(i) - y * .1); } geo.computeVertexNormals();
+      const cape = new THREE.Mesh(geo, accMat('cape', () => std(0xf2f2ee, .85, 0, { side: THREE.DoubleSide }))); cape.castShadow = true; g.add(cape);
+      const nk = B.neck.getWorldPosition(new V3()), fwd = new V3(0, 0, 1).transformDirection(av.obj.matrixWorld);
+      attachAt(av, B.spine2, g, nk.clone().add(new V3(0, -.04, 0)).addScaledVector(fwd, -.02), av.obj.getWorldQuaternion(new QT())); av.cape = g;
     } else if (kind === 'watch' || kind === 'smartwatch') {
       const g = new THREE.Group(), strap = accMat('strap' + kind, () => std(kind === 'watch' ? 0xb8bcc4 : 0x111111, .35, kind === 'watch' ? .9 : .1));
       const band = new THREE.Mesh(new THREE.CylinderGeometry(.032, .032, .018, 18, 1, true), strap); band.material.side = THREE.DoubleSide; g.add(band);

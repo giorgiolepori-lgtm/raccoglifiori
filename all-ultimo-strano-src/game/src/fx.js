@@ -1,5 +1,6 @@
 'use strict';
 /* ===== Effetti: scintille, polvere, fumo, oggetti di scena e mosse speciali ===== */
+const sprite = (col, pos, vel, life, size) => FX.add(new THREE.SpriteMaterial({ map: SPR.glow, color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }), pos, { vel, life, size });
 const SPR = {
   glow: canvasTex(64, 64, (c, w) => { const g = c.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.8)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, w, w); }),
   smoke: canvasTex(128, 128, (c) => { for (let i = 0; i < 18; i++) { const x = 64 + rand(-26, 26), y = 64 + rand(-26, 26), r = rand(18, 38); const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, 128, 128); } }),
@@ -262,3 +263,31 @@ Object.assign(SPECIALS, {
     end(M, a, d, D) { if (D.can.parent) D.can.parent.remove(D.can); },
   },
 });
+
+/* Rasco: il fuocherello sul polso si accende, fumo, l'avversario prende fuoco, arriva l'eroe in tuta gialla e tira un pugno */
+SPECIALS.rasco = {
+  dur: 250, dmg: 30, name: 'Fuocherello Saitama',
+  start(M, a, d, D) { a.override = 'tattooShow'; d.override = 'dazed'; HUD.specialTitle(a.def.name, this.name); AU.sfx('special'); D.orig = a.av; },
+  update(M, a, d, t, D) {
+    const F = a.fwd, S = sideOf(F), wrist = () => D.orig.B.lHa.getWorldPosition(new V3());
+    if (t < 45) { if (D.orig.tattoo) D.orig.tattoo.emissiveIntensity = Math.min(1.6, t / 15); if (t % 5 === 0) { const w = wrist(); sprite(pick([0xff7a1a, 0xffc040]), w.clone().add(new V3(rand(-.03, .03), rand(0, .04), rand(-.03, .03))), new V3(0, .6, 0), .5, .05); } }
+    if (t === 45) { AU.sfx('puff'); AU.sfx('fire'); const c = a.pos.clone().lerp(d.pos, .5).setY(.9); FX.smoke(c, 0x8a8a8a, 40, .9); FX.smoke(a.pos.clone().setY(1), 0x666666, 20, .7); }
+    if (t >= 50 && t < 175) { d.override = t < 135 ? 'onFire' : d.override; d.av.setTint(new THREE.Color(0xff5a10), .25 + Math.sin(t * .4) * .1);
+      for (let i = 0; i < 2; i++) sprite(pick([0xff5a10, 0xffa020, 0xffd040]), d.pos.clone().add(new V3(rand(-.25, .25), rand(.1, 1.7) + d.y, rand(-.25, .25))), new V3(rand(-.2, .2), rand(.8, 1.6), rand(-.2, .2)), rand(.3, .6), rand(.08, .16)); }
+    if (t === 72) {   // dal fumo esce l'eroe
+      D.hero = new Avatar('rasco', 3); scene.add(D.hero.obj); D.orig.obj.visible = false; a.av = D.hero; a.override = 'saitamaReady'; a.t = 0;
+      FX.smoke(a.pos.clone().setY(1), 0xaaaaaa, 24, .8); AU.sfx('whooshBig');
+    }
+    if (t === 130) { a.override = 'saitamaPunch'; a.t = 0; AU.sfx('whooshBig'); }
+    if (t === 138) { AU.sfx('boom'); AU.sfx('punchHard'); AU.grunt(d, true); M.shake = 1; M.slow = .3; M.slowT = .7; const p = d.av.B.head.getWorldPosition(new V3()); FX.spark(p, 0xffffff, 40, 2.5); FX.ring(p, true); HUD.specialFlash(); d.override = 'flying'; d.spin = 0; D.f0 = d.pos.clone(); }
+    if (t > 138 && t < 188) { const k = (t - 138) / 50; d.pos.copy(D.f0).addScaledVector(F, k * 6); d.y = Math.sin(k * Math.PI) * 2.6; d.spin = k * 8; }
+    if (t === 188) { d.y = 0; d.override = 'lying'; d.av.setTint(new THREE.Color(0), 0); AU.sfx('fall'); FX.dust(d.pos); M.shake = .4; FX.smoke(d.pos.clone().setY(.4), 0x444444, 12, .5); }
+    if (t === 215) { FX.smoke(a.pos.clone().setY(1), 0x999999, 20, .7); D.restore = true; }
+    if (D.restore && D.hero) { scene.remove(D.hero.obj); D.hero.dispose(); D.hero = null; a.av = D.orig; D.orig.obj.visible = true; a.override = 'calmTalk'; a.t = 0; }
+    if (t < 45) M.camOverride = { pos: wrist().addScaledVector(F, .42).addScaledVector(S, .12).add(new V3(0, .42, 0)), look: wrist().addScaledVector(F, -.05) };
+    else if (t < 130) M.camOverride = { pos: a.pos.clone().addScaledVector(F, .5).addScaledVector(S, 2.9).setY(1.5), look: a.pos.clone().addScaledVector(F, .55).setY(1.15) };
+    else if (t < 150) M.camOverride = { pos: a.pos.clone().addScaledVector(S, 2.4).addScaledVector(F, .6).setY(1.45), look: a.pos.clone().addScaledVector(F, .8).setY(1.35) };
+    else M.camOverride = { pos: a.pos.clone().addScaledVector(S, 4).addScaledVector(F, 2).setY(2.2), look: d.pos.clone().setY(d.y + .8) };
+  },
+  end(M, a, d, D) { if (D.hero) { scene.remove(D.hero.obj); D.hero.dispose(); } a.av = D.orig; D.orig.obj.visible = true; if (D.orig.tattoo) D.orig.tattoo.emissiveIntensity = 0; d.av.setTint(new THREE.Color(0), 0); d.y = 0; },
+};

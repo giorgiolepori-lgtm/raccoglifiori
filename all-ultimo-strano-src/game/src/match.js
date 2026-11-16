@@ -177,7 +177,8 @@ class Match {
       case 'getup': if (me.t >= 26) me.set('idle', true); break;
       case 'grabbing': this.stepThrow(me, op); break;
       case 'clinching': this.stepClinch(me, op); break;
-      case 'thrown': case 'clinched': break;
+      case 'butting': this.stepButt(me, op); break;
+      case 'thrown': case 'clinched': case 'butted': break;
       case 'spStart': if (me.t === 14) this.fireSpecial(me, op); break;
       case 'spWhiff': if (me.t >= 46) me.set('idle'); break;
     }
@@ -188,12 +189,12 @@ class Match {
     else { const r = Math.hypot(me.pos.x, me.pos.z); if (r > ARENA_R) me.pos.multiplyScalar(ARENA_R / r); }
   }
   startMove(me, mv, chained) {
-    me.move = mv; me.set('attack'); me.hitDone = false; me.queued = null; if (!chained) me.combo = 0;
+    me.move = mv; me.set('attack'); me.hitDone = false; me.dodgeShown = false; if (this.f) this.f.forEach(x => x.dodgeShown = false); me.queued = null; if (!chained) me.combo = 0;
     if (mv.level === 't') AU.sfx('whoosh'); else setTimeout(() => AU.sfx(mv.kick ? 'whooshK' : 'whoosh'), mv.start * 10);
   }
   separate() {
     const [a, b] = this.f; const d = new V3().subVectors(b.pos, a.pos); d.y = 0; const L = d.length(), min = .74;
-    if (['thrown', 'clinched', 'down'].includes(a.state) || ['thrown', 'clinched', 'down'].includes(b.state)) return;
+    if (['thrown', 'clinched', 'butted', 'butting', 'down'].includes(a.state) || ['thrown', 'clinched', 'butted', 'butting', 'down'].includes(b.state)) return;
     if (L < min && Math.abs(a.y - b.y) < 1.2) { if (L < 1e-4) d.set(1, 0, 0); else d.multiplyScalar(1 / L); const push = (min - L) / 2; a.pos.addScaledVector(d, -push); b.pos.addScaledVector(d, push); }
   }
   dmgMul(f) { const ai = this.cpu[this.f.indexOf(f)]; return ai && ai.d.dmg ? ai.d.dmg : 1; }
@@ -203,8 +204,9 @@ class Match {
     const v = new V3().subVectors(def.pos, att.pos); v.y = 0; const d = v.length();
     if (d > mv.reach + (def.state === 'air' ? .25 : 0)) return;
     const ang = Math.abs(angDiff(att.yaw, Math.atan2(v.x, v.z))); if (ang > .8) return;
-    if (['down', 'getup', 'fall', 'thrown', 'spV', 'grabbing', 'clinched', 'clinching'].includes(def.state)) return;
+    if (['down', 'getup', 'fall', 'thrown', 'spV', 'grabbing', 'clinched', 'clinching', 'butted', 'butting'].includes(def.state)) return;
     if (mv.level === 'h' && def.crouching && def.state !== 'air') return;
+    if (def.state === 'attack' && def.move && def.move.dodge && def.t >= def.move.dodge[0] && def.t <= def.move.dodge[1] && mv.level !== 'l') { if (!att.dodgeShown) { att.dodgeShown = true; HUD.flashText(this.f.indexOf(def) ? 1 : 0, 'SCHIVATA!'); AU.sfx('whoosh'); } return; }
     if (def.state === 'air' && mv.level === 'l') return;
     if (Math.abs(def.y - att.y) > 1.3) return;
     att.hitDone = true;
@@ -252,9 +254,24 @@ class Match {
   /* --- prese --- */
   startThrow(att, def) {
     if (STYLES[att.style].throwType === 'clinch') return this.startClinch(att, def);
+    if (STYLES[att.style].throwType === 'butt') return this.startButt(att, def);
     att.set('grabbing'); def.set('thrown'); def.move = null; def.override = 'thrown'; def.throwLift = def.throwSlam = 0;
     this.throwData = { a: att, d: def, yaw: att.yaw, d0: Math.max(.6, att.pos.distanceTo(def.pos)) };
     AU.sfx('grab'); this.hitstop = 4; this.shake = .08;
+  }
+  startButt(att, def) {   // gira dietro all'avversario e gli infila il dito nel sedere
+    att.set('butting'); def.set('butted'); def.move = null; def.override = 'butted';
+    this.throwData = { a: att, d: def, yaw0: att.yaw, c: def.pos.clone(), r: Math.max(.6, att.pos.distanceTo(def.pos)), a0: Math.atan2(att.pos.x - def.pos.x, att.pos.z - def.pos.z), dy: def.yaw };
+    AU.sfx('whoosh'); this.hitstop = 2;
+  }
+  stepButt(att, def) {
+    const t = att.t, T = this.throwData;
+    if (t <= 18) { const k = smooth(t / 18), ang = T.a0 + k * Math.PI * (T.a0 > 0 ? -1 : 1) * .95, r = lerp(T.r, .55, k);
+      att.pos.set(T.c.x + Math.sin(ang) * r, 0, T.c.z + Math.cos(ang) * r); att.yaw = Math.atan2(T.c.x - att.pos.x, T.c.z - att.pos.z); def.yaw = T.dy; }
+    if (t === 24) { AU.sfx('boing'); AU.grunt(def, true); this.shake = .25; this.hitstop = 8; HUD.flashText(this.f.indexOf(att) ? 1 : 0, 'DITO NEL SEDERE!'); def.hp = Math.max(0, def.hp - Math.round(16 * this.dmgMul(att))); }
+    if (t > 24 && t < 52) { const k = (t - 24) / 28; def.y = Math.sin(k * Math.PI) * .6; def.pos.addScaledVector(new V3(Math.sin(def.yaw), 0, Math.cos(def.yaw)), .02); }
+    if (t === 52) { def.y = 0; def.override = null; def.set('fall'); def.vel.set(Math.sin(def.yaw), 0, Math.cos(def.yaw)).multiplyScalar(-2); if (def.hp <= 0) this.ko(def); }
+    if (t >= 66) att.set('idle');
   }
   startClinch(att, def) {
     att.set('clinching'); def.set('clinched'); def.move = null; def.override = 'clinched';
@@ -326,7 +343,7 @@ class Match {
   /* --- rendering --- */
   render(dt) {
     // chi viene afferrato si mette in posa per primo: le mani di chi afferra lo seguono
-    const order = (this.f[1].state === 'thrown' || this.f[1].state === 'clinched') ? [this.f[1], this.f[0]] : this.f;
+    const order = (this.f[1].state === 'thrown' || this.f[1].state === 'clinched' || this.f[1].state === 'butted') ? [this.f[1], this.f[0]] : this.f;
     for (const f of order) { this.poseFighter(f, dt); f.av.tickFace(dt); }
     this.updateCamera(dt);
     HUD.update(this);
@@ -360,6 +377,8 @@ class Match {
       case 'getup': target = GETUP(tt); break;
       case 'grabbing': target = GRAB_ATT(Math.min(tt, 70)); break;
       case 'clinching': target = CLINCH_ATT(Math.min(tt, 76)); break;
+      case 'butting': target = tt < 18 ? P({ hip: [0, -.18, 0], cp: .2, lh: [-.25, 1.2, .3], rh: [.2, 1.15, .35], fist: .8, jaw: .3, lf: [-.15, .12, .1], rf: [.15, .1, -.1] })
+        : P({ hip: [0, -.22, .05], cp: .35, hp: -.15, cy: -.2, rh: [-.02, .98, .52], re: [.6, -.6, -.2], rho: [0, -.2, 1, -1, 0, 0], rpt: 2, fist: 1, lh: [-.25, 1.15, .2], jaw: .5, lf: [-.15, .1, .2], rf: [.17, .1, -.2] }); break;
       case 'spStart': target = P({ hip: [0, -.12, 0], cp: .15, hp: .3, lh: [-.25, 1.25, .2], rh: [.25, 1.25, .2], fist: 1, jaw: .4 }); break;
       case 'spWhiff': target = P({ cp: -.1, hp: -.2, lh: [-.4, 1.3, .3], rh: [.4, 1.3, .3], fist: 0, jaw: .3 }); break;
       default: target = clonePose(GUARD);
@@ -367,6 +386,9 @@ class Match {
     if (f.from && f.blendT < 1) { f.blendT = Math.min(1, f.blendT + dt * FPS / f.blendDur); f.pose = mixPose(f.from, target, smooth(f.blendT)); }
     else f.pose = target;
     if ((f.state === 'grabbing' || f.state === 'clinching') && this.throwData && this.throwData.a === f) this.gripHands(f, this.throwData.d, tt, f.state === 'clinching');
+    if (f.state === 'butting' && tt >= 18 && tt < 32 && this.throwData) { const v = this.throwData.d; v.av.obj.updateMatrixWorld(true);
+      const tgt = v.av.B.pelvis.getWorldPosition(new V3()).add(new V3(0, -.04 + v.y, 0)).addScaledVector(v.fwd, -.16);
+      f.av.obj.position.set(f.pos.x, f.y, f.pos.z); f.av.obj.rotation.y = f.yaw; f.av.obj.updateMatrixWorld(true); const loc = f.av.tilt.worldToLocal(tgt); f.pose.rh = [-loc.x, loc.y, loc.z]; }
     const o = f.av.obj; o.position.set(f.pos.x, f.y, f.pos.z); o.rotation.y = f.yaw;
     f.av.apply(f.pose);
   }

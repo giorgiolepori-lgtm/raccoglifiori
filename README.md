@@ -32,10 +32,10 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 È un unico file (circa 11 MB): si apre dal browser, anche offline (tranne la modalità online). Sorgenti e strumenti in `all-ultimo-strano-src/`.
 
 - **La classifica degli strani**: gli strani si sfidano per il titolo di più strano, con un premio in denaro.
-- **8 personaggi, 27 vestiti a scelta**: Alex, Bruno, Edo, Pet, Zonco, Josto, Davidino e Gio, ognuno con il suo stile di lotta
-  (standard con calci da calciatore, MMA, Muay Thai, Brazilian Jiu Jitsu, Kickboxing, Karate Shotokan), la sua guardia,
+- **9 personaggi, 30 vestiti a scelta**: Alex, Bruno, Edo, Pet, Zonco, Josto, Davidino, Gio e Rasco, ognuno con il suo stile di lotta
+  (standard con calci da calciatore, MMA, Muay Thai, Brazilian Jiu Jitsu, Kickboxing, Karate Shotokan, "dito nel sedere"), la sua guardia,
   le sue frasi (sottotitoli) e la sua mossa speciale.
-- **10 arene**: Capoterra, Porto Sa Ruxi, Maracalagonis, Zona musicisti, Padova, Banari, Quartello, Viale Colombo, Niu Crobu, Pitz'e Serra
+- **11 arene**: Quartiere del sole, Capoterra, Porto Sa Ruxi, Maracalagonis, Zona musicisti, Padova, Banari, Quartello, Viale Colombo, Niu Crobu, Pitz'e Serra
   (cartello con il nome in tutte tranne Porto Sa Ruxi).
 - **Modalità**: Arcade (tutti gli altri personaggi nelle loro arene, motivazione all'inizio e finale del personaggio),
   Battaglia libera contro il computer (difficoltà ultra facile, facile, normale, difficile), **Online** (sala d'attesa con chi è collegato, sfida diretta, partita veloce, codice stanza,
@@ -43,7 +43,7 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
 - **Mosse speciali** (tasto SPECIALE quando l'energia scende sotto un quarto, una volta per round): Fiat Punto blu (Alex),
   latte e menta gigante dal cielo (Bruno), calci alle caviglie con aura blu (Edo), attacco telepatico rosso (Pet),
   pallonata con svapo (Zonco), telecamera da spalla che fa esplodere (Josto), braccio di ferro in piedi (Davidino),
-  spray al peperoncino (Gio).
+  spray al peperoncino (Gio), Fuocherello Saitama (Rasco).
 - **Comandi touch**: joystick a sinistra (tocco breve su/giù = passo laterale, su tenuto = salto, doppio avanti = scatto),
   pugno sinistro/destro e calcio sinistro/destro a destra, PRESA, SPECIALE, pausa in alto a destra.
   Da computer: frecce o WASD, `U`/`I` pugni, `J`/`K` calci, `O` presa, `L` speciale, `Esc` pausa.
@@ -54,6 +54,10 @@ si apre con un doppio clic e funziona anche offline (senza rete usa i font di si
   - App Android: https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/download/strano/all-ultimo-strano.apk
   - File del gioco (computer, iPhone, Android): https://github.com/giorgiolepori-lgtm/raccoglifiori/releases/download/strano/all-ultimo-strano.html
 - **Sito per giocare dal browser**: https://giorgiolepori-lgtm.github.io/raccoglifiori/all-ultimo-strano.html
+
+Perché l'app si aggiorni sopra quella già installata serve una chiave di firma fissa, salvata nei segreti del progetto
+(Settings → Secrets and variables → Actions) come `STRANO_KEYSTORE` e `STRANO_KEY_PASSWORD`.
+Nell'app, quando sul sito c'è una versione più nuova, compare l'avviso «Nuova versione disponibile».
 
 L'app e il file vengono ricompilati da GitHub Actions a ogni modifica del gioco (`.github/workflows/strano-apk.yml`, progetto Android in `android-strano/`).
 Il sito si pubblica con `.github/workflows/strano-pages.yml` (GitHub Pages con Source «GitHub Actions») e contiene anche

@@ -36,8 +36,12 @@ const CHARS = [
     motive: 'Lo fa per ridere. Investirà tutti i soldi in slot machine, gratta e vinci ed ETF.',
     ending: { title: 'Gio è il più strano', text: 'Gio investe tutto il premio tra slot machine, gratta e vinci ed ETF. L\'ha fatto solo per ridere.', scene: 'slot' },
     lines: { intro: L('Dat', 'mogIntro', { delay: 200, len: 290 }), win: L('', 'mog', { fx: 'AURA +999999999', music: 'aura', len: 330 }), lose: L('Pesbi', 'shrugTalk') } },
+  { id: 'rasco', name: 'Rasco', style: 'comic', styleName: 'Dito nel sedere', voice: 122, arenas: ['sole'],
+    motive: 'Vuole partecipare al torneo per finanziare la sua musica. Con i soldi si farà il nuovo abbonamento di FL Studio.',
+    ending: { title: 'Rasco è il più strano', text: 'Rasco si fa il nuovo abbonamento di FL Studio e passa la notte a fare beat. Il prossimo pezzo è dedicato al torneo.', scene: 'studio' },
+    lines: { intro: L('Cazzo non supporti gli artisti', 'shrugTalk'), win: L('Fra ero nella mia vena creativa oggi', 'calmTalk'), lose: L('Fra sei brutto', 'pointTalk') } },
 ];
-for (const c of CHARS) { c.ready = true; c.costumes = AUS.meta[c.id].costumes; }
+for (const c of CHARS) { c.ready = true; c.costumes = AUS.meta[c.id].costumes.filter(x => x.name !== 'Eroe'); }
 const CHAR = Object.fromEntries(CHARS.map(c => [c.id, c]));
 const READY = CHARS.filter(c => c.ready);
 
@@ -107,6 +111,13 @@ function OVERRIDE_POSES(name, f, M) {
     case 'gioSpray': return P({ yaw: -.1, cy: -.2, hp: -.1, rh: [-.02, 1.5, .62], re: [.4, -.6, -.2], rho: [0, .1, 1, 0, 1, 0], fist: 1, lh: [-.22, 1.0, .1], lho: [0, 1, 0], hip: [0, -.04, .03], lf: [-.12, .1, .14], rf: [.14, .1, -.12] });
     case 'eyesCovered': { const k = Math.sin(tt * .15); return P({ yaw: 0, cy: 0, cp: .35 + Math.abs(k) * .15, hp: .4, hr: k * .2, lh: [-.05, 1.6, .17], rh: [.05, 1.6, .17], le: [-1, -.3, 0], re: [1, -.3, 0], lho: [0, 1, .2, 0, 0, -1], rho: [0, 1, .2, 0, 0, -1], fist: .2, jaw: .5, hip: [k * .05, -.14, -.05], lf: [-.14, .1, .05], rf: [.16, .1, -.05] }); }
     case 'clinched': { const k = f.t; return P({ yaw: 0, cy: 0, cp: .55, hp: .45, hip: [0, -.2, -.1], lh: [-.15, 1.2, .3], rh: [.15, 1.2, .3], le: [-1, -.4, 0], re: [1, -.4, 0], lho: [0, 1, 0], rho: [0, 1, 0], fist: .4, jaw: .5, lf: [-.13, .1, .02], rf: [.15, .1, -.12] }); }
+    case 'butted': { const j = t > 24; return P({ yaw: 0, cy: 0, cp: j ? -.25 : 0, hp: j ? -.45 : .05, jaw: j ? .8 : 0, fist: j ? .1 : 1,
+      lh: j ? [-.17, .98, -.2] : GUARD.lh, rh: j ? [.17, .98, -.2] : GUARD.rh, le: j ? [-1, -.3, -.3] : GUARD.le, re: j ? [1, -.3, -.3] : GUARD.re, lho: j ? [0, -1, 0] : GUARD.lho, rho: j ? [0, -1, 0] : GUARD.rho,
+      lf: j ? [-.12, .3, .1] : GUARD.lf, rf: j ? [.14, .22, -.05] : GUARD.rf, lfdFree: j ? 1 : 0, rfdFree: j ? 1 : 0, hip: [0, j ? -.05 : -.1, 0] }); }
+    case 'tattooShow': return P({ yaw: 0, cy: 0, hp: .35, lh: [-.08, 1.32, .42], le: [-1, -.6, -.2], lho: [0, 0, 1, 1, 0, 0], fist: 1, rh: [.24, 1.0, .1], rho: [0, 1, 0], jaw: 0, hip: [0, -.05, 0] });
+    case 'saitamaReady': return P({ yaw: .4, cy: .3, cp: .1, hp: 0, rh: [.26, 1.12, -.08], re: [.6, -1, -.2], lh: [-.12, 1.35, .42], fist: 1, hip: [0, -.2, 0], lf: [-.15, .1, .3], rf: [.2, .1, -.3] });
+    case 'saitamaPunch': return P({ yaw: -.2, cy: -.7, cp: .15, hp: .05, rh: [-.02, 1.4, .9], re: [.5, -.4, -.4], rho: [0, 0, 1, -1, 0, 0], rsh: .45, lh: [-.3, 1.2, .1], fist: 1, hip: [0, -.22, .15], lf: [-.15, .1, .4], rf: [.2, .1, -.3] });
+    case 'onFire': { const k = Math.sin(tt * .5); return P({ yaw: 0, cy: k * .2, cp: .1, hp: -.3, lh: [-.35, 1.55 + k * .15, .2], rh: [.35, 1.55 - k * .15, .2], le: [-1, 0, 0], re: [1, 0, 0], lho: [0, 1, 0], rho: [0, 1, 0], fist: 0, jaw: .8, hip: [0, -.05 + Math.abs(k) * .03, 0], lf: [-.12, .1 + Math.max(0, k) * .15, .05], rf: [.14, .1 + Math.max(0, -k) * .15, -.05] }); }
     case 'outro': return clonePose(GUARD);
   }
   return clonePose(GUARD);

@@ -63,6 +63,14 @@ const XMOVES = {
   oizuki: M({ name: 'Oi-zuki', start: 10, act: 3, dur: 28, dmg: 7, reach: 1.42, hs: 16, bs: 10, kb: .8, limb: 'lh',
     keys: [{ f: 0 }, { f: 10, e: 'o', lh: [-.03, 1.4, .82], le: [-.4, -.3, -.4], lho: [0, 0, 1, 1, 0, 0], lsh: .35, cy: -.3, hip: [0, -.18, .14], lf: [-.12, .1, .4], rh: [.2, 1.08, .1], rho: [1, 0, 0] }, { f: 14 }, { f: 27, ...G0 }] }),
 };
+/* stile comico "dito nel sedere": schiaffo, schivata con dito nel fianco, presa col dito nel sedere */
+XMOVES.slap = M({ name: 'Schiaffone', start: 11, act: 3, dur: 30, dmg: 8, reach: 1.15, hs: 18, bs: 10, kb: .7, limb: 'rh', sfx: 'p',
+  keys: [{ f: 0 }, { f: 6, rh: [.45, 1.6, .1], re: [1, 0, 0], rho: [0, 1, 0, 0, 0, 1], fist: 0, cy: .3 }, { f: 11, e: 'o', rh: [-.2, 1.5, .55], re: [.6, -.2, -.5], rho: [-1, .3, .3, 0, 1, 0], fist: 0, cy: -.5, yaw: .05 }, { f: 15 }, { f: 29, ...G0, fist: 1 }] });
+XMOVES.dodgepoke = M({ name: 'Schivata e dito', level: 'm', start: 20, act: 4, dur: 40, dmg: 9, reach: 1.25, hs: 22, bs: 12, kb: .5, limb: 'rh', sfx: 'p', dodge: [1, 16],
+  keys: [{ f: 0 }, { f: 6, e: 'o', hip: [0, -.2, -.22], cp: -.35, hp: -.2, cr: .25, lh: [-.35, 1.35, .05], rh: [.3, 1.3, .0], fist: .5 }, { f: 14, hip: [.05, -.22, -.18], cp: -.3, cr: .2 },
+    { f: 20, e: 'o', hip: [0, -.18, .08], cp: .25, cr: 0, rh: [-.02, 1.02, .72], re: [.5, -.6, -.3], rho: [0, -.1, 1, -1, 0, 0], rpt: 2, fist: 1, jaw: .4 }, { f: 25 }, { f: 39, ...G0 }] });
+XMOVES.mule = M({ name: 'Calcio all\'indietro', level: 'm', start: 16, act: 4, dur: 44, dmg: 14, reach: 1.45, hs: 22, bs: 14, kb: 2.2, limb: 'rf', sfx: 'K', kick: true,
+  keys: [{ f: 0 }, { f: 8, yaw: 2.6, cp: .5, hip: [0, -.1, 0], lh: [-.3, .9, .5], rh: [.3, .9, .5] }, { f: 16, e: 'o', yaw: 3.0, cp: .7, rf: [0, .9, -.85], rk: [.2, -.3, -1], rfd: [0, .2, -1], lh: [-.3, .7, .55], rh: [.3, .7, .55], hp: -.6 }, { f: 22 }, { f: 43, ...G0 }] });
 function mkStyle(base, map, extra) { const st = Object.assign({}, base, extra || {}); st.map = map; return st; }
 const MAP_STD = { LP: 'jab', fLP: 'hook', RP: 'cross', fRP: 'body', dRP: 'upper', LK: 'lowkick', dLK: 'poke', RK: 'volley', fRK: 'punta', dRK: 'sweep' };
 const STYLES = {
@@ -71,6 +79,7 @@ const STYLES = {
   muay: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { fLP: 'elbow', fRP: 'knee', RK: 'roundhouse', fRK: 'punta', dRK: 'lowkick' }), Object.assign({ throwType: 'clinch' }, XMOVES)),
   bjj: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { RK: 'punta', fRK: 'knee' }), Object.assign({ throwDmg: 22 }, XMOVES)),
   kick: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { RK: 'roundhouse', fRK: 'punta' }), Object.assign({ throwType: 'clinch' }, XMOVES)),
+  comic: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { fLP: 'slap', fRP: 'dodgepoke', RK: 'roundhouse', fRK: 'mule' }), Object.assign({ throwType: 'butt' }, XMOVES)),
   karate: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { LP: 'oizuki', LK: 'punta', RK: 'roundhouse', fRK: 'sidekick' }), XMOVES),
 };
 for (const st of Object.values(STYLES)) for (const mv of Object.values(st)) if (mv && mv.keys && !mv.track) mv.track = track(GUARD, mv.keys);
@@ -79,6 +88,7 @@ const STYLE_GUARD = {
   mma: { hip: [0, -.13, 0], lh: [-.15, 1.36, .42], rh: [.08, 1.33, .3] },
   muay: { hip: [0, -.06, 0], cp: 0, hp: .12, lh: [-.12, 1.5, .36], rh: [.09, 1.49, .32], lf: [-.12, .1, .2], rf: [.14, .1, -.18], rfd: [.4, -.35, .9] },
   bjj: { hip: [0, -.22, 0], cp: .22, hp: -.05, lh: [-.2, 1.24, .5], rh: [.15, 1.2, .44], fist: .35, lho: [0, .3, 1, 1, 0, 0], rho: [0, .3, 1, -1, 0, 0], lf: [-.16, .1, .2], rf: [.2, .1, -.22] },
+  comic: { hip: [0, -.09, 0], yaw: .15, cp: -.05, hp: .05, lh: [-.2, 1.32, .38], rh: [.16, 1.3, .3], fist: .6, lho: [-1, 0, 0], rho: [1, 0, 0], lf: [-.13, .1, .15], rf: [.17, .1, -.16] },
   karate: { hip: [0, -.17, 0], yaw: .5, lh: [-.1, 1.3, .52], le: [-.3, -1, 0], rh: [.18, 1.1, .1], rho: [1, 0, 0], lf: [-.1, .1, .33], rf: [.2, .1, -.3], lk: [-.3, 0, 1], rk: [.5, 0, 1], rfd: [.9, -.05, .4] },
 };
 

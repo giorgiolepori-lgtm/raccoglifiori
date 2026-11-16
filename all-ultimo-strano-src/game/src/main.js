@@ -196,7 +196,7 @@ const App = {
     const props = new THREE.Group(); scene.add(props);
     const E = c.ending, SC = ENDINGS[E.scene](av, props);
     this.endFx = SC.fx || null;
-    this.bg = { avs: [{ a: av, t: 0, pose: SC.pose }], t: 0, cam: SC.cam, shift: .45 };
+    this.bg = { avs: [{ a: av, t: 0, pose: SC.pose }], t: 0, cam: SC.cam, shift: SC.shift ?? .45 };
     this.bg.cleanup = () => { scene.remove(props); };
     const s = el(`<div class="screen"><div class="card" style="left:auto;right:calc(16px + var(--safe-r));transform:translateY(-50%);width:min(52vw,480px)">
       <p class="kick">Finale · ${esc(c.name)}</p><h2>${esc(E.title)}</h2><p>${esc(E.text)}</p>
@@ -230,7 +230,6 @@ const App = {
   },
 };
 /* scene finali dell'Arcade */
-const sprite = (col, pos, vel, life, size) => FX.add(new THREE.SpriteMaterial({ map: SPR.glow, color: col, transparent: true }), pos, { vel, life, size });
 const ENDINGS = {
   toilet(av, g) {
     const white = std(0xf4f4f2, .25, .05);
@@ -282,6 +281,24 @@ const ENDINGS = {
     for (let i = 0; i < 4; i++) { const d = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .3, 10), m); d.rotation.z = Math.PI / 2; d.position.set(1.0 + i * .15 - .1, .55, -.3); g.add(d); }
     return { pose: t => { const k = (Math.sin(t * .05) * .5 + .5); bar.position.set(0, 1.55 + k * .35, .1); return { lh: [-.32, 1.55 + k * .35, .1], rh: [.32, 1.55 + k * .35, .1], le: [-1, -.4, 0], re: [1, -.4, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], fist: 1, hp: -.1, yaw: 0, cy: 0, hip: [0, -.06, 0], jaw: k > .8 ? .3 : 0 }; }, cam: t => ({ pos: new V3(.4, 1.6, 2.8), look: new V3(0, 1.4, 0) }) };
   },
+  studio(av, g) {   // FL Studio: monitor con le tracce, tastiera MIDI e cuffie
+    const desk = new THREE.Mesh(new THREE.BoxGeometry(1.3, .05, .65), std(0x2a2a2e, .6)); desk.position.set(0, .78, .55); g.add(desk);
+    for (const [x, z] of [[-.6, .3], [.6, .3], [-.6, .82], [.6, .82]]) { const l = new THREE.Mesh(new THREE.BoxGeometry(.04, .78, .04), std(0x111111)); l.position.set(x, .39, z); g.add(l); }
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(.62, .36), new THREE.MeshBasicMaterial({ map: canvasTex(512, 300, (c, w, h) => { c.fillStyle = '#2b3036'; c.fillRect(0, 0, w, h); c.fillStyle = '#3b434c'; c.fillRect(0, 0, w, 26);
+      c.fillStyle = '#f7a21b'; c.font = 'bold 18px Arial'; c.fillText('FL STUDIO', 10, 19); const cols = ['#5fd35f', '#e85c5c', '#5f9ce8', '#e8c35c', '#b45fe8'];
+      for (let r = 0; r < 7; r++) for (let k = 0; k < 9; k++) if (Math.random() < .7) { c.fillStyle = cols[r % 5]; c.fillRect(70 + k * 48, 40 + r * 36, 44, 28); }
+      c.fillStyle = '#8a9099'; for (let r = 0; r < 7; r++) c.fillRect(6, 40 + r * 36, 56, 28); }) }));
+    scr.position.set(0, 1.12, .82); scr.rotation.y = Math.PI; g.add(scr);
+    const mon = new THREE.Mesh(new THREE.BoxGeometry(.66, .4, .03), std(0x111111, .4)); mon.position.set(0, 1.12, .84); g.add(mon);
+    const kb = new THREE.Mesh(new THREE.BoxGeometry(.6, .04, .18), std(0x1a1a1a, .5)); kb.position.set(0, .82, .5); g.add(kb);
+    const keys = new THREE.Mesh(new THREE.PlaneGeometry(.56, .1), new THREE.MeshBasicMaterial({ map: canvasTex(256, 48, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.fillStyle = '#222'; for (let i = 0; i < 25; i++) { c.fillRect(i * w / 25, 0, 1, h); if ([1, 3, 6, 8, 10].includes(i % 12)) c.fillRect(i * w / 25 + 4, 0, 6, h * .6); } }) }));
+    keys.rotation.x = -Math.PI / 2; keys.position.set(0, .845, .47); g.add(keys);
+    { const F = headFrame(av), hp = new THREE.Group(), m = std(0x111111, .4); const band = new THREE.Mesh(new THREE.TorusGeometry(.105, .012, 8, 24, Math.PI), m); hp.add(band);
+      for (const sd of [-1, 1]) { const cup = new THREE.Mesh(new THREE.CylinderGeometry(.045, .045, .03, 16), m); cup.rotation.z = Math.PI / 2; cup.position.set(sd * .1, -.01, 0); hp.add(cup); }
+      attachAt(av, av.B.head, hp, F.eyes.clone().addScaledVector(F.up, .02).addScaledVector(F.fwd, -.07), F.q); }
+    return { fx: () => { if (Math.random() < .12) sprite(pick([0x5fd35f, 0xf7a21b, 0x5f9ce8]), new V3(rand(-.3, .3), rand(1.3, 1.6), .8), new V3(0, .5, 0), 1.2, .06); },
+      pose: t => ({ lh: [-.15, 1.02, .45], rh: [.15, 1.02 + Math.abs(Math.sin(t * .3)) * .03, .45], le: [-1, -.6, 0], re: [1, -.6, 0], lho: [0, 0, 1, 1, 0, 0], rho: [0, 0, 1, -1, 0, 0], fist: .2, hp: .2 + Math.sin(t * .2) * .08, cp: .1, yaw: 0, cy: 0, hip: [0, -.05, 0] }), cam: t => ({ pos: new V3(-1.5, 1.75, -.25), look: new V3(-.1, 1.3, .55) }), shift: .3 };
+  },
   slot(av, g) {   // slot machine, gratta e vinci e grafico degli ETF
     const sm = new THREE.Group(); const body = new THREE.Mesh(new THREE.BoxGeometry(.7, 1.6, .6), std(0xb3171f, .5, .3)); body.position.y = .8; sm.add(body);
     const scr = new THREE.Mesh(new THREE.PlaneGeometry(.5, .25), new THREE.MeshBasicMaterial({ map: canvasTex(192, 96, (c, w, h) => { c.fillStyle = '#fff'; c.fillRect(0, 0, w, h); c.font = 'bold 56px Arial'; c.fillStyle = '#c00'; c.fillText('7 7 7', 12, 70); }) })); scr.position.set(0, 1.15, .301); sm.add(scr);
@@ -307,6 +324,16 @@ const ChatBtn = {
   hide() { if (this.el) this.el.remove(); this.el = null; },
   bubble(who, text) { if (!this.el) { toast(who + ': ' + text); return; } const B = this.el.querySelector('.bubbles'); const d = el(`<div class="bub"><b>${esc(who)}</b> ${esc(text)}</div>`); B.appendChild(d); setTimeout(() => d.remove(), 4500); },
 };
+/* app Android: avviso quando c'è una versione nuova da scaricare (si installa sopra quella attuale) */
+const GAME_VERSION = +'__GAME_VERSION__' || 0;
+function checkAppUpdate() {
+  if (!/AllUltimoStranoApp/.test(navigator.userAgent) || !GAME_VERSION) return;
+  fetch('https://giorgiolepori-lgtm.github.io/raccoglifiori/strano-versione.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => {
+    if (!j || !(j.v > GAME_VERSION)) return;
+    const d = el(`<div class="upd"><b>Nuova versione disponibile</b><span>Scaricala e installala: si aggiorna l'app che hai già, i salvataggi restano.</span><div class="row"><button class="cta ghost" id="updNo">Dopo</button><a class="cta" id="updGo" href="${j.apk}" target="_blank" rel="noopener">Aggiorna</a></div></div>`);
+    document.body.appendChild(d); d.querySelector('#updNo').onclick = () => d.remove();
+  }).catch(() => {});
+}
 /* tasto Indietro dell'app Android */
 window.appBack = () => {
   if (App.match) { App.togglePause(); return 'ok'; }
@@ -380,6 +407,7 @@ function boot() {
     App.title();
     requestAnimationFrame(t => { last = t; frame(t); });
     setTimeout(() => { bar.style.width = '100%'; $('#loading').remove(); }, 250);
+    setTimeout(checkAppUpdate, 1500);
   };
 }
 boot();

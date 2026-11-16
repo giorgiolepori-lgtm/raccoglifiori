@@ -18,6 +18,9 @@ function facade(o) {
     noiseFill(c, W, H, o.wall, .06, 5000, 2);
     if (o.band) { c.fillStyle = o.band; for (let r = 0; r <= o.rows; r++) c.fillRect(0, (o.ground || 0) + r * 120 - 6, W, 10); }
     if (o.brick) { c.fillStyle = o.brick; for (let col = 0; col < o.cols; col += 2) c.fillRect(col * 110 + 18, 0, 74, H); }
+    if (o.lattice) for (const col of o.lattice) for (let r = 1; r < o.rows; r++) {   // pannelli di mattoni traforati sui balconi
+      const x = col * 110 + 8, y = r * 120 + 5; c.fillStyle = '#a4553a'; c.fillRect(x, y, 94, 95); c.fillStyle = 'rgba(40,20,15,.85)';
+      for (let yy = 4; yy < 92; yy += 10) for (let xx = 4 + ((yy / 10) % 2) * 5; xx < 90; xx += 10) c.fillRect(x + xx, y + yy, 5, 5); }
     for (let r = 0; r < o.rows; r++) for (let col = 0; col < o.cols; col++) {
       const x = col * 110 + 30, y = r * 120 + 25 + (o.ground ? 0 : 0); if (o.skip && o.skip(r, col)) continue;
       c.fillStyle = o.frame || '#d8d0c0'; c.fillRect(x - 6, y - 6, 62, 86);

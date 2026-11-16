@@ -47,7 +47,7 @@ function compose(body, headFrom, opts = {}) {
   if (useHead) {
     const hp = bonePos(headFrom, opts.anchor || 'Bip01_Neck'), bp = bonePos(body, opts.anchor || 'Bip01_Neck');
     const off = bp.clone().sub(hp).add(new THREE.Vector3(...(opts.nudge || [0, 0, 0]))), sc = opts.headScale || 1;
-    for (const t of headFrom.tris) if (t[3] !== 'body' || opts.keepHeadBody) { const h = t[3] === 'hair' ? hs : null; tris.push([add(headFrom, t[0], off, sc, hp, h), add(headFrom, t[1], off, sc, hp, h), add(headFrom, t[2], off, sc, hp, h), t[3]]); }
+    for (const t of headFrom.tris) if ((t[3] !== 'body' || opts.keepHeadBody) && !(opts.noHair && t[3] === 'hair')) { const h = t[3] === 'hair' ? hs : null; tris.push([add(headFrom, t[0], off, sc, hp, h), add(headFrom, t[1], off, sc, hp, h), add(headFrom, t[2], off, sc, hp, h), t[3]]); }
     // strati di capelli in più (volume): stessi ciuffi ingranditi
     (opts.hairLayers || []).forEach((L, li) => { const h2 = { s: L.s, o: L.o || [0, 0, 0], piv: hs ? hs.piv : bonePos(headFrom, 'Bip01_Head').add(new THREE.Vector3(0, 8, 0)), tag: li };
       const add2 = (i) => { const k = 'L' + li + '_' + i; if (key.has(k)) return key.get(k); const sv = headFrom.V[i], q = h2.piv; let p = [(sv.p[0] - q.x) * h2.s[0] + q.x + h2.o[0], (sv.p[1] - q.y) * h2.s[1] + q.y + h2.o[1], (sv.p[2] - q.z) * h2.s[2] + q.z + h2.o[2]]; p = [(p[0] - hp.x) * sc + hp.x + off.x, (p[1] - hp.y) * sc + hp.y + off.y, (p[2] - hp.z) * sc + hp.z + off.z]; verts.push({ ...sv, p }); key.set(k, verts.length - 1); return verts.length - 1; };

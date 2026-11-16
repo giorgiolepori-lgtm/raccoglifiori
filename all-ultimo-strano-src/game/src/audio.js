@@ -67,6 +67,8 @@ const AU = {
         }
         this.nz(r, .07, .35, 'highpass', 6000);
       },
+      boing: () => { this.osc('sine', 300, t, .35, .6, null, 900); this.osc('square', 150, t, .25, .12, null, 600); this.nz(t, .05, .3, 'bandpass', 2000, 1); },
+      fire: () => { this.nz(t, 1.8, .5, 'bandpass', 600, .5, this.rev, 1800); this.nz(t, 1.6, .25, 'highpass', 3000, 1); },
       clap: () => { this.nz(t, .06, .7, 'bandpass', 1500, 1.2); this.nz(t + .01, .05, .5, 'highpass', 3000); },
       glass: () => { for (const f of [2400, 3800, 5200, 6900]) this.osc('sine', f * rand(.97, 1.03), t, .5, .12, this.rev); this.nz(t, .25, .6, 'highpass', 3500, 1, this.rev); },
       splash: () => { this.nz(t, .7, .9, 'lowpass', 1800, 1, null, 300); this.nz(t, .5, .5, 'bandpass', 900, 1, this.rev); this.osc('sine', 90, t, .4, .9, null, 40); },

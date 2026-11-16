@@ -110,7 +110,7 @@ HEADS = {   # personaggio: (geometria testa, volto, barba, densità, tono, color
     'alex': ('a07', 'a07', 'full', 1.15, TAN, (.075, .055, .045)), 'zonco': ('a01', 'a06', 'mg', 1.25, TAN, (.06, .045, .04)),
     'bruno': ('a06', 'a20', 'full', .62, TAN, (.11, .075, .055)), 'edo': ('a10', 'a01', 'full', .65, TAN, (.04, .035, .03), .8),
     'pet': ('a02', 'a02', 'full', 1.25, TAN, (.1, .07, .05)), 'josto': ('a08', 'b02', 'full', .5, TAN, (.06, .045, .04), .3),
-    'davidino': ('a07', 's02', 'full', 1.25, TAN, (.05, .04, .035), .6), 'gio': ('b01', 'b01', 'full', .22, PALE, (.1, .07, .05)),
+    'davidino': ('a07', 's02', 'full', 1.25, TAN, (.05, .04, .035), .6), 'gio': ('b01', 'b01', 'full', .22, PALE, (.1, .07, .05)), 'rasco': ('b04', 'b03', None, 0, PALE, (.1, .07, .05)),
 }
 # ---------------- vestiti ----------------
 def C_alex_1():
@@ -208,6 +208,17 @@ def C_gio_5():
     b = a07(); n = (np.random.RandomState(9).rand(N, N) * .08).astype(np.float32); m = ztop() * cloth(b) * (1 - A07_SHIRT(b)) * (1 - ZSHOES())
     recolor(b, m, (.93, .89, .8), .3); b[..., :3] = np.clip(b[..., :3] - (m * n)[..., None], 0, 1)
     recolor(b, A07_SHIRT(b), (.12, .12, .13), .5); return b
+def a10_all(b, col, keep=.6): recolor(b, TOPZ() * (1 - ZPANTS()), col, keep)
+def C_rasco_1():   # felpa nera con zip e cargo verde oliva
+    b = a10(); a10_all(b, (.06, .06, .065), .5); recolor(b, ZPANTS() * cloth(b), (.27, .29, .19), .7); return b
+def C_rasco_2():   # pile nero, guanti neri, calzini bianchi e ciabatte bianche
+    b = a10(); a10_all(b, (.07, .07, .075), .4); recolor(b, ZPANTS() * cloth(b), (.07, .07, .08), .5)
+    recolor(b, ZHANDS(), (.05, .05, .055), .5); recolor(b, ZSHOES(), (.92, .92, .9), .3); return b
+def C_rasco_3(): b = a09_base(); recolor(b, A09_T() * cloth(b), (.07, .07, .075), .6); return b
+def C_rasco_4():   # costume giallo da eroe con guanti e stivali rossi (solo per la mossa speciale)
+    b = a10(); a10_all(b, (.95, .8, .1), .35); recolor(b, ZPANTS(), (.95, .8, .1), .35)
+    recolor(b, ZHANDS(), (.75, .08, .06), .5); recolor(b, ZSHOES(), (.75, .08, .06), .5)
+    recolor(b, box(380, 820, 640, 860) * TOPZ(), (.08, .08, .08), .5); return b
 COSTUMES = {   # id: (corpo, funzione, accessori, nome)
     'alex': [('b06', C_alex_1, [], 'Camicia a righe'), ('s02', C_alex_2, [], 'Maglietta nera e jeans corti')],
     'bruno': [('b06', C_bruno_1, [], 'Camicia bianca'), ('s02', C_bruno_2, ['glasses:dark'], 'Maglietta blu e occhiali'), ('a06', C_bruno_3, [], 'Felpa grigia')],
@@ -216,6 +227,7 @@ COSTUMES = {   # id: (corpo, funzione, accessori, nome)
     'zonco': [('s02', C_zonco_1, [], 'Maglia celeste'), ('s02', C_zonco_2, [], 'Maglia bianconera'), ('b06', C_zonco_3, ['bandana'], 'Camicia blu e bandana'), ('a07', C_zonco_4, ['cap:dark', 'glasses:dark'], 'Bomber verde'), ('a09', C_zonco_5, ['sunglasses:black'], 'Maglietta grigia')],
     'josto': [('b02', C_josto_1, ['glasses:gold'], 'Completo blu'), ('a09', C_josto_2, ['glasses:gold'], 'Curioso come Giosto'), ('a06', C_josto_3, ['sunglasses:mirror'], 'Camicia a quadri')],
     'davidino': [('a10', C_davidino_1, ['sunhead', 'chain'], 'Tuta gialla'), ('a09', C_davidino_2, ['chain', 'watch'], 'Maglietta sfumata')],
+    'rasco': [('a10', C_rasco_1, ['tattoo', 'earring', 'chain'], 'Felpa nera e cargo'), ('a10', C_rasco_2, ['tattoo', 'cap:beige', 'sunglasses:round'], 'Pile nero e ciabatte'), ('a09', C_rasco_3, ['tattoo', 'earring', 'chain'], 'Maglietta nera'), ('a10', C_rasco_4, ['tattoo', 'earring', 'cape'], 'Eroe')],
     'gio': [('a02', C_gio_1, [], 'Felpa cammello'), ('a10', C_gio_2, ['sunglasses:black'], 'Tuta nera'), ('a06', C_gio_3, ['smartwatch'], 'Maglia nera'), ('b06', C_gio_4, ['chain', 'watch'], 'Camicia a fantasia'), ('a07', C_gio_5, [], 'Pile panna')],
 }
 if __name__ == '__main__':
@@ -224,7 +236,9 @@ if __name__ == '__main__':
     for ch, lst in COSTUMES.items():
         g, face, beard, dens, tn, hc = HEADS[ch][:6]; br = HEADS[ch][6] if len(HEADS[ch]) > 6 else 0
         if not only or ch in only:
-            head(face, beard, dens, tn, ch, hc, br); cards(g, ch, hc)
+            if ch == 'rasco':
+                import rasco_head; rasco_head.rasco_head(face); Image.new('RGBA', (64, 64), (0, 0, 0, 0)).save(B + 'out/rasco_hair.png')
+            else: head(face, beard, dens, tn, ch, hc, br); cards(g, ch, hc)
             for i, (bd, fn, acc, nm) in enumerate(lst):
                 img = fn(); img = tone(img, skin_mask(img), tn); save(img, f'{ch}_{i + 1}_body', 1024, 84); print(ch, i + 1, nm)
         meta[ch] = {'head': g, 'costumes': [{'body': bd, 'acc': acc, 'name': nm} for bd, fn, acc, nm in lst]}
