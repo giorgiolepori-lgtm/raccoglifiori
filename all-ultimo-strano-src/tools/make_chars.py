@@ -214,7 +214,7 @@ def C_rasco_1():   # felpa nera con zip e cargo verde oliva
 def C_rasco_2():   # pile nero, guanti neri, calzini bianchi e ciabatte bianche
     b = a10(); a10_all(b, (.07, .07, .075), .4); recolor(b, ZPANTS() * cloth(b), (.07, .07, .08), .5)
     recolor(b, ZHANDS(), (.05, .05, .055), .5); recolor(b, ZSHOES(), (.92, .92, .9), .3); return b
-def C_rasco_3(): b = a09_base(); recolor(b, A09_T() * cloth(b), (.07, .07, .075), .6); return b
+def C_rasco_3(): b = a06(); recolor(b, A06_TOP(b), (.07, .07, .075), .6); recolor(b, ZPANTS() * cloth(b), (.2, .22, .26), .7); return b
 def C_rasco_4():   # costume giallo da eroe con guanti e stivali rossi (solo per la mossa speciale)
     b = a10(); a10_all(b, (.95, .8, .1), .35); recolor(b, ZPANTS(), (.95, .8, .1), .35)
     recolor(b, ZHANDS(), (.75, .08, .06), .5); recolor(b, ZSHOES(), (.75, .08, .06), .5)
@@ -227,7 +227,7 @@ COSTUMES = {   # id: (corpo, funzione, accessori, nome)
     'zonco': [('s02', C_zonco_1, [], 'Maglia celeste'), ('s02', C_zonco_2, [], 'Maglia bianconera'), ('b06', C_zonco_3, ['bandana'], 'Camicia blu e bandana'), ('a07', C_zonco_4, ['cap:dark', 'glasses:dark'], 'Bomber verde'), ('a09', C_zonco_5, ['sunglasses:black'], 'Maglietta grigia')],
     'josto': [('b02', C_josto_1, ['glasses:gold'], 'Completo blu'), ('a09', C_josto_2, ['glasses:gold'], 'Curioso come Giosto'), ('a06', C_josto_3, ['sunglasses:mirror'], 'Camicia a quadri')],
     'davidino': [('a10', C_davidino_1, ['sunhead', 'chain'], 'Tuta gialla'), ('a09', C_davidino_2, ['chain', 'watch'], 'Maglietta sfumata')],
-    'rasco': [('a10', C_rasco_1, ['tattoo', 'earring', 'chain'], 'Felpa nera e cargo'), ('a10', C_rasco_2, ['tattoo', 'cap:beige', 'sunglasses:round'], 'Pile nero e ciabatte'), ('a09', C_rasco_3, ['tattoo', 'earring', 'chain'], 'Maglietta nera'), ('a10', C_rasco_4, ['tattoo', 'earring', 'cape'], 'Eroe')],
+    'rasco': [('a10', C_rasco_1, ['tattoo', 'earring', 'chain'], 'Felpa nera e cargo'), ('a10', C_rasco_2, ['tattoo', 'cap:beige', 'sunglasses:round'], 'Pile nero e ciabatte'), ('a06', C_rasco_3, ['tattoo', 'earring', 'chain'], 'Maglia nera a maniche lunghe'), ('a10', C_rasco_4, ['tattoo', 'earring', 'cape'], 'Eroe')],
     'gio': [('a02', C_gio_1, [], 'Felpa cammello'), ('a10', C_gio_2, ['sunglasses:black'], 'Tuta nera'), ('a06', C_gio_3, ['smartwatch'], 'Maglia nera'), ('b06', C_gio_4, ['chain', 'watch'], 'Camicia a fantasia'), ('a07', C_gio_5, [], 'Pile panna')],
 }
 if __name__ == '__main__':

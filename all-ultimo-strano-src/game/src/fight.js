@@ -79,7 +79,7 @@ const STYLES = {
   muay: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { fLP: 'elbow', fRP: 'knee', RK: 'roundhouse', fRK: 'punta', dRK: 'lowkick' }), Object.assign({ throwType: 'clinch' }, XMOVES)),
   bjj: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { RK: 'punta', fRK: 'knee' }), Object.assign({ throwDmg: 22 }, XMOVES)),
   kick: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { RK: 'roundhouse', fRK: 'punta' }), Object.assign({ throwType: 'clinch' }, XMOVES)),
-  comic: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { fLP: 'slap', fRP: 'dodgepoke', RK: 'roundhouse', fRK: 'mule' }), Object.assign({ throwType: 'butt' }, XMOVES)),
+  comic: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { fLP: 'slap', fRP: 'dodgepoke', RK: 'roundhouse', fRK: 'punta' }), Object.assign({ throwType: 'butt' }, XMOVES)),
   karate: mkStyle(STYLE_STD, Object.assign({}, MAP_STD, { LP: 'oizuki', LK: 'punta', RK: 'roundhouse', fRK: 'sidekick' }), XMOVES),
 };
 for (const st of Object.values(STYLES)) for (const mv of Object.values(st)) if (mv && mv.keys && !mv.track) mv.track = track(GUARD, mv.keys);
